@@ -32,6 +32,9 @@ BOOL Application::InitInstance(HINSTANCE hInstance, int nCmdShow)
 		return FALSE;
 	}
 
+	m_renderer = new GOERenderer(hWnd); // GOERenderer 인스턴스 생성
+	m_renderer->OnInit(); // GOERenderer 초기화
+
 	ShowWindow(hWnd, nCmdShow);
 	UpdateWindow(hWnd);
 
@@ -64,4 +67,5 @@ void Application::Update()
 
 void Application::Render()
 {
+	m_renderer->OnRender();
 }
