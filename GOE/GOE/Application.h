@@ -1,29 +1,33 @@
 #pragma once  
-#include "framework.h"  
+
 #include "resource.h"  
-//#pragma comment(lib, "GOERender.lib")
-#include "../GOERender/GOERenderer.h"  
+#include "../GOE/Infomation.h"
+#include "../GOERender/ID3DRenderer.h"
 
-class Application  
-{  
-	public:  
-	Application() : m_hInst(nullptr), m_renderer(nullptr) {}  
-	~Application() { delete m_renderer; }	
-private:  
-	static HWND m_hWnd;  
-	HINSTANCE m_hInst;  
+class ID3DRenderer;
+
+class Application
+{
+public:
+	Application(GOE::WinDesc info);
+	~Application() {}
+
+public:
+	void Initialize();
+	int Run();
+
+private:
+	std::wstring m_name;
+	HWND m_hWnd;
+	HINSTANCE m_hInst;
 	MSG m_msg;
+	int m_nCmdShow;
+	COORD m_windowSize;
+	
+	std::unique_ptr<ID3DRenderer> m_renderer;
 
-public:  
-	MSG* GetMsg() { return &m_msg; };  
-	GOERenderer* m_renderer;
-public:  
-	ATOM MyRegisterClass(HINSTANCE hInstance);  
-	BOOL InitInstance(HINSTANCE hInstance, int nCmdShow);  
-	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);  
-	HWND GetHWND() { return m_hWnd; }
-public:  
-	void Initialize();  
-	void Update();  
-	void Render();  
+public:
+	ATOM MyRegisterClass(HINSTANCE hInstance);
+	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
+	BOOL InitInstance();
 };

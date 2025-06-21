@@ -12,6 +12,7 @@
     <ClInclude Include="GOERenderer.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="ID3DRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GOERenderer.cpp">

@@ -1,38 +1,20 @@
 #include "GOERenderer.h"
 
-
-
-GOERenderer::GOERenderer()
-{
-
-}
-
-GOERenderer::~GOERenderer()
-{
-}
-
-GOERenderer::GOERenderer(UINT width, UINT height, std::wstring name)
-{
-}
-
 GOERenderer::GOERenderer(HWND hWnd)
 {
 	m_hWnd = hWnd;
-	// Get the client area dimensions.
+	// 클라이언트 영역의 크기를 가져옵니다.
 	RECT rect;
 	GetClientRect(m_hWnd, &rect);
 	m_width = rect.right - rect.left;
 	m_height = rect.bottom - rect.top;
-	// Calculate the aspect ratio.
+
+	// 윈도우의 크기를 기반으로 화면 비율을 계산합니다.
 	m_aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
-	// Initialize the viewport and scissor rectangle.
+
+	// 윈도우의 크기를 기반으로 뷰포트와 시저 직사각형을 설정합니다.
 	m_viewport = CD3DX12_VIEWPORT(0.0f, 0.0f, static_cast<float>(m_width), static_cast<float>(m_height));
 	m_scissorRect = CD3DX12_RECT(0, 0, m_width, m_height);
-
-	WCHAR assetsPath[512];
-	GetAssetsPath(assetsPath, _countof(assetsPath));
-	m_assetsPath = assetsPath;
-	m_aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
 }
 
 void GOERenderer::OnInit()
@@ -47,9 +29,8 @@ void GOERenderer::OnUpdate()
 
 void GOERenderer::OnRender()
 {
+	/// 시작할때 wait을 넣을것
 
-	// Record all the commands we need to render the scene into the command list.
-	// 한글 : 장면을 렌더링하는 데 필요한 모든 명령을 명령 목록에 기록합니다.
 	PopulateCommandList();
 
 	// Execute the command list.
@@ -62,6 +43,8 @@ void GOERenderer::OnRender()
 	m_swapChain->Present(1, 0);
 
 	WaitForPreviousFrame();
+
+	/// 끝날때 signal을 넣을것
 }
 
 void GOERenderer::OnDestroy()
@@ -75,276 +58,44 @@ void GOERenderer::OnDestroy()
 
 void GOERenderer::LoadPipeline()
 {
-	UINT dxgiFactoryFlags = 0;
-
 #if defined(_DEBUG)
-	// Enable the debug layer (requires the Graphics Tools "optional feature").
-	// 번역 : 디버그 레이어 활성화 (그래픽 도구 "선택적 기능" 필요)
-	// NOTE: Enabling the debug layer after device creation will invalidate the active device.
-	// 번역 : 디버그 레이어를 활성화한 후에는 활성 장치가 무효화됩니다.
-	{
-		ComPtr<ID3D12Debug> debugController;
-		if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
-		{
-			debugController->EnableDebugLayer();
-
-			// Enable additional debug layers.
-			// 번역 : 추가 디버그 레이어 활성화
-			dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
-		}
-	}
+	ActiveDebugLayer(true);
 #endif
 
-	ComPtr<IDXGIFactory4> factory;
-	CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory));
-
-	if (m_useWarpDevice)
-	{
-		ComPtr<IDXGIAdapter> warpAdapter;
-		factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter));
-
-		D3D12CreateDevice(
-			warpAdapter.Get(),
-			D3D_FEATURE_LEVEL_11_0,
-			IID_PPV_ARGS(&m_device)
-		);
-	}
-	else
-	{
-		ComPtr<IDXGIAdapter1> hardwareAdapter;
-		GetHardwareAdapter(factory.Get(), &hardwareAdapter);
-
-		D3D12CreateDevice(
-			nullptr,
-			D3D_FEATURE_LEVEL_11_0,
-			IID_PPV_ARGS(&m_device)
-		);
-	}
-
-	// Describe and create the command queue.
-	// 번역 : 명령 큐 설명 및 생성
-	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-
-	m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue));
-
-	// Describe and create the swap chain.
-	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-	swapChainDesc.BufferCount = FrameCount;
-	swapChainDesc.Width = m_width;
-	swapChainDesc.Height = m_height;
-	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	swapChainDesc.SampleDesc.Count = 1;
-
-	ComPtr<IDXGISwapChain1> swapChain;
-	factory->CreateSwapChainForHwnd(
-		m_commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
-		m_hWnd,
-		&swapChainDesc,
-		nullptr,
-		nullptr,
-		&swapChain
-	);
-
-	// This sample does not support fullscreen transitions.
-	// 한글 : 이 샘플은 전체 화면 전환을 지원하지 않습니다.
-	factory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
-
-	swapChain.As(&m_swapChain);
-	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
-
-	// Create descriptor heaps.
-	// 한글 : 설명자 힙 생성
-	{
-		// Describe and create a render target view (RTV) descriptor heap.
-		D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-		rtvHeapDesc.NumDescriptors = FrameCount;
-		rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-		rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-		m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap));
-
-		m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	}
-
-	// Create frame resources.
-	// 한글 : 프레임 리소스 생성
-	{
-		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
-
-		// Create a RTV for each frame.
-		// 한글 : 각 프레임에 대한 RTV 생성
-		for (UINT n = 0; n < FrameCount; n++)
-		{
-			m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n]));
-			m_device->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, rtvHandle);
-			rtvHandle.Offset(1, m_rtvDescriptorSize);
-		}
-	}
-
-	m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator));
+	CreateDXGIFactory();
+	ChooseAdapter();
+	CreateDevice();
+	CreateCommandQueue();
+	CreateSwapChain();
+	CreateDescriptorHeaps();
+	CreateRenderTargets();
+	CreateCommandAllocator();
 }
 
 void GOERenderer::LoadAssets()
 {
-	// Create an empty root signature.
-	// 한글 : 빈 루트 서명 생성
-	{
-		CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-		rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-		ComPtr<ID3DBlob> signature;
-		ComPtr<ID3DBlob> error;
-		D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-		m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature));
-	}
-
-	// Create the pipeline state, which includes compiling and loading shaders.
-	// 한글 : 파이프라인 상태 생성, 여기에는 셰이더 컴파일 및 로드가 포함됩니다.
-	{
-		ComPtr<ID3DBlob> vertexShader;
-		ComPtr<ID3DBlob> pixelShader;
-
-#if defined(_DEBUG)
-		// Enable better shader debugging with the graphics debugging tools.
-		// 한글 : 그래픽 디버깅 도구로 셰이더 디버깅 개선
-		UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#else
-		UINT compileFlags = 0;
-#endif
-		// Compile the shaders.
-		// 한글 : 셰이더 컴파일
-		D3DCompileFromFile(L"D:\\project\\GOE\\GOE\\GOERender\\shaders.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &vertexShader, nullptr);
-		D3DCompileFromFile(L"D:\\project\\GOE\\GOE\\GOERender\\shaders.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &pixelShader, nullptr);
-
-		// Define the vertex input layout.
-		// 한글 : 정점 입력 레이아웃 정의
-		D3D12_INPUT_ELEMENT_DESC inputElementDescs[] =
-		{
-			{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-			{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-		};
-
-		// Describe and create the graphics pipeline state object (PSO).
-		// 한글 : 그래픽 파이프라인 상태 객체(PSO) 설명 및 생성
-		D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-		psoDesc.InputLayout = { inputElementDescs, _countof(inputElementDescs) };
-		psoDesc.pRootSignature = m_rootSignature.Get();
-		psoDesc.VS = CD3DX12_SHADER_BYTECODE(vertexShader.Get());
-		psoDesc.PS = CD3DX12_SHADER_BYTECODE(pixelShader.Get());
-		psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-		psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-		psoDesc.DepthStencilState.DepthEnable = FALSE;
-		psoDesc.DepthStencilState.StencilEnable = FALSE;
-		psoDesc.SampleMask = UINT_MAX;
-		psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-		psoDesc.NumRenderTargets = 1;
-		psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
-		psoDesc.SampleDesc.Count = 1;
-		m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
-	}
-
-	// Create the command list.
-	// 한글 : 명령 목록 생성
-	m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&m_commandList));
-
-	// Command lists are created in the recording state, but there is nothing
-	// to record yet. The main loop expects it to be closed, so close it now.
-	// 한글 : 명령 목록은 기록 상태로 생성되지만 아직 기록할 내용이 없습니다.
-	m_commandList->Close();
-
-	// Create the vertex buffer.
-	// 한글 : 정점 버퍼 생성
-	{
-		// Define the geometry for a triangle.
-		// 한글 : 삼각형의 기하학 정의
-		Vertex triangleVertices[] =
-		{
-			{ { 0.0f, 0.25f * m_aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-			{ { 0.25f, -0.25f * m_aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } },
-			{ { -0.25f, -0.25f * m_aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } }
-		};
-
-		const UINT vertexBufferSize = sizeof(triangleVertices);
-
-		// Note: using upload heaps to transfer static data like vert buffers is not 
-		// recommended. Every time the GPU needs it, the upload heap will be marshalled 
-		// over. Please read up on Default Heap usage. An upload heap is used here for 
-		// code simplicity and because there are very few verts to actually transfer.
-		// 한글 : 업로드 힙을 사용하여 정적 데이터(예: 정점 버퍼)를 전송하는 것은 권장되지 않습니다.
-
-		// Create the vertex buffer resource on the GPU.
-		// 한글 : GPU에서 정점 버퍼 리소스 생성
-		CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
-		CD3DX12_RESOURCE_DESC resDesc = CD3DX12_RESOURCE_DESC::Buffer(vertexBufferSize);
-
-		m_device->CreateCommittedResource(
-			&heapProps,
-			D3D12_HEAP_FLAG_NONE,
-			&resDesc,
-			D3D12_RESOURCE_STATE_GENERIC_READ,
-			nullptr,
-			IID_PPV_ARGS(&m_vertexBuffer));
-
-		// Copy the triangle data to the vertex buffer.
-		// 한글 : 삼각형 데이터를 정점 버퍼로 복사
-		UINT8* pVertexDataBegin;				// We do not intend to read from this resource on the CPU. 
-		CD3DX12_RANGE readRange(0, 0);			// 한글 : CPU에서 이 리소스를 읽을 의도가 없습니다.
-		m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
-		memcpy(pVertexDataBegin, triangleVertices, sizeof(triangleVertices));
-		m_vertexBuffer->Unmap(0, nullptr);
-
-		// Initialize the vertex buffer view.
-		// 한글 : 정점 버퍼 뷰 초기화
-		m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
-		m_vertexBufferView.StrideInBytes = sizeof(Vertex);
-		m_vertexBufferView.SizeInBytes = vertexBufferSize;
-	}
-
-	// Create synchronization objects and wait until assets have been uploaded to the GPU.
-	// 한글 : 동기화 객체를 생성하고 자산이 GPU에 업로드될 때까지 기다립니다.
-	{
-		m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
-		m_fenceValue = 1;
-
-		// Create an event handle to use for frame synchronization.
-		m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-		if (m_fenceEvent == nullptr)
-		{
-			HRESULT_FROM_WIN32(GetLastError());
-		}
-
-		// Wait for the command list to execute; we are reusing the same command 
-		// list in our main loop but for now, we just want to wait for setup to 
-		// complete before continuing.
-		// 한글 : 명령 목록이 실행될 때까지 기다립니다. 현재 메인 루프에서 동일한 명령 목록을 재사용하고 있지만,
-		WaitForPreviousFrame();
-	}
+	CreateRootSignature();
+	CompileShaders();
+	CreatePipelineState();
+	CreateCommandList();
+	CreateVertexBuffer();
+	SetVertexBufferView();
+	CreateFence();
 }
 
+/// <summary>
+/// 한 프레임동안 실행될 커맨드리스트를 채웁니다.
+/// </summary>
 void GOERenderer::PopulateCommandList()
 {
-	// Command list allocators can only be reset when the associated 
-   // command lists have finished execution on the GPU; apps should use 
-   // fences to determine GPU execution progress.
-   // 한글 : 명령 목록 할당자는 관련 명령 목록이 GPU에서 실행을 완료한 후에만 재설정할 수 있습니다.
 	m_commandAllocator->Reset();
-
-	// However, when ExecuteCommandList() is called on a particular command 
-	// list, that command list can then be reset at any time and must be before 
-	// re-recording.
-	// 한글 : 그러나 ExecuteCommandList()가 특정 명령 목록에서 호출되면 해당 명령 목록은 언제든지 재설정할 수 있으며,
 	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
 
-	// Set necessary state.
-	// 한글 : 필요한 상태 설정
+
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
 	m_commandList->RSSetViewports(1, &m_viewport);
 	m_commandList->RSSetScissorRects(1, &m_scissorRect);
 
-	// Indicate that the back buffer will be used as a render target.
 	// 한글 : 백 버퍼가 렌더 타겟으로 사용될 것임을 나타냅니다.
 	CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 		m_renderTargets[m_frameIndex].Get(),
@@ -432,10 +183,316 @@ void GOERenderer::GetHardwareAdapter(IDXGIFactory1* pFactory, IDXGIAdapter1** pp
 			return;
 		}
 	}
-
 }
 
-std::wstring GOERenderer::GetAssetFullPath(LPCWSTR assetName)
+
+HRESULT GOERenderer::CreateDXGIFactory()
 {
-	return m_assetsPath + assetName;
+	return 	CreateDXGIFactory2(m_dxgiFactoryFlags, IID_PPV_ARGS(&m_dxgiFactory));
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::ActiveDebugLayer(bool isOn)
+{
+	ComPtr<ID3D12Debug> debugController;
+	if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+	{
+		debugController->EnableDebugLayer();
+
+		// Enable additional debug layers.
+		// 번역 : 추가 디버그 레이어 활성화
+		m_dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+	}
+
+	if (isOn)
+	{
+		m_dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+	}
+	else
+	{
+		m_dxgiFactoryFlags &= ~DXGI_CREATE_FACTORY_DEBUG;
+	}
+
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::ChooseAdapter()
+{
+	if (m_useWarpDevice)
+	{
+		// WARP 어댑터를 사용합니다.
+		// WARP는 Windows Advanced Rasterization Platform의 약자로, 
+		// 소프트웨어 렌더링을 위한 Direct3D 12의 구현입니다.
+		ComPtr<IDXGIAdapter> warpAdapter;
+		m_dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter));
+		if (warpAdapter == nullptr)
+		{
+			return E_FAIL; // WARP 어댑터를 찾을 수 없음
+		}
+
+	}
+	else
+	{
+		ComPtr<IDXGIAdapter1> hardwareAdapter;
+		GetHardwareAdapter(m_dxgiFactory.Get(), &hardwareAdapter);
+		if (hardwareAdapter == nullptr)
+		{
+			return E_FAIL; // 하드웨어 어댑터를 찾을 수 없음
+		}
+	}
+
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreateDevice()
+{
+	if (m_useWarpDevice)
+	{
+		ComPtr<IDXGIAdapter> warpAdapter;
+		m_dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter));
+
+		D3D12CreateDevice(
+			warpAdapter.Get(),
+			D3D_FEATURE_LEVEL_11_0,
+			IID_PPV_ARGS(&m_device)
+		);
+	}
+	else
+	{
+		ComPtr<IDXGIAdapter1> hardwareAdapter;
+		GetHardwareAdapter(m_dxgiFactory.Get(), &hardwareAdapter);
+
+		D3D12CreateDevice(
+			nullptr,
+			D3D_FEATURE_LEVEL_11_0,
+			IID_PPV_ARGS(&m_device)
+		);
+	}
+	if (m_device == nullptr)
+	{
+		return E_FAIL;
+	}
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreateCommandQueue()
+{
+	// Describe and create the command queue.
+	// 번역 : 명령 큐 설명 및 생성
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+	m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue));
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreateSwapChain()
+{
+	// Describe and create the swap chain.
+	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+	swapChainDesc.BufferCount = FrameCount;
+	swapChainDesc.Width = m_width;
+	swapChainDesc.Height = m_height;
+	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	swapChainDesc.SampleDesc.Count = 1;
+
+	ComPtr<IDXGISwapChain1> swapChain;
+	m_dxgiFactory->CreateSwapChainForHwnd(
+		m_commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
+		m_hWnd,
+		&swapChainDesc,
+		nullptr,
+		nullptr,
+		&swapChain
+	);
+
+	// 전체화면 지원하지 않음
+	m_dxgiFactory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
+
+	swapChain.As(&m_swapChain);
+	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreateDescriptorHeaps()
+{
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+	rtvHeapDesc.NumDescriptors = FrameCount;
+	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap));
+
+	m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreateRenderTargets()
+{
+	// Create frame resources.
+	// 한글 : 프레임 리소스 생성
+	{
+		CD3DX12_CPU_DESCRIPTOR_HANDLE rtvHandle(m_rtvHeap->GetCPUDescriptorHandleForHeapStart());
+
+		// Create a RTV for each frame.
+		// 한글 : 각 프레임에 대한 RTV 생성
+		for (UINT n = 0; n < FrameCount; n++)
+		{
+			m_swapChain->GetBuffer(n, IID_PPV_ARGS(&m_renderTargets[n]));
+			m_device->CreateRenderTargetView(m_renderTargets[n].Get(), nullptr, rtvHandle);
+			rtvHandle.Offset(1, m_rtvDescriptorSize);
+		}
+	}
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreateCommandAllocator()
+{
+	m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator));
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreateRootSignature()
+{
+	CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+	rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+	ComPtr<ID3DBlob> signature;
+	ComPtr<ID3DBlob> error;
+	D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+	m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature));
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CompileShaders()
+{
+#if defined(_DEBUG)
+	// Enable better shader debugging with the graphics debugging tools.
+	// 한글 : 그래픽 디버깅 도구로 셰이더 디버깅 개선
+	UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
+#else
+	UINT compileFlags = 0;
+#endif
+	// Compile the shaders.
+	// 한글 : 셰이더 컴파일
+	D3DCompileFromFile(L"D:\\project\\GOE\\GOE\\GOERender\\shaders.hlsl", nullptr, nullptr, "PSMain", "ps_5_0", compileFlags, 0, &m_pixelShader, nullptr);
+	D3DCompileFromFile(L"D:\\project\\GOE\\GOE\\GOERender\\shaders.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &m_vertexShader, nullptr);
+
+	// Define the vertex input layout.
+	// 한글 : 정점 입력 레이아웃 정의
+	D3D12_INPUT_ELEMENT_DESC b;
+	b = { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	m_inputElementDescs[0] = b;
+	b = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	m_inputElementDescs[1] = b;
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreatePipelineState()
+{
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
+	psoDesc.InputLayout = { m_inputElementDescs, _countof(m_inputElementDescs) };
+	psoDesc.pRootSignature = m_rootSignature.Get();
+	psoDesc.VS = CD3DX12_SHADER_BYTECODE(m_vertexShader.Get());
+	psoDesc.PS = CD3DX12_SHADER_BYTECODE(m_pixelShader.Get());
+	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
+	psoDesc.DepthStencilState.DepthEnable = FALSE;
+	psoDesc.DepthStencilState.StencilEnable = FALSE;
+	psoDesc.SampleMask = UINT_MAX;
+	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	psoDesc.NumRenderTargets = 1;
+	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+	psoDesc.SampleDesc.Count = 1;
+	m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreateCommandList()
+{
+	m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_commandAllocator.Get(), m_pipelineState.Get(), IID_PPV_ARGS(&m_commandList));
+	// 명령 목록은 기록 상태로 생성되지만 아직 기록할 내용이 없습니다.
+	m_commandList->Close();
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreateVertexBuffer()
+{
+	// 삼각형의 정보
+	Vertex a;
+	a = { { 0.0f, 0.25f * m_aspectRatio, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } };
+	m_triangleVertices[0] = a;
+	a = { { 0.25f, -0.25f * m_aspectRatio, 0.0f }, { 0.0f, 1.0f, 0.0f, 1.0f } };
+	m_triangleVertices[1] = a;
+	a = { { -0.25f, -0.25f * m_aspectRatio, 0.0f }, { 0.0f, 0.0f, 1.0f, 1.0f } };
+	m_triangleVertices[2] = a;
+
+	m_vertexBufferSize = sizeof(m_triangleVertices);
+
+	// Note: using upload heaps to transfer static data like vert buffers is not 
+	// recommended. Every time the GPU needs it, the upload heap will be marshalled 
+	// over. Please read up on Default Heap usage. An upload heap is used here for 
+	// code simplicity and because there are very few verts to actually transfer.
+	// 한글 : 업로드 힙을 사용하여 정적 데이터(예: 정점 버퍼)를 전송하는 것은 권장되지 않습니다.
+
+	// Create the vertex buffer resource on the GPU.
+	// 한글 : GPU에서 정점 버퍼 리소스 생성
+	CD3DX12_HEAP_PROPERTIES heapProps(D3D12_HEAP_TYPE_UPLOAD);
+	CD3DX12_RESOURCE_DESC resDesc = CD3DX12_RESOURCE_DESC::Buffer(m_vertexBufferSize);
+
+	m_device->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&resDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&m_vertexBuffer));
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::SetVertexBufferView()
+{
+	UINT8* pVertexDataBegin;				// We do not intend to read from this resource on the CPU. 
+	CD3DX12_RANGE readRange(0, 0);			// 한글 : CPU에서 이 리소스를 읽을 의도가 없습니다.
+	m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
+	memcpy(pVertexDataBegin, m_triangleVertices, sizeof(m_triangleVertices));
+	m_vertexBuffer->Unmap(0, nullptr);
+
+	// Initialize the vertex buffer view.
+	// 한글 : 정점 버퍼 뷰 초기화
+	m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();
+	m_vertexBufferView.StrideInBytes = sizeof(Vertex);
+	m_vertexBufferView.SizeInBytes = m_vertexBufferSize;
+	return E_NOTIMPL;
+}
+
+HRESULT GOERenderer::CreateFence()
+{
+	// Create synchronization objects and wait until assets have been uploaded to the GPU.
+	// 한글 : 동기화 객체를 생성하고 자산이 GPU에 업로드될 때까지 기다립니다.
+	{
+		m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
+		m_fenceValue = 1;
+
+		// Create an event handle to use for frame synchronization.
+		// 한글 : 프레임 동기화를 위해 사용할 이벤트 핸들 생성
+		m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (m_fenceEvent == nullptr)
+		{
+			HRESULT_FROM_WIN32(GetLastError());
+		}
+
+		// Wait for the command list to execute; we are reusing the same command 
+		// list in our main loop but for now, we just want to wait for setup to 
+		// complete before continuing.
+		// 한글 : 명령 목록이 실행될 때까지 기다립니다. 현재 메인 루프에서 동일한 명령 목록을 재사용하고 있지만,
+		// 지금은 계속하기 전에 설정이 완료될 때까지 기다리기만 하면 됩니다.
+		WaitForPreviousFrame();
+	}
+	return E_NOTIMPL;
 }

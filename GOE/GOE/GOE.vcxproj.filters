@@ -25,6 +25,9 @@
     <ClInclude Include="targetver.h">
       <Filter>ect</Filter>
     </ClInclude>
+    <ClInclude Include="Infomation.h">
+      <Filter>EntryPoint</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GOE.rc">
