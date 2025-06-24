@@ -493,8 +493,9 @@ void GOERenderer::CompileShaders()
 
 	// D3DCompileFromFile()
 	// : 파일에서 셰이더를 컴파일합니다.
-	D3DCompileFromFile(
-		L"D:\\project\\GOE\\GOE\\GOERender\\shaders.hlsl",	// pFileName	: 셰이더 파일 경로입니다.
+	
+	HRESULT hr1 = D3DCompileFromFile(
+		L"..\\Shader\\shader_ps.hlsl",	// pFileName	: 셰이더 파일 경로입니다.
 		nullptr,		// pDefines		: 셰이더 컴파일 시 사용할 #define 매크로 목록
 		nullptr,		// pInclude		: 셰이더 코드 안에서 #include "..." 구문 처리할 때 사용하는 콜백 함수 포인터
 		"PSMain",		// pEntrypoint	: HLSL 내에서 실행시킬 메인 함수 이름
@@ -504,7 +505,25 @@ void GOERenderer::CompileShaders()
 		&m_pixelShader,	// ppCode		: 컴파일된 결과(바이너리 셰이더 코드)를 받을 포인터(ID3DBlob**)
 		nullptr);		// ppErrorMsgs	: 컴파일 에러, 경고 메시지를 받을 포인터(ID3DBlob**)
 	
-	D3DCompileFromFile(L"D:\\project\\GOE\\GOE\\GOERender\\shaders.hlsl", nullptr, nullptr, "VSMain", "vs_5_0", compileFlags, 0, &m_vertexShader, nullptr);
+	HRESULT hr = D3DCompileFromFile(
+		L"..\\Shader\\shader_vs.hlsl",
+		nullptr,
+		nullptr,
+		"VSMain",
+		"vs_5_0",
+		compileFlags,
+		0,
+		&m_vertexShader,
+		nullptr);
+
+	if (FAILED(hr1))
+	{
+		OutputDebugStringA("Failed to compile pixel shader.\n");
+	}
+	if (FAILED(hr))
+	{
+		OutputDebugStringA("Failed to compile vertex shader.\n");
+	}
 
 	// D3D12_INPUT_ELEMENT_DESC
 	// : 입력 어셈블러 단계에서 사용되는 입력 레이아웃을 정의합니다.

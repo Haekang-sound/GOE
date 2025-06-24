@@ -4,9 +4,6 @@
     <Filter Include="Source">
       <UniqueIdentifier>{892a5a93-0823-4ef4-8fa9-e5f4cdc0cf97}</UniqueIdentifier>
     </Filter>
-    <Filter Include="hlsl">
-      <UniqueIdentifier>{f55a286e-eb6b-46ac-89fe-09b587bf1439}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GOERenderer.h">
