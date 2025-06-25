@@ -6,11 +6,10 @@
 /// GOERenderer는 ID3DRenderer 인터페이스를 구현하며,
 /// DirectX 12를 사용하여 렌더링을 수행합니다.
 /// </summary>
-/// <param name="hWnd">HWND</param>
+/// <param name="hWnd">윈도우 핸들</param>
 GOERenderer::GOERenderer(HWND hWnd)
-{
-	m_hWnd = hWnd;
-}
+	: m_hWnd(hWnd)
+{}
 
 /// <summary>
 /// GOERenderer의 소멸자
@@ -32,6 +31,8 @@ void GOERenderer::OnInit()
 
 	LoadPipeline();
 	LoadAssets();
+
+	CopyUploadHeapToDefault();
 }
 
 /// <summary>
@@ -49,18 +50,19 @@ void GOERenderer::OnUpdate() {}
 /// </summary>
 void GOERenderer::OnRender()
 {
-	/// 시작할때 wait을 넣을것
+	WaitForFence(m_fenceValue[m_frameIndex]);
 
 	PopulateCommandList();
 
+	SignalFence(m_fenceValue[m_frameIndex]);
 	ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
 	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 	m_swapChain->Present(1, 0);
 
-	WaitForPreviousFrame();
-
-	/// 끝날때 signal을 넣을것
+	
+	// GPU 작업이 끝났으니, swapchain에서 새로운 백버퍼 인덱스를 받아옴.
+	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 }
 
 /// <summary>
@@ -69,7 +71,7 @@ void GOERenderer::OnRender()
 /// </summary>
 void GOERenderer::OnDestroy()
 {
-	WaitForPreviousFrame();
+	//WaitForPreviousFrame();
 
 	CloseHandle(m_fenceEvent);
 }
@@ -142,7 +144,7 @@ void GOERenderer::LoadAssets()
 /// 
 /// </summary>
 /// <param name="isOn">bool</param>
-/// <returns></returns>
+/// <returns>디버그레이어 활성황 여부입니다.</returns>
 void GOERenderer::ActiveDebugLayer(const bool& isOn)
 {
 	// ID3D12Debug
@@ -207,10 +209,10 @@ void GOERenderer::CreateDXGIFactory()
 	// : DXGI 팩토리를 생성하는 함수입니다.
 	// 이 함수는 DXGIDebug.dll 로드되는지 여부를 나타내는 플래그를 허용합니다.
 	// 그렇지 않으면 함수가 CreateDXGIFactory1과 동일하게 동작합니다.
-	CreateDXGIFactory2(
+	ThrowIfFailed(CreateDXGIFactory2(
 		m_dxgiFactoryFlags,				// DXGI 팩토리 플래그
 		IID_PPV_ARGS(&m_dxgiFactory)	// DXGI 팩토리 인터페이스를 요청합니다.
-	);
+	));
 }
 
 
@@ -245,7 +247,7 @@ bool GOERenderer::GetHardwareAdapter()
 		// 어댑터를 설명하는 DXGI_ADAPTER_DESC1 구조체에 대한 포인터입니다.
 		// 이 매개 변수는 NULL이 아니어야 합니다.
 		// "소프트웨어 어댑터"에 대해 0을 반환합니다.
-		m_adpter->GetDesc1(&desc);
+		ThrowIfFailed(m_adpter->GetDesc1(&desc));
 
 		// 소프트웨어 플래그가 설정되어 있으면 
 		// 무시합니다.
@@ -262,7 +264,7 @@ bool GOERenderer::GetHardwareAdapter()
 /// 랜더링 디바이스를 생성합니다.
 /// 
 /// </summary>
-/// <returns></returns>
+/// <returns>하드웨어 어뎁터 사용 여부입니다.</returns>
 void GOERenderer::CreateDevice(const bool& hardwareAdapter)
 {
 	const D3D_FEATURE_LEVEL FeatureLevels[] =
@@ -283,7 +285,7 @@ void GOERenderer::CreateDevice(const bool& hardwareAdapter)
 
 	if (!hardwareAdapter)
 	{
-		m_dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&m_adpter));
+		ThrowIfFailed(m_dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&m_adpter)));
 	}
 
 	// D3D12CreateDevice()
@@ -316,7 +318,7 @@ void GOERenderer::CreateCommandQueue()
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
-	m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue));
+	ThrowIfFailed(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
 }
 
 /// <summary>
@@ -341,7 +343,7 @@ void GOERenderer::CreateSwapChain()
 	// AlphaMode	: 알파 블렌딩 모드 지원방식
 	// Flags		: 디버그, 풀스크린 전환 등 특수 옵션 지정
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
-	swapChainDesc.BufferCount = FrameCount;
+	swapChainDesc.BufferCount = m_frameBufferCount;
 	swapChainDesc.Width = m_width;
 	swapChainDesc.Height = m_height;
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -353,21 +355,21 @@ void GOERenderer::CreateSwapChain()
 
 	//  CreateSwapChainForHwnd()
 	// : 이 메서드는 HWND에 대한 스왑체인을 생성합니다.
-	HRESULT result = m_dxgiFactory->CreateSwapChainForHwnd(
+	ThrowIfFailed(m_dxgiFactory->CreateSwapChainForHwnd(
 		m_commandQueue.Get(),
 		m_hWnd,
 		&swapChainDesc,
 		nullptr,
 		nullptr,
 		&swapChain
-	);
+	));
 
 	// 전체화면	전환을 비활성화 합니다.
 	// 스왑체인에 있는 옵션과 달리
 	// DXGI_MWA_NO_ALT_ENTER을 이용한 전체화면 비활성화는
 	// [alt + Enter] 키의 입력만 차단합니다.
 	// 다른 옵션을 통한 전체화면은 가능합니다.
-	m_dxgiFactory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER);
+	ThrowIfFailed(m_dxgiFactory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER));
 
 
 	// IDXGISwapChain1로 생성해서
@@ -391,13 +393,13 @@ void GOERenderer::CreateDescriptorHeaps()
 	// Type : 디스크립터 힙의 유형을 지정합니다.
 	// Flags : 셰이더에서 사용할 수 있는지 여부를 결정합니다.
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-	rtvHeapDesc.NumDescriptors = FrameCount;
+	rtvHeapDesc.NumDescriptors = m_frameBufferCount;
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
 	// CreateDescriptorHeap()
 	// : 디스크립터 힙을 생성하는 메서드입니다.
-	m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap));
+	ThrowIfFailed(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
 
 	
 }
@@ -417,10 +419,10 @@ void GOERenderer::CreateRenderTargets()
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
 
 	// 프레임카운트 == 버퍼갯수 만큼 반복합니다.
-	for (UINT i = 0; i < FrameCount; ++i)
+	for (UINT i = 0; i < m_frameBufferCount; ++i)
 	{
 		// 스왑체인의 버퍼를 가져옵니다.
-		m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i]));
+		ThrowIfFailed(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
 		m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
 		
 		// rtvHandle을 다음 디스크립터로 이동합니다.
@@ -436,7 +438,7 @@ void GOERenderer::CreateRenderTargets()
 /// <returns></returns>
 void GOERenderer::CreateCommandAllocator()
 {
-	m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator));
+	ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)));
 }
 
 /// <summary>
@@ -473,7 +475,7 @@ void GOERenderer::CreateRootSignature()
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 	D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-	m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature));
+	ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
 }
 
 /// <summary>
@@ -494,7 +496,7 @@ void GOERenderer::CompileShaders()
 	// D3DCompileFromFile()
 	// : 파일에서 셰이더를 컴파일합니다.
 	
-	HRESULT hr1 = D3DCompileFromFile(
+	ThrowIfFailed(D3DCompileFromFile(
 		L"..\\Shader\\shader_ps.hlsl",	// pFileName	: 셰이더 파일 경로입니다.
 		nullptr,		// pDefines		: 셰이더 컴파일 시 사용할 #define 매크로 목록
 		nullptr,		// pInclude		: 셰이더 코드 안에서 #include "..." 구문 처리할 때 사용하는 콜백 함수 포인터
@@ -503,9 +505,9 @@ void GOERenderer::CompileShaders()
 		compileFlags,	// pFlags1		: 컴파일 플래그입니다. 예: D3DCOMPILE_DEBUG, D3DCOMPILE_SKIP_OPTIMIZATION 등
 		0,				// pFlags2		: 추가 플래그 (거의 안 씀, 항상 0으로 두면 됨)
 		&m_pixelShader,	// ppCode		: 컴파일된 결과(바이너리 셰이더 코드)를 받을 포인터(ID3DBlob**)
-		nullptr);		// ppErrorMsgs	: 컴파일 에러, 경고 메시지를 받을 포인터(ID3DBlob**)
+		nullptr));		// ppErrorMsgs	: 컴파일 에러, 경고 메시지를 받을 포인터(ID3DBlob**)
 	
-	HRESULT hr = D3DCompileFromFile(
+	ThrowIfFailed(D3DCompileFromFile(
 		L"..\\Shader\\shader_vs.hlsl",
 		nullptr,
 		nullptr,
@@ -514,16 +516,8 @@ void GOERenderer::CompileShaders()
 		compileFlags,
 		0,
 		&m_vertexShader,
-		nullptr);
+		nullptr));
 
-	if (FAILED(hr1))
-	{
-		OutputDebugStringA("Failed to compile pixel shader.\n");
-	}
-	if (FAILED(hr))
-	{
-		OutputDebugStringA("Failed to compile vertex shader.\n");
-	}
 
 	// D3D12_INPUT_ELEMENT_DESC
 	// : 입력 어셈블러 단계에서 사용되는 입력 레이아웃을 정의합니다.
@@ -645,7 +639,7 @@ void GOERenderer::CreatePipelineState()
 
 	// CreateGraphicsPipelineState()
 	// : 그래픽스 파이프라인 상태 객체(PSO)를 생성합니다.
-	m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState));
+	ThrowIfFailed(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
 /// <summary>
@@ -657,19 +651,20 @@ void GOERenderer::CreateCommandList()
 {
 	// D3D12_COMMAND_LIST_TYPE_DIRECT
 	// : 이 타입은 GPU에 직접 명령을 보내는 커맨드 리스트를 생성합니다.
-	m_device->CreateCommandList(
+	ThrowIfFailed(m_device->CreateCommandList(
 		0,								// NODMASK
 		D3D12_COMMAND_LIST_TYPE_DIRECT, // TYPE : 커맨드리스트 타입(무엇을 기록할지 종류) 지정
 		m_commandAllocator.Get(),		// CommandAllocator : 커맨드리스트와 1:1 매핑은 아님! (여러 번 재사용 가능)
 		m_pipelineState.Get(),			// PipelineState : 파이프라인 상태 객체(PSO)
 		IID_PPV_ARGS(&m_commandList)
-	);
+	));
 
 	// CreateCommandList를 사용해서 
 	// 커맨드리스트는 생성하면 OPEN상태이기 때문에
 	// Close() 메서드를 호출하여 닫아야 합니다.
-	m_commandList->Close();
+	ThrowIfFailed(m_commandList->Close());
 }
+
 
 /// <summary>
 /// 정점버퍼를 생성하고 초기화합니다.
@@ -683,9 +678,9 @@ void GOERenderer::CreateVertexBuffer()
 	// Vertex 구조체를 정의합니다.
 	// 이 구조체는 정점의 위치와 색상을 포함합니다.
 	Vertex vertexArray[3] = {};
-	vertexArray[0] = {{0.0f, 0.25f * m_aspectRatio, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f}};
-	vertexArray[1] = {{0.25f, -0.25f * m_aspectRatio, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f}};
-	vertexArray[2] = {{-0.25f, -0.25f * m_aspectRatio, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f}};
+	vertexArray[0] = { {0.0f, 0.25f * m_aspectRatio, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f} };
+	vertexArray[1] = { {0.25f, -0.25f * m_aspectRatio, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f} };
+	vertexArray[2] = { {-0.25f, -0.25f * m_aspectRatio, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f} };
 	
 	for(int i = 0; i < 3; ++i)
 	{
@@ -695,14 +690,35 @@ void GOERenderer::CreateVertexBuffer()
 	// 버텍스버퍼의 크기를 계산합니다.
 	m_vertexBufferSize = sizeof(m_triangleVertices);
 
+
+	// 1. 디폴트 힙 리소스 생성
+	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
+	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	D3D12_RESOURCE_DESC bufferDesc = {};
+	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	bufferDesc.Width = m_vertexBufferSize;
+	bufferDesc.Height = 1;
+	bufferDesc.DepthOrArraySize = 1;
+	bufferDesc.MipLevels = 1;
+	bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+	bufferDesc.SampleDesc.Count = 1;
+	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	ThrowIfFailed(m_device->CreateCommittedResource(
+		&defaultHeapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&bufferDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST, // 일단 복사 대상으로 생성
+		nullptr,
+		IID_PPV_ARGS(&m_vertexBufferDefault)
+	));
+
 	// D3D12_HEAP_PROPERTIES
 	// : 힙의 속성을 정의하는 구조체입니다.
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD; 					// 리소스를 할당할 힙의 속성을 정의합니다. 
-	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;// 고급 설정에서만 사용, 대부분 D3D12_CPU_PAGE_PROPERTY_UNKNOWN
-	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;	// 메모리 풀 선호도, 대부분 D3D12_MEMORY_POOL_UNKNOWN으로 둠
-	heapProps.CreationNodeMask = 0;								// 멀티 GPU 시스템에서 이 힙이 생성될 노드 마스크입니다. 단일 GPU 시스템에서는 0로 설정합니다.
-	heapProps.VisibleNodeMask = 0;								// 멀티 GPU 시스템에서 이 힙이 사용될 노드 마스크입니다. 단일 GPU 시스템에서는 0로 설정합니다.
 	
 	// D3D12_RESOURCE_DESC
 	// : 리소스의 속성을 정의하는 구조체입니다.
@@ -725,32 +741,23 @@ void GOERenderer::CreateVertexBuffer()
 		리소스를 생성할 때 힙(메모리 공간)도 자동으로 같이 만들어서
 		리소스와 힙이 1:1로 매칭되는 가장 단순한 형태.*/
 	//	반대되는 개념 : “Placed Resource”
-	HRESULT hr = m_device->CreateCommittedResource(
+	ThrowIfFailed(m_device->CreateCommittedResource(
 		&heapProps,				// 힙 속성
 		D3D12_HEAP_FLAG_NONE,	// 힙 플래그, 일반적으로 D3D12_HEAP_FLAG_NONE 사용
 		&resDesc,				// 리소스 설명
 		D3D12_RESOURCE_STATE_GENERIC_READ, // 리소스 생성 직후의 상태
 		nullptr,				// 최적화된 클리어 값 포인터(텍스처, RTV, DSV 등만 해당) 일반 버퍼는 nullptr
-		IID_PPV_ARGS(&m_vertexBuffer)); // 반환될 인터페이스의 ID
-
-	if (SUCCEEDED(hr)) {}
-	else
-	{	// 리소스 생성 실패 시 에러 처리
-		throw std::runtime_error("Failed to create vertex buffer resource.");
-	}
-		
+		IID_PPV_ARGS(&m_vertexBufferUpload))); // 반환될 인터페이스의 ID
 }
 
 /// <summary>
-/// 업로드힙에 정점 데이터를 디폴트힙에 복사하고,
-/// 정점 버퍼 뷰를 설정합니다.(아직 업로드 힙만 사용중)
+/// 업로드힙에 정점 데이터 복사하고,
+/// 디폴트 힙에 정점 버퍼 뷰를 설정합니다.
 /// 
 /// </summary>
 /// <returns></returns>
 void GOERenderer::SetVertexBufferView()
-{
-	/// 디폴트힙에 복사하는 과정을 추가할 것
-	
+{	
 	// 업로드 힙에 정점 데이터를 복사하기 위해
 	// 업로드 힙의 시작 주소를 가져옵니다.
 	UINT8* pVertexDataBegin;
@@ -766,19 +773,55 @@ void GOERenderer::SetVertexBufferView()
 		→ memcpy로 쓰기만 할 테니 “최소한의 작업”만 해줌*/
 
 	// Map() 메서드는 업로드 힙의 데이터를 CPU가 읽을 수 있도록 매핑합니다.
-	m_vertexBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin));
+	ThrowIfFailed(m_vertexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
 	// memcpy() 함수를 사용하여 정점 데이터를 업로드 힙에 복사합니다.
 	memcpy(pVertexDataBegin, m_triangleVertices, sizeof(m_triangleVertices));
 	// Unmap() 메서드는 업로드 힙의 매핑을 해제합니다.
-	m_vertexBuffer->Unmap(0, nullptr);
+	m_vertexBufferUpload->Unmap(0, nullptr);
+
+	
+
 
 	// D3D12_VERTEX_BUFFER_VIEW
 	// : 정점 버퍼 뷰를 정의하는 구조체입니다.
 	// 이후 DrawCall 시 이 정보를 넘김
 	// 이 뷰는 GPU가 정점 데이터를 읽을 때 사용됩니다.
-	m_vertexBufferView.BufferLocation = m_vertexBuffer->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
+	m_vertexBufferView.BufferLocation = m_vertexBufferDefault->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
 	m_vertexBufferView.StrideInBytes = sizeof(Vertex);		// 정점버퍼 전체 크기(바이트 단위)
 	m_vertexBufferView.SizeInBytes = m_vertexBufferSize;	// 정점 하나당 크기(바이트 단위)
+
+}
+
+void GOERenderer::CopyUploadHeapToDefault()
+{
+	WaitForFence(m_fenceValue[0]);
+
+	// CopyBufferRegion() 메서드를 사용하여 업로드 힙의 데이터를 디폴트 힙으로 복사합니다.
+	// 1. 커맨드 할당자와 커맨드 리스트 초기화
+		// 이전에 기록된 GPU 작업(커맨드 리스트)이 끝났으니, 새롭게 명령을 기록할 수 있도록 할당자(Allocator)를 리셋합니다.
+	m_commandAllocator->Reset();
+	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
+	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
+
+	m_commandList->CopyBufferRegion(
+		m_vertexBufferDefault.Get(), 0,	// Dest
+		m_vertexBufferUpload.Get(), 0,	// Src
+		m_vertexBufferSize				// Size
+	);
+	// (3) 상태변환: 복사에서 VertexBuffer로 전환
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barrier.Transition.pResource = m_vertexBufferDefault.Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	m_commandList->ResourceBarrier(1, &barrier);
+
+	m_commandList->Close();
+	SignalFence(++m_fenceValue[0]);
+	ID3D12CommandList* lists[] = { m_commandList.Get() };
+	m_commandQueue->ExecuteCommandLists(1, lists);
 }
 
 /// <summary>
@@ -790,9 +833,9 @@ void GOERenderer::SetVertexBufferView()
 void GOERenderer::CreateFence()
 {
 	// CreateFence() 메서드는 GPU와 CPU 간의 동기화를 위해 사용되는 Fence 객체를 생성합니다.
-	m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence));
+	ThrowIfFailed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
 	
-	m_fenceValue = 0;
+	//m_fenceValue = 0;
 
 	// CreateEvent() 메서드는 CPU가 GPU의 작업 완료를 기다릴 때 사용할 이벤트 객체를 생성합니다.
 	/*윈도우 표준 이벤트 오브젝트 생성
@@ -809,7 +852,7 @@ void GOERenderer::CreateFence()
 	}
 
 	// 이전 프레임의 GPU 작업이 완전히 끝날 때까지 CPU를 대기시키는 함수
-	WaitForPreviousFrame();
+	//WaitForPreviousFrame();
 }
 
 /// <summary>
@@ -818,13 +861,21 @@ void GOERenderer::CreateFence()
 /// </summary>
 void GOERenderer::PopulateCommandList()
 {
+	/*1. 베리어(Barrier)란 ?
+		GPU 리소스(버퍼, 텍스처 등)의 “상태 전환”을 명시적으로 선언하는 명령
+		D3D12에서 리소스는 “읽기”, “쓰기”, “카피”, “표시(Present)”, “렌더타겟”, “셰이더리소스” 등 다양한 상태를 가짐
+		GPU 파이프라인의 단계마다 리소스가 “올바른 상태”에 있어야만 GPU가 올바르게 처리함
+		베리어는 “지금부터 이 리소스 상태를 바꾼다”를 GPU에 알려주는 명령어*/
+
+	// D3D12_RESOURCE_BARRIER
+	// : 리소스의 상태 전환을 정의하는 구조체입니다.
 	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;	// 리소스 상태 전환을 정의합니다.
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;		// 베리어 플래그, 일반적으로 D3D12_RESOURCE_BARRIER_FLAG_NONE 사용
+	barrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();			// 상태를 변경할 리소스(렌더 타겟) 지정
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;	// 리소스의 모든 서브리소스에 대해 상태 전환을 적용합니다.
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;		// 상태 전환 이전의 리소스 상태를 지정합니다.
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;	// 상태 전환 이후의 리소스 상태를 지정합니다.
 
 	D3D12_RESOURCE_BARRIER b2arrier = {};
 	b2arrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -866,6 +917,8 @@ void GOERenderer::PopulateCommandList()
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 	
+
+	
 	// 7. 그리기 명령
 		// DrawInstanced() : 인스턴스화된 정점 데이터를 사용하여 도형을 그립니다.
 		// 3개의 정점을 사용하여 1개의 삼각형을 그립니다.
@@ -884,30 +937,28 @@ void GOERenderer::PopulateCommandList()
 }
 
 /// <summary>
-/// 이전 프레임이 완료될 때까지 대기합니다.
+/// 지정된 펜스 값으로 명령 큐에 신호를 보냅니다.
+/// 이 메서드는 GPU가 특정 작업을 완료했음을 CPU에 알리는 데 사용됩니다.
+/// 
 /// </summary>
-void GOERenderer::WaitForPreviousFrame()
+/// <param name="fenceValue">신호를 보낼 펜스 값입니다.</param>
+void GOERenderer::SignalFence(UINT64 fenceValue)
 {
-	// 1. fence값 저장
-	// 현재 fence 값을 변수에 저장. 이 값은 "GPU가 여기까지 작업하면" 이라는 동기화 포인트를 의미함.
-	const UINT64 fence = m_fenceValue;
-	// 2. 커맨드 큐에 signal 보내기
-	// Signal: GPU에 "지금 네가 실행하는 작업이 끝나면 이 fence 값을 기록해!"라고 명령.
-	m_commandQueue->Signal(m_fence.Get(), fence);
-	m_fenceValue++;
+	m_commandQueue->Signal(m_fence.Get(), fenceValue);
+}
 
-	// 3. GPU 작업이 끝났는지 확인
-	// GetCompletedValue() : GPU가 완료한 마지막 작업의 fence 값을 가져옵니다.
-	// GPU가 아직 이 fence 값까지 작업을 끝내지 않았다면,
-	if (m_fence->GetCompletedValue() < fence)
+/// <summary>
+/// 지정된 펜스 값에 도달할 때까지 렌더러를 대기시킵니다.
+/// 이 메서드는 GPU가 특정 작업을 완료할 때까지 CPU를 대기시키는 데 사용됩니다.
+/// 
+/// </summary>
+/// <param name="fenceValue">대기할 목표 펜스 값입니다.</param>
+void GOERenderer::WaitForFence(UINT64 fenceValue)
+{
+	if (m_fence.Get()->GetCompletedValue() < fenceValue)
 	{
-		// GPU가 fence 값에 도달할 때(작업 끝날 때) 이벤트를 발생하도록 설정.
-		m_fence->SetEventOnCompletion(fence, m_fenceEvent);
-		// GPU는 이 이벤트가 발생할 때까지(= GPU 작업 끝날 때까지) 대기.
+		m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent);
 		WaitForSingleObject(m_fenceEvent, INFINITE);
 	}
-
-	// GPU 작업이 끝났으니, swapchain에서 새로운 백버퍼 인덱스를 받아옴.
-	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 }
 

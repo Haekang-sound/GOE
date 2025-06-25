@@ -35,62 +35,12 @@ public:
 	void OnDestroy() override;
 
 private:
-	UINT m_width;
-	UINT m_height;
-	HWND m_hWnd;
-
-	bool m_useWarpDevice;
-
-private:
-	static const UINT FrameCount = 2;	
-
-	D3D12_VIEWPORT m_viewport;
-	RECT m_scissorRect;
-	float m_aspectRatio;
-
-	UINT m_dxgiFactoryFlags = 0;
-	ComPtr<IDXGIFactory6> m_dxgiFactory;
-	ComPtr<IDXGISwapChain3> m_swapChain;
-	ComPtr<IDXGIAdapter1> m_adpter;
-	ComPtr<ID3D12Device> m_device;
-
-	ComPtr<ID3D12Resource> m_renderTargets[FrameCount];
-	ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
-	UINT m_rtvDescriptorSize;
-	ComPtr<ID3D12CommandAllocator> m_commandAllocator;
-	ComPtr<ID3D12CommandQueue> m_commandQueue;
-	ComPtr<ID3D12RootSignature> m_rootSignature;
-
-	struct Vertex
-	{
-		XMFLOAT3 position;
-		XMFLOAT4 color;
-	};
-
-	ComPtr<ID3DBlob> m_vertexShader;
-	ComPtr<ID3DBlob> m_pixelShader;
-	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[2];
-	Vertex m_triangleVertices[3];
-	UINT m_vertexBufferSize;
-
-	ComPtr<ID3D12Resource> m_vertexBuffer;
-	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView;
-	
-	ComPtr<ID3D12PipelineState> m_pipelineState;
-	ComPtr<ID3D12GraphicsCommandList> m_commandList;
-	
-	UINT m_frameIndex;
-	HANDLE m_fenceEvent;
-	ComPtr<ID3D12Fence> m_fence;
-	UINT64 m_fenceValue;
-
-private: 
 	void SetViewport();
 
 	void LoadPipeline();
 	void LoadAssets();
-	
-private: 
+
+private:
 	/// 초기화를 명시적으로 이해하기 위해 
 	/// 함수들을 분리했습니다.
 	void ActiveDebugLayer(const bool& isOn);
@@ -108,11 +58,75 @@ private:
 	void CreateCommandList();
 	void CreateVertexBuffer();
 	void SetVertexBufferView();
+	void CopyUploadHeapToDefault();
 	void CreateFence();
 
 private:
 	void PopulateCommandList();
-	void WaitForPreviousFrame();
+	void SignalFence(UINT64 fenceValue);
+	void WaitForFence(UINT64 fenceValue);
 
+
+	inline void ThrowIfFailed(HRESULT hr)
+	{
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("HRESULT failed!");
+		}
+	}
+
+private:
+	UINT m_width = 0;
+	UINT m_height = 0;
+	HWND m_hWnd;
+
+	bool m_useWarpDevice = false;
+
+private:
+	static const UINT m_frameBufferCount = 2;
+
+	D3D12_VIEWPORT m_viewport = {};
+	RECT m_scissorRect = {};
+	float m_aspectRatio;
+
+	UINT m_dxgiFactoryFlags = 0;
+	ComPtr<IDXGIFactory6> m_dxgiFactory = nullptr;
+	ComPtr<IDXGISwapChain3> m_swapChain = nullptr;;
+	ComPtr<IDXGIAdapter1> m_adpter = nullptr;;
+	ComPtr<ID3D12Device> m_device = nullptr;;
+
+	ComPtr<ID3D12Resource> m_renderTargets[m_frameBufferCount] = {};
+	ComPtr<ID3D12DescriptorHeap> m_rtvHeap = nullptr;;
+	UINT m_rtvDescriptorSize = 0;
+	ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;;
+	ComPtr<ID3D12CommandQueue> m_commandQueue = nullptr;;
+	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;;
+
+	struct Vertex
+	{
+		XMFLOAT3 position;
+		XMFLOAT4 color;
+	};
+
+	ComPtr<ID3DBlob> m_vertexShader = nullptr;;
+	ComPtr<ID3DBlob> m_pixelShader = nullptr;;
+	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[2] = {};
+	Vertex m_triangleVertices[3] = {};
+	UINT m_vertexBufferSize = 0;
+
+	ComPtr<ID3D12Resource> m_vertexBufferUpload = nullptr;
+	ComPtr<ID3D12Resource> m_vertexBufferDefault = nullptr;
+
+	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView = {};
+
+	ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
+	ComPtr<ID3D12GraphicsCommandList> m_commandList = nullptr;
+
+	UINT m_frameIndex = 0;
+	HANDLE m_fenceEvent = nullptr;
+	ComPtr<ID3D12Fence> m_fence = nullptr;
+
+	// 프레임마다 동기화를 위한 fece값을 갖는다.
+	UINT64 m_fenceValue[m_frameBufferCount] = {};
 };
 
