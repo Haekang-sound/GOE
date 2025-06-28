@@ -26,7 +26,7 @@ using namespace DirectX;
 class GOERenderer : public ID3DRenderer
 {
 public:
-	GOERenderer(HWND hWnd);
+	GOERenderer(const HWND& hWnd);
 	~GOERenderer();
 
 	void OnInit() override;
@@ -58,16 +58,16 @@ private:
 	void CreateCommandList();
 	void CreateVertexBuffer();
 	void SetVertexBufferView();
-	void CopyUploadHeapToDefault();
 	void CreateFence();
+	void CopyUploadHeapToDefault();
 
 private:
 	void PopulateCommandList();
-	void SignalFence(UINT64 fenceValue);
-	void WaitForFence(UINT64 fenceValue);
+	void SignalFence(const UINT64& fenceValue);
+	void WaitForFence(const UINT64& fenceValue);
 
 
-	inline void ThrowIfFailed(HRESULT hr)
+	inline void ThrowIfFailed(const HRESULT& hr)
 	{
 		if (FAILED(hr))
 		{
@@ -100,6 +100,7 @@ private:
 	UINT m_rtvDescriptorSize = 0;
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;;
 	ComPtr<ID3D12CommandQueue> m_commandQueue = nullptr;;
+	
 	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;;
 
 	struct Vertex
@@ -127,6 +128,5 @@ private:
 	ComPtr<ID3D12Fence> m_fence = nullptr;
 
 	// 프레임마다 동기화를 위한 fece값을 갖는다.
-	UINT64 m_fenceValue[m_frameBufferCount] = {};
+	UINT64 m_fenceValue = 0;
 };
-

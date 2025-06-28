@@ -6,6 +6,10 @@
 
 class ID3DRenderer;
 
+/// <summary>
+/// 프로그램의 최전방 Application
+/// 
+/// </summary>
 class Application
 {
 public:

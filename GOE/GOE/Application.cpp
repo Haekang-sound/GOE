@@ -5,7 +5,7 @@ Application::Application(GOE::WinDesc info)
 	: m_hInst(info.hInstance), m_nCmdShow(info.nCmdShow),
 	m_name(info.name), m_windowSize({ static_cast<SHORT>(info.width), static_cast<SHORT>(info.height) }),
 	m_renderer(nullptr), m_hWnd(nullptr), m_msg({})
-{ }
+{}
 
 void Application::Initialize()
 {
@@ -31,7 +31,6 @@ int Application::Run()
 		}
 
 		m_renderer->OnRender(); // ∑ª¥ı∏µ »£√‚
-
 	}
 
 	return 0;
@@ -76,7 +75,7 @@ BOOL Application::InitInstance()
 	{
 		return FALSE;
 	}
-	
+
 	ShowWindow(m_hWnd, m_nCmdShow);
 	UpdateWindow(m_hWnd);
 

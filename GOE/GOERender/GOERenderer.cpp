@@ -7,7 +7,7 @@
 /// DirectX 12를 사용하여 렌더링을 수행합니다.
 /// </summary>
 /// <param name="hWnd">윈도우 핸들</param>
-GOERenderer::GOERenderer(HWND hWnd)
+GOERenderer::GOERenderer(const HWND& hWnd)
 	: m_hWnd(hWnd)
 {}
 
@@ -50,19 +50,21 @@ void GOERenderer::OnUpdate() {}
 /// </summary>
 void GOERenderer::OnRender()
 {
-	WaitForFence(m_fenceValue[m_frameIndex]);
+	WaitForFence(m_fenceValue);
 
 	PopulateCommandList();
 
-	SignalFence(m_fenceValue[m_frameIndex]);
 	ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
 	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 	m_swapChain->Present(1, 0);
-
 	
+	m_fenceValue++;
+	SignalFence(m_fenceValue);
+
 	// GPU 작업이 끝났으니, swapchain에서 새로운 백버퍼 인덱스를 받아옴.
-	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
+	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();	
+
 }
 
 /// <summary>
@@ -71,8 +73,7 @@ void GOERenderer::OnRender()
 /// </summary>
 void GOERenderer::OnDestroy()
 {
-	//WaitForPreviousFrame();
-
+	WaitForFence(m_fenceValue);
 	CloseHandle(m_fenceEvent);
 }
 
@@ -195,8 +196,6 @@ void GOERenderer::ActiveDebugLayer(const bool& isOn)
 	//	4. 둘 다 비활성화
 	//	아무런 디버그 메시지 없음
 	//	버그 찾기 매우 어려움(블랙박스 느낌)
-
-
 }
 
 /// <summary>
@@ -282,7 +281,6 @@ void GOERenderer::CreateDevice(const bool& hardwareAdapter)
 		D3D_FEATURE_LEVEL_1_0_GENERIC,
 	};
 
-
 	if (!hardwareAdapter)
 	{
 		ThrowIfFailed(m_dxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&m_adpter)));
@@ -315,8 +313,8 @@ void GOERenderer::CreateCommandQueue()
 	// D3D12_COMMAND_QUEUE_FLAGS Flags : 큐의 플래그를 지정합니다.
 	// UINT NodeMask : 멀티 GPU 시스템에서 큐가 실행될 노드를 지정합니다.(멀티로 안쓰면 0)
 	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
 	ThrowIfFailed(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
 }
@@ -794,7 +792,7 @@ void GOERenderer::SetVertexBufferView()
 
 void GOERenderer::CopyUploadHeapToDefault()
 {
-	WaitForFence(m_fenceValue[0]);
+	WaitForFence(m_fenceValue); // GPU가 이전 작업을 끝낼 때까지 기다립니다.
 
 	// CopyBufferRegion() 메서드를 사용하여 업로드 힙의 데이터를 디폴트 힙으로 복사합니다.
 	// 1. 커맨드 할당자와 커맨드 리스트 초기화
@@ -819,9 +817,12 @@ void GOERenderer::CopyUploadHeapToDefault()
 	m_commandList->ResourceBarrier(1, &barrier);
 
 	m_commandList->Close();
-	SignalFence(++m_fenceValue[0]);
+
 	ID3D12CommandList* lists[] = { m_commandList.Get() };
 	m_commandQueue->ExecuteCommandLists(1, lists);
+
+	m_fenceValue++;
+	SignalFence(m_fenceValue);
 }
 
 /// <summary>
@@ -834,8 +835,7 @@ void GOERenderer::CreateFence()
 {
 	// CreateFence() 메서드는 GPU와 CPU 간의 동기화를 위해 사용되는 Fence 객체를 생성합니다.
 	ThrowIfFailed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-	
-	//m_fenceValue = 0;
+	m_fenceValue = 0; // 초기 펜스 값 설정	
 
 	// CreateEvent() 메서드는 CPU가 GPU의 작업 완료를 기다릴 때 사용할 이벤트 객체를 생성합니다.
 	/*윈도우 표준 이벤트 오브젝트 생성
@@ -937,12 +937,12 @@ void GOERenderer::PopulateCommandList()
 }
 
 /// <summary>
-/// 지정된 펜스 값으로 명령 큐에 신호를 보냅니다.
+/// 지정된 펜스 값으로 명령 rmr큐에 신호를 보냅니다.
 /// 이 메서드는 GPU가 특정 작업을 완료했음을 CPU에 알리는 데 사용됩니다.
 /// 
 /// </summary>
 /// <param name="fenceValue">신호를 보낼 펜스 값입니다.</param>
-void GOERenderer::SignalFence(UINT64 fenceValue)
+void GOERenderer::SignalFence(const UINT64& fenceValue)
 {
 	m_commandQueue->Signal(m_fence.Get(), fenceValue);
 }
@@ -953,9 +953,10 @@ void GOERenderer::SignalFence(UINT64 fenceValue)
 /// 
 /// </summary>
 /// <param name="fenceValue">대기할 목표 펜스 값입니다.</param>
-void GOERenderer::WaitForFence(UINT64 fenceValue)
+void GOERenderer::WaitForFence(const UINT64& fenceValue)
 {
-	if (m_fence.Get()->GetCompletedValue() < fenceValue)
+	UINT64 b = m_fence.Get()->GetCompletedValue();
+ 	if (m_fence.Get()->GetCompletedValue() < fenceValue)
 	{
 		m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent);
 		WaitForSingleObject(m_fenceEvent, INFINITE);
