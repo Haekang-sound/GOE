@@ -1,4 +1,4 @@
-#pragma once  
+ï»¿#pragma once  
 
 #include "resource.h"  
 #include "../GOE/Infomation.h"
@@ -7,7 +7,7 @@
 class ID3DRenderer;
 
 /// <summary>
-/// ÇÁ·Î±×·¥ÀÇ ÃÖÀü¹æ Application
+/// í”„ë¡œê·¸ë¨ì˜ ìµœì „ë°© Application
 /// 
 /// </summary>
 class Application

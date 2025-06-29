@@ -39,7 +39,39 @@ void GOERenderer::OnInit()
 /// 과연 필요한걸까?
 /// 현재는 아무것도 하지 않습니다.
 /// </summary>
-void GOERenderer::OnUpdate() {}
+void GOERenderer::OnUpdate()
+{
+	// 각도 누적 (1프레임당 1도씩 증가, 초당 60도. 더 빠르게 하려면 값 키워도 됨)
+	m_angle += 1.0f;
+	if (m_angle > 360.0f)
+	{
+		m_angle -= 360.0f;
+	}
+
+	// 월드 행렬 = 회전 적용
+	XMMATRIX world = XMMatrixRotationY(XMConvertToRadians(m_angle));
+
+	XMMATRIX view = XMMatrixLookAtLH(
+		XMVectorSet(0, 0, -2, 1),
+		XMVectorSet(0, 0, 0, 1),
+		XMVectorSet(0, 1, 0, 0)
+	);
+	XMMATRIX proj = XMMatrixPerspectiveFovLH(
+		XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f
+	);
+	XMMATRIX mvp = world * view * proj;
+
+	MVP cbData = {};
+	XMStoreFloat4x4(&cbData.mvp, XMMatrixTranspose(mvp));
+
+	// CBV에 업로드
+	void* pData = nullptr;
+	D3D12_RANGE readRange = { 0, 0 };
+	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, &pData));
+	memcpy(pData, &cbData, sizeof(MVP));
+	m_constantBuffer->Unmap(0, nullptr);
+}
+
 
 /// <summary>
 /// 랜더링 루프를 담당합니다.
@@ -50,10 +82,10 @@ void GOERenderer::OnUpdate() {}
 /// </summary>
 void GOERenderer::OnRender()
 {
+	OnUpdate();
 	WaitForFence(m_fenceValue);
 
 	PopulateCommandList();
-
 	ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
 	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
@@ -135,6 +167,10 @@ void GOERenderer::LoadAssets()
 	CreateCommandList();
 	CreateVertexBuffer();
 	SetVertexBufferView();
+	
+	CreateIndexBuffer();
+	CreateConstantBuffer();
+	
 	CreateFence();
 }
 
@@ -463,17 +499,34 @@ void GOERenderer::CreateRootSignature()
 	// NumStaticSamplers : 정적 샘플러의 수
 	// pStaticSamplers : 정적 샘플러 배열
 	// Flags : 루트 시그니처의 플래그를 지정합니다.
-	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	rootSignatureDesc.NumParameters = 0; // 파라미터 없음
-	rootSignatureDesc.pParameters = nullptr; // 파라미터 배열 없음
-	rootSignatureDesc.NumStaticSamplers = 0; // 정적 샘플러 없음
-	rootSignatureDesc.pStaticSamplers = nullptr; // 정적 샘플러 배열 없음
-	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT; // 입력 어셈블러 입력 레이아웃 허용
+	//D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+	//rootSignatureDesc.NumParameters = 0; // 파라미터 없음
+	//rootSignatureDesc.pParameters = nullptr; // 파라미터 배열 없음
+	//rootSignatureDesc.NumStaticSamplers = 0; // 정적 샘플러 없음
+	//rootSignatureDesc.pStaticSamplers = nullptr; // 정적 샘플러 배열 없음
+	//rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT; // 입력 어셈블러 입력 레이아웃 허용
+	
+		D3D12_ROOT_PARAMETER rootParameters[1] = {};
+		rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+		rootParameters[0].Descriptor.ShaderRegister = 0; // b0
+		rootParameters[0].Descriptor.RegisterSpace = 0;
+		rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+		rootSignatureDesc.NumParameters = 1;
+		rootSignatureDesc.pParameters = rootParameters;
+		rootSignatureDesc.NumStaticSamplers = 0;
+		rootSignatureDesc.pStaticSamplers = nullptr;
+		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	
 
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 	D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 	ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
+
+	
 }
 
 /// <summary>
@@ -664,6 +717,8 @@ void GOERenderer::CreateCommandList()
 }
 
 
+
+
 /// <summary>
 /// 정점버퍼를 생성하고 초기화합니다.
 /// 
@@ -673,14 +728,60 @@ void GOERenderer::CreateCommandList()
 /// <returns></returns>
 void GOERenderer::CreateVertexBuffer()
 {
-	// Vertex 구조체를 정의합니다.
-	// 이 구조체는 정점의 위치와 색상을 포함합니다.
-	Vertex vertexArray[3] = {};
-	vertexArray[0] = { {0.0f, 0.25f * m_aspectRatio, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f} };
-	vertexArray[1] = { {0.25f, -0.25f * m_aspectRatio, 0.0f}, {0.0f, 1.0f, 0.0f, 1.0f} };
-	vertexArray[2] = { {-0.25f, -0.25f * m_aspectRatio, 0.0f}, {0.0f, 0.0f, 1.0f, 1.0f} };
+	float faceColors[6][4] =
+	{
+		{1, 0, 0, 1}, // 앞면
+		{0, 1, 0, 1}, // 뒷면
+		{0, 0, 1, 1}, // 오른쪽
+		{1, 1, 0, 1}, // 왼쪽
+		{0, 1, 1, 1}, // 윗면
+		{1, 0, 1, 1}  // 아랫면
+	};
+
+	Vertex vertexArray[24] =
+	{
+		// 앞면 (z = +0.25f)
+		{ RotateCubeVertex(-0.25f,  0.25f ,  0.25f), { faceColors[0][0], faceColors[0][1], faceColors[0][2], faceColors[0][3] } }, // 0
+		{ RotateCubeVertex(0.25f,  0.25f ,  0.25f), { faceColors[0][0], faceColors[0][1], faceColors[0][2], faceColors[0][3] } }, // 1
+		{ RotateCubeVertex(0.25f, -0.25f ,  0.25f), { faceColors[0][0], faceColors[0][1], faceColors[0][2], faceColors[0][3] } }, // 2
+		{ RotateCubeVertex(-0.25f, -0.25f ,  0.25f), { faceColors[0][0], faceColors[0][1], faceColors[0][2], faceColors[0][3] } }, // 3
+
+		// 뒷면 (z = -0.25f)
+		{ RotateCubeVertex(-0.25f,  0.25f , -0.25f), { faceColors[1][0], faceColors[1][1], faceColors[1][2], faceColors[1][3] } }, // 4
+		{ RotateCubeVertex(0.25f,  0.25f , -0.25f), { faceColors[1][0], faceColors[1][1], faceColors[1][2], faceColors[1][3] } }, // 5
+		{ RotateCubeVertex(0.25f, -0.25f , -0.25f), { faceColors[1][0], faceColors[1][1], faceColors[1][2], faceColors[1][3] } }, // 6
+		{ RotateCubeVertex(-0.25f, -0.25f , -0.25f), { faceColors[1][0], faceColors[1][1], faceColors[1][2], faceColors[1][3] } }, // 7
+
+		// 오른쪽면 (x = +0.25f)
+		{ RotateCubeVertex(0.25f,  0.25f ,  0.25f), { faceColors[2][0], faceColors[2][1], faceColors[2][2], faceColors[2][3] } }, // 8
+		{ RotateCubeVertex(0.25f,  0.25f , -0.25f), { faceColors[2][0], faceColors[2][1], faceColors[2][2], faceColors[2][3] } }, // 9
+		{ RotateCubeVertex(0.25f, -0.25f , -0.25f), { faceColors[2][0], faceColors[2][1], faceColors[2][2], faceColors[2][3] } }, // 10
+		{ RotateCubeVertex(0.25f, -0.25f ,  0.25f), { faceColors[2][0], faceColors[2][1], faceColors[2][2], faceColors[2][3] } }, // 11
+
+		// 왼쪽면 (x = -0.25f)
+		{ RotateCubeVertex(-0.25f,  0.25f , -0.25f), { faceColors[3][0], faceColors[3][1], faceColors[3][2], faceColors[3][3] } }, // 12
+		{ RotateCubeVertex(-0.25f,  0.25f ,  0.25f), { faceColors[3][0], faceColors[3][1], faceColors[3][2], faceColors[3][3] } }, // 13
+		{ RotateCubeVertex(-0.25f, -0.25f ,  0.25f), { faceColors[3][0], faceColors[3][1], faceColors[3][2], faceColors[3][3] } }, // 14
+		{ RotateCubeVertex(-0.25f, -0.25f , -0.25f), { faceColors[3][0], faceColors[3][1], faceColors[3][2], faceColors[3][3] } }, // 15
+
+		// 윗면 (y = +0.25f * m_aspectRatio)
+		{ RotateCubeVertex(-0.25f,  0.25f , -0.25f), { faceColors[4][0], faceColors[4][1], faceColors[4][2], faceColors[4][3] } }, // 16
+		{ RotateCubeVertex(0.25f,  0.25f , -0.25f), { faceColors[4][0], faceColors[4][1], faceColors[4][2], faceColors[4][3] } }, // 17
+		{ RotateCubeVertex(0.25f,  0.25f ,  0.25f), { faceColors[4][0], faceColors[4][1], faceColors[4][2], faceColors[4][3] } }, // 18
+		{ RotateCubeVertex(-0.25f,  0.25f ,  0.25f), { faceColors[4][0], faceColors[4][1], faceColors[4][2], faceColors[4][3] } }, // 19
+
+		// 아랫면 (y = -0.25f * m_aspectRatio)
+		{ RotateCubeVertex(-0.25f, -0.25f ,  0.25f), { faceColors[5][0], faceColors[5][1], faceColors[5][2], faceColors[5][3] } }, // 20
+		{ RotateCubeVertex(0.25f, -0.25f ,  0.25f), { faceColors[5][0], faceColors[5][1], faceColors[5][2], faceColors[5][3] } }, // 21
+		{ RotateCubeVertex(0.25f, -0.25f , -0.25f), { faceColors[5][0], faceColors[5][1], faceColors[5][2], faceColors[5][3] } }, // 22
+		{ RotateCubeVertex(-0.25f, -0.25f , -0.25f), { faceColors[5][0], faceColors[5][1], faceColors[5][2], faceColors[5][3] } }  // 23
+	};
+
+
+
+
 	
-	for(int i = 0; i < 3; ++i)
+	for(int i = 0; i < 24; ++i)
 	{
 		m_triangleVertices[i] = vertexArray[i];
 	}
@@ -789,6 +890,151 @@ void GOERenderer::SetVertexBufferView()
 	m_vertexBufferView.SizeInBytes = m_vertexBufferSize;	// 정점 하나당 크기(바이트 단위)
 
 }
+
+void GOERenderer::CreateIndexBuffer()
+{
+	// 면별 4정점, 삼각형 2개씩. 6면×2×3=36
+	UINT16 indexArray[36] =
+	{
+		// 앞면 (z=+0.25)
+		0, 2, 1,    0, 3, 2,
+		// 뒷면 (z=-0.25)
+		4, 5, 6,  4, 6, 7,
+		// 오른쪽(x=+0.25)
+		8, 10, 9,   8, 11, 10,
+		// 왼쪽(x=-0.25)
+		12, 14, 13, 12, 15, 14,
+		// 윗면(y=+0.25)
+		16, 18, 17, 16, 19, 18,
+		// 아랫면(y=-0.25)
+		20, 22, 21, 20, 23, 22
+	};
+
+
+	m_indexBufferSize = sizeof(indexArray);
+
+	// 1. Default Heap (GPU)
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	D3D12_RESOURCE_DESC bufferDesc = {};
+	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	bufferDesc.Width = m_indexBufferSize;
+	bufferDesc.Height = 1;
+	bufferDesc.DepthOrArraySize = 1;
+	bufferDesc.MipLevels = 1;
+	bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+	bufferDesc.SampleDesc.Count = 1;
+	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	ThrowIfFailed(m_device->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&bufferDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&m_indexBufferDefault)
+	));
+
+	// 2. Upload Heap (CPU)
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+	ThrowIfFailed(m_device->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&bufferDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&m_indexBufferUpload)
+	));
+
+	// 3. 데이터 복사
+	UINT8* pIndexDataBegin;
+	D3D12_RANGE readRange = { 0, 0 };
+	ThrowIfFailed(m_indexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
+	memcpy(pIndexDataBegin, indexArray, m_indexBufferSize);
+	m_indexBufferUpload->Unmap(0, nullptr);
+
+	// 4. 커맨드리스트로 GPU 버퍼에 복사
+	m_commandAllocator->Reset();
+	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
+	m_commandList->CopyBufferRegion(m_indexBufferDefault.Get(), 0, m_indexBufferUpload.Get(), 0, m_indexBufferSize);
+
+	// 5. 상태변환
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barrier.Transition.pResource = m_indexBufferDefault.Get();
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	m_commandList->ResourceBarrier(1, &barrier);
+
+	m_commandList->Close();
+	ID3D12CommandList* lists[] = { m_commandList.Get() };
+	m_commandQueue->ExecuteCommandLists(1, lists);
+
+	// 6. 인덱스버퍼 뷰 생성
+	m_indexBufferView.BufferLocation = m_indexBufferDefault->GetGPUVirtualAddress();
+	m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
+	m_indexBufferView.SizeInBytes = m_indexBufferSize;
+}
+
+void GOERenderer::CreateConstantBuffer()
+{
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	heapProps.CreationNodeMask = 1;
+	heapProps.VisibleNodeMask = 1;
+
+	D3D12_RESOURCE_DESC cbDesc = {};
+	cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	cbDesc.Alignment = 0;
+	cbDesc.Width = 256; // 최소 256바이트(행렬 64 + 패딩)
+	cbDesc.Height = 1;
+	cbDesc.DepthOrArraySize = 1;
+	cbDesc.MipLevels = 1;
+	cbDesc.Format = DXGI_FORMAT_UNKNOWN;
+	cbDesc.SampleDesc.Count = 1;
+	cbDesc.SampleDesc.Quality = 0;
+	cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	cbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	
+	HRESULT hr = m_device->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&cbDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&m_constantBuffer)
+	);
+	ThrowIfFailed(hr);
+
+	DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
+	DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(
+		DirectX::XMVectorSet(0, 0, -2, 1),    // eye
+		DirectX::XMVectorSet(0, 0, 0, 1),     // at
+		DirectX::XMVectorSet(0, 1, 0, 0)      // up
+	);
+	DirectX::XMMATRIX proj = DirectX::XMMatrixPerspectiveFovLH(
+		DirectX::XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f
+	);
+	DirectX::XMMATRIX mvp = world * view * proj;
+
+	MVP cbData = {};
+	DirectX::XMStoreFloat4x4(&cbData.mvp, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
+
+	void* pData = nullptr;
+	D3D12_RANGE readRange = { 0, 0 };
+	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, &pData));
+	memcpy(pData, &cbData, sizeof(MVP));
+	m_constantBuffer->Unmap(0, nullptr);
+
+}
+
 
 void GOERenderer::CopyUploadHeapToDefault()
 {
@@ -916,14 +1162,17 @@ void GOERenderer::PopulateCommandList()
 	// 6. 그리기 전 세팅
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
+	m_commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer->GetGPUVirtualAddress());
+
 	
+	m_commandList->IASetIndexBuffer(&m_indexBufferView);
 
 	
 	// 7. 그리기 명령
 		// DrawInstanced() : 인스턴스화된 정점 데이터를 사용하여 도형을 그립니다.
 		// 3개의 정점을 사용하여 1개의 삼각형을 그립니다.
 		// 첫 번째 인자는 그릴 정점의 개수, 두 번째 인자는 인스턴스의 개수, 세 번째 인자는 시작 정점 오프셋, 네 번째 인자는 시작 인스턴스 오프셋입니다.
-	m_commandList->DrawInstanced(3, 1, 0, 0);
+	m_commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
 
 	// 8. 리소스 배리어(상태 변경) – “RenderTarget → Present”
 		// 렌더링이 끝났으니, 다시 "화면에 표시(PRESENT)" 상태로 전환

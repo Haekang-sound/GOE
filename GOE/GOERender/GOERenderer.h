@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -14,12 +14,20 @@
 
 #include "ID3DRenderer.h"
 
+#include <DirectXMath.h>
+
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
 using namespace DirectX;
 
+struct MVP
+{
+	DirectX::XMFLOAT4X4 mvp; // 64ë°”ì´íŠ¸(í–‰ë ¬), row-major/col-majorëŠ” HLSLì—ì„œ ë§ì¶°ì¤Œ
+};
+
+
 /// <summary>
-/// ÀÎÅÍÆäÀÌ½º¸¦ »ó¼Ó¹Ş¾Æ ±¸ÇöµÈ ·£´õ·¯
+/// ì¸í„°í˜ì´ìŠ¤ë¥¼ ìƒì†ë°›ì•„ êµ¬í˜„ëœ ëœë”ëŸ¬
 /// 
 /// ohk 2025.06.21
 /// </summary>
@@ -41,8 +49,8 @@ private:
 	void LoadAssets();
 
 private:
-	/// ÃÊ±âÈ­¸¦ ¸í½ÃÀûÀ¸·Î ÀÌÇØÇÏ±â À§ÇØ 
-	/// ÇÔ¼öµéÀ» ºĞ¸®Çß½À´Ï´Ù.
+	/// ì´ˆê¸°í™”ë¥¼ ëª…ì‹œì ìœ¼ë¡œ ì´í•´í•˜ê¸° ìœ„í•´ 
+	/// í•¨ìˆ˜ë“¤ì„ ë¶„ë¦¬í–ˆìŠµë‹ˆë‹¤.
 	void ActiveDebugLayer(const bool& isOn);
 	void CreateDXGIFactory();
 	bool GetHardwareAdapter();
@@ -58,6 +66,11 @@ private:
 	void CreateCommandList();
 	void CreateVertexBuffer();
 	void SetVertexBufferView();
+
+	void CreateIndexBuffer();
+	void CreateConstantBuffer();
+	ComPtr<ID3D12Resource> m_constantBuffer;
+
 	void CreateFence();
 	void CopyUploadHeapToDefault();
 
@@ -66,6 +79,20 @@ private:
 	void SignalFence(const UINT64& fenceValue);
 	void WaitForFence(const UINT64& fenceValue);
 
+private:
+	float m_angle = 0.0f;
+
+	XMFLOAT3 RotateCubeVertex(float x, float y, float z)
+	{
+		// Yì¶• 45ë„, Xì¶• 30ë„
+		XMMATRIX rotY = XMMatrixRotationY(XMConvertToRadians(45.0f));
+		XMMATRIX rotX = XMMatrixRotationX(XMConvertToRadians(30.0f));
+		XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
+		pos = XMVector3TransformCoord(pos, rotY * rotX);
+		XMFLOAT3 out;
+		XMStoreFloat3(&out, pos);
+		return out;
+	}
 
 	inline void ThrowIfFailed(const HRESULT& hr)
 	{
@@ -83,11 +110,22 @@ private:
 	bool m_useWarpDevice = false;
 
 private:
+	ComPtr<ID3D12Resource> m_indexBufferUpload = nullptr;
+	ComPtr<ID3D12Resource> m_indexBufferDefault = nullptr;
+	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
+	UINT m_indexBufferSize = 0;
+
+
+private:
 	static const UINT m_frameBufferCount = 2;
 
 	D3D12_VIEWPORT m_viewport = {};
 	RECT m_scissorRect = {};
 	float m_aspectRatio;
+	// ì˜¬ë°”ë¥¸ ì½”ë“œ ì˜ˆì‹œ
+	float aspect = (float)m_width / (float)m_height;
+	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), aspect, 0.1f, 100.0f);
+
 
 	UINT m_dxgiFactoryFlags = 0;
 	ComPtr<IDXGIFactory6> m_dxgiFactory = nullptr;
@@ -106,13 +144,13 @@ private:
 	struct Vertex
 	{
 		XMFLOAT3 position;
-		XMFLOAT4 color;
+		float color[4];
 	};
 
 	ComPtr<ID3DBlob> m_vertexShader = nullptr;;
 	ComPtr<ID3DBlob> m_pixelShader = nullptr;;
 	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[2] = {};
-	Vertex m_triangleVertices[3] = {};
+	Vertex m_triangleVertices[24] = {};
 	UINT m_vertexBufferSize = 0;
 
 	ComPtr<ID3D12Resource> m_vertexBufferUpload = nullptr;
@@ -127,6 +165,6 @@ private:
 	HANDLE m_fenceEvent = nullptr;
 	ComPtr<ID3D12Fence> m_fence = nullptr;
 
-	// ÇÁ·¹ÀÓ¸¶´Ù µ¿±âÈ­¸¦ À§ÇÑ fece°ªÀ» °®´Â´Ù.
+	// í”„ë ˆì„ë§ˆë‹¤ ë™ê¸°í™”ë¥¼ ìœ„í•œ feceê°’ì„ ê°–ëŠ”ë‹¤.
 	UINT64 m_fenceValue = 0;
 };
