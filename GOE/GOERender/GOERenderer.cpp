@@ -36,8 +36,7 @@ void GOERenderer::OnInit()
 }
 
 /// <summary>
-/// 과연 필요한걸까?
-/// 현재는 아무것도 하지 않습니다.
+///
 /// </summary>
 void GOERenderer::OnUpdate()
 {
@@ -50,16 +49,20 @@ void GOERenderer::OnUpdate()
 
 	// 월드 행렬 = 회전 적용
 	XMMATRIX world = XMMatrixRotationY(XMConvertToRadians(m_angle));
+	XMMATRIX world2 = XMMatrixRotationX(XMConvertToRadians(-m_angle));
+	XMMATRIX world3 = XMMatrixRotationZ(XMConvertToRadians(m_angle));
 
 	XMMATRIX view = XMMatrixLookAtLH(
-		XMVectorSet(0, 0, -2, 1),
-		XMVectorSet(0, 0, 0, 1),
-		XMVectorSet(0, 1, 0, 0)
+		XMVectorSet(0, 0, -2, 1),	// 카메라의 위치
+		XMVectorSet(0, 0, 0, 1),	// 보는 방향
+		XMVectorSet(0, 1, 0, 0)		// 업벡터
 	);
+
+	assert(m_aspectRatio > 0);
 	XMMATRIX proj = XMMatrixPerspectiveFovLH(
 		XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f
 	);
-	XMMATRIX mvp = world * view * proj;
+	XMMATRIX mvp = world* world2 * world3 * view * proj;
 
 	MVP cbData = {};
 	XMStoreFloat4x4(&cbData.mvp, XMMatrixTranspose(mvp));
@@ -83,6 +86,7 @@ void GOERenderer::OnUpdate()
 void GOERenderer::OnRender()
 {
 	OnUpdate();
+
 	WaitForFence(m_fenceValue);
 
 	PopulateCommandList();
@@ -120,7 +124,7 @@ void GOERenderer::SetViewport()
 	m_height = m_scissorRect.bottom - m_scissorRect.top;
 
 	m_aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
-
+	proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f);
 	m_viewport = {
 		0.0f,                      // TopLeftX
 		0.0f,                      // TopLeftY
@@ -545,8 +549,7 @@ void GOERenderer::CompileShaders()
 #endif
 
 	// D3DCompileFromFile()
-	// : 파일에서 셰이더를 컴파일합니다.
-	
+	// : 파일에서 셰이더를 컴파일합니다.	
 	ThrowIfFailed(D3DCompileFromFile(
 		L"..\\Shader\\shader_ps.hlsl",	// pFileName	: 셰이더 파일 경로입니다.
 		nullptr,		// pDefines		: 셰이더 컴파일 시 사용할 #define 매크로 목록
@@ -558,7 +561,8 @@ void GOERenderer::CompileShaders()
 		&m_pixelShader,	// ppCode		: 컴파일된 결과(바이너리 셰이더 코드)를 받을 포인터(ID3DBlob**)
 		nullptr));		// ppErrorMsgs	: 컴파일 에러, 경고 메시지를 받을 포인터(ID3DBlob**)
 	
-	ThrowIfFailed(D3DCompileFromFile(
+	ComPtr<ID3DBlob> errorBlob = nullptr;
+	HRESULT hr = D3DCompileFromFile(
 		L"..\\Shader\\shader_vs.hlsl",
 		nullptr,
 		nullptr,
@@ -567,7 +571,16 @@ void GOERenderer::CompileShaders()
 		compileFlags,
 		0,
 		&m_vertexShader,
-		nullptr));
+		&errorBlob);
+
+	if (FAILED(hr))
+	{
+		if (errorBlob)
+		{
+			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+		}
+		ThrowIfFailed(hr);
+	}
 
 
 	// D3D12_INPUT_ELEMENT_DESC
@@ -728,7 +741,7 @@ void GOERenderer::CreateCommandList()
 /// <returns></returns>
 void GOERenderer::CreateVertexBuffer()
 {
-	float faceColors[6][4] =
+	XMFLOAT4 faceColors[6] =
 	{
 		{1, 0, 0, 1}, // 앞면
 		{0, 1, 0, 1}, // 뒷면
@@ -741,45 +754,41 @@ void GOERenderer::CreateVertexBuffer()
 	Vertex vertexArray[24] =
 	{
 		// 앞면 (z = +0.25f)
-		{ RotateCubeVertex(-0.25f,  0.25f ,  0.25f), { faceColors[0][0], faceColors[0][1], faceColors[0][2], faceColors[0][3] } }, // 0
-		{ RotateCubeVertex(0.25f,  0.25f ,  0.25f), { faceColors[0][0], faceColors[0][1], faceColors[0][2], faceColors[0][3] } }, // 1
-		{ RotateCubeVertex(0.25f, -0.25f ,  0.25f), { faceColors[0][0], faceColors[0][1], faceColors[0][2], faceColors[0][3] } }, // 2
-		{ RotateCubeVertex(-0.25f, -0.25f ,  0.25f), { faceColors[0][0], faceColors[0][1], faceColors[0][2], faceColors[0][3] } }, // 3
+		{ {-0.25f,  0.25f ,  0.25f},	{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 0
+		{ {0.25f,  0.25f ,  0.25f},		{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 1
+		{ {0.25f, -0.25f ,  0.25f},		{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 2
+		{ {-0.25f, -0.25f ,  0.25f},	{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 3
 
 		// 뒷면 (z = -0.25f)
-		{ RotateCubeVertex(-0.25f,  0.25f , -0.25f), { faceColors[1][0], faceColors[1][1], faceColors[1][2], faceColors[1][3] } }, // 4
-		{ RotateCubeVertex(0.25f,  0.25f , -0.25f), { faceColors[1][0], faceColors[1][1], faceColors[1][2], faceColors[1][3] } }, // 5
-		{ RotateCubeVertex(0.25f, -0.25f , -0.25f), { faceColors[1][0], faceColors[1][1], faceColors[1][2], faceColors[1][3] } }, // 6
-		{ RotateCubeVertex(-0.25f, -0.25f , -0.25f), { faceColors[1][0], faceColors[1][1], faceColors[1][2], faceColors[1][3] } }, // 7
+		{ {-0.25f,  0.25f , -0.25f},	{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 4
+		{ {0.25f,  0.25f , -0.25f},		{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 5
+		{ {0.25f, -0.25f , -0.25f},		{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 6
+		{ {-0.25f, -0.25f , -0.25f},	{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 7
 
 		// 오른쪽면 (x = +0.25f)
-		{ RotateCubeVertex(0.25f,  0.25f ,  0.25f), { faceColors[2][0], faceColors[2][1], faceColors[2][2], faceColors[2][3] } }, // 8
-		{ RotateCubeVertex(0.25f,  0.25f , -0.25f), { faceColors[2][0], faceColors[2][1], faceColors[2][2], faceColors[2][3] } }, // 9
-		{ RotateCubeVertex(0.25f, -0.25f , -0.25f), { faceColors[2][0], faceColors[2][1], faceColors[2][2], faceColors[2][3] } }, // 10
-		{ RotateCubeVertex(0.25f, -0.25f ,  0.25f), { faceColors[2][0], faceColors[2][1], faceColors[2][2], faceColors[2][3] } }, // 11
+		{ {0.25f,  0.25f ,  0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 8
+		{ {0.25f,  0.25f , -0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 9
+		{ {0.25f, -0.25f , -0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 10
+		{ {0.25f, -0.25f ,  0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 11
 
 		// 왼쪽면 (x = -0.25f)
-		{ RotateCubeVertex(-0.25f,  0.25f , -0.25f), { faceColors[3][0], faceColors[3][1], faceColors[3][2], faceColors[3][3] } }, // 12
-		{ RotateCubeVertex(-0.25f,  0.25f ,  0.25f), { faceColors[3][0], faceColors[3][1], faceColors[3][2], faceColors[3][3] } }, // 13
-		{ RotateCubeVertex(-0.25f, -0.25f ,  0.25f), { faceColors[3][0], faceColors[3][1], faceColors[3][2], faceColors[3][3] } }, // 14
-		{ RotateCubeVertex(-0.25f, -0.25f , -0.25f), { faceColors[3][0], faceColors[3][1], faceColors[3][2], faceColors[3][3] } }, // 15
+		{ {-0.25f,  0.25f , -0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 12
+		{ {-0.25f,  0.25f ,  0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 13
+		{ {-0.25f, -0.25f ,  0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 14
+		{ {-0.25f, -0.25f , -0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 15
 
-		// 윗면 (y = +0.25f * m_aspectRatio)
-		{ RotateCubeVertex(-0.25f,  0.25f , -0.25f), { faceColors[4][0], faceColors[4][1], faceColors[4][2], faceColors[4][3] } }, // 16
-		{ RotateCubeVertex(0.25f,  0.25f , -0.25f), { faceColors[4][0], faceColors[4][1], faceColors[4][2], faceColors[4][3] } }, // 17
-		{ RotateCubeVertex(0.25f,  0.25f ,  0.25f), { faceColors[4][0], faceColors[4][1], faceColors[4][2], faceColors[4][3] } }, // 18
-		{ RotateCubeVertex(-0.25f,  0.25f ,  0.25f), { faceColors[4][0], faceColors[4][1], faceColors[4][2], faceColors[4][3] } }, // 19
+		// 윗면 (y = +0.25f )
+		{ {-0.25f,  0.25f , -0.25f},	{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 16
+		{ {0.25f,  0.25f , -0.25f},		{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 17
+		{ {0.25f,  0.25f ,  0.25f},		{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 18
+		{ {-0.25f,  0.25f ,  0.25f},	{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 19
 
-		// 아랫면 (y = -0.25f * m_aspectRatio)
-		{ RotateCubeVertex(-0.25f, -0.25f ,  0.25f), { faceColors[5][0], faceColors[5][1], faceColors[5][2], faceColors[5][3] } }, // 20
-		{ RotateCubeVertex(0.25f, -0.25f ,  0.25f), { faceColors[5][0], faceColors[5][1], faceColors[5][2], faceColors[5][3] } }, // 21
-		{ RotateCubeVertex(0.25f, -0.25f , -0.25f), { faceColors[5][0], faceColors[5][1], faceColors[5][2], faceColors[5][3] } }, // 22
-		{ RotateCubeVertex(-0.25f, -0.25f , -0.25f), { faceColors[5][0], faceColors[5][1], faceColors[5][2], faceColors[5][3] } }  // 23
+		// 아랫면 (y = -0.25f )
+		{ {-0.25f, -0.25f ,  0.25f},	{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }, // 20
+		{ {0.25f, -0.25f ,  0.25f},		{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }, // 21
+		{ {0.25f, -0.25f , -0.25f},		{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }, // 22
+		{ {-0.25f, -0.25f , -0.25f},	{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }  // 23
 	};
-
-
-
-
 	
 	for(int i = 0; i < 24; ++i)
 	{
@@ -910,7 +919,6 @@ void GOERenderer::CreateIndexBuffer()
 		20, 22, 21, 20, 23, 22
 	};
 
-
 	m_indexBufferSize = sizeof(indexArray);
 
 	// 1. Default Heap (GPU)
@@ -956,24 +964,6 @@ void GOERenderer::CreateIndexBuffer()
 	memcpy(pIndexDataBegin, indexArray, m_indexBufferSize);
 	m_indexBufferUpload->Unmap(0, nullptr);
 
-	// 4. 커맨드리스트로 GPU 버퍼에 복사
-	m_commandAllocator->Reset();
-	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
-	m_commandList->CopyBufferRegion(m_indexBufferDefault.Get(), 0, m_indexBufferUpload.Get(), 0, m_indexBufferSize);
-
-	// 5. 상태변환
-	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Transition.pResource = m_indexBufferDefault.Get();
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_INDEX_BUFFER;
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	m_commandList->ResourceBarrier(1, &barrier);
-
-	m_commandList->Close();
-	ID3D12CommandList* lists[] = { m_commandList.Get() };
-	m_commandQueue->ExecuteCommandLists(1, lists);
-
 	// 6. 인덱스버퍼 뷰 생성
 	m_indexBufferView.BufferLocation = m_indexBufferDefault->GetGPUVirtualAddress();
 	m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
@@ -982,13 +972,15 @@ void GOERenderer::CreateIndexBuffer()
 
 void GOERenderer::CreateConstantBuffer()
 {
+	// CBV디스크립터힙 heapProps
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
 	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	heapProps.CreationNodeMask = 1;
-	heapProps.VisibleNodeMask = 1;
-
+	heapProps.CreationNodeMask = 0;
+	heapProps.VisibleNodeMask = 0;
+	
+	// 리소스 description
 	D3D12_RESOURCE_DESC cbDesc = {};
 	cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	cbDesc.Alignment = 0;
@@ -1002,7 +994,7 @@ void GOERenderer::CreateConstantBuffer()
 	cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	cbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	
+	// CB 리소스생성
 	HRESULT hr = m_device->CreateCommittedResource(
 		&heapProps,
 		D3D12_HEAP_FLAG_NONE,
@@ -1012,6 +1004,22 @@ void GOERenderer::CreateConstantBuffer()
 		IID_PPV_ARGS(&m_constantBuffer)
 	);
 	ThrowIfFailed(hr);
+	
+	// CBV 디스크립터 힙 생성
+	D3D12_DESCRIPTOR_HEAP_DESC heapDescCBV = {};
+	heapDescCBV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // Constant Buffer View, Shader Resource View, Unordered Access View
+	heapDescCBV.NumDescriptors = 1; // CBV 하나만 사용
+	heapDescCBV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // 셰이더에서 접근 가능하도록 설정
+	heapDescCBV.NodeMask = 0; // 멀티 GPU 시스템에서 사용할 노드 마스크, 단일 GPU 시스템에서는 1로 설정
+
+	m_device->CreateDescriptorHeap(&heapDescCBV, IID_PPV_ARGS(&m_cbvHeap));
+
+	// CBV 디스크립터 생성
+	m_cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
+	m_cbvDesc.SizeInBytes = (sizeof(MVP) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
+
+	m_cbvHandle = m_cbvHeap->GetCPUDescriptorHandleForHeapStart();
+	m_device->CreateConstantBufferView(&m_cbvDesc, m_cbvHandle);
 
 	DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
 	DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(
@@ -1032,7 +1040,6 @@ void GOERenderer::CreateConstantBuffer()
 	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, &pData));
 	memcpy(pData, &cbData, sizeof(MVP));
 	m_constantBuffer->Unmap(0, nullptr);
-
 }
 
 
@@ -1042,7 +1049,7 @@ void GOERenderer::CopyUploadHeapToDefault()
 
 	// CopyBufferRegion() 메서드를 사용하여 업로드 힙의 데이터를 디폴트 힙으로 복사합니다.
 	// 1. 커맨드 할당자와 커맨드 리스트 초기화
-		// 이전에 기록된 GPU 작업(커맨드 리스트)이 끝났으니, 새롭게 명령을 기록할 수 있도록 할당자(Allocator)를 리셋합니다.
+	// 이전에 기록된 GPU 작업(커맨드 리스트)이 끝났으니, 새롭게 명령을 기록할 수 있도록 할당자(Allocator)를 리셋합니다.
 	m_commandAllocator->Reset();
 	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
 	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
@@ -1053,14 +1060,26 @@ void GOERenderer::CopyUploadHeapToDefault()
 		m_vertexBufferSize				// Size
 	);
 	// (3) 상태변환: 복사에서 VertexBuffer로 전환
-	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	barrier.Transition.pResource = m_vertexBufferDefault.Get();
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	m_commandList->ResourceBarrier(1, &barrier);
+	D3D12_RESOURCE_BARRIER vsBarrier = {};
+	vsBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	vsBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	vsBarrier.Transition.pResource = m_vertexBufferDefault.Get();
+	vsBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+	vsBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+	vsBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	m_commandList->ResourceBarrier(1, &vsBarrier);
+
+	// 인덱스 버퍼도 동일한 방식으로 복사합니다.
+	m_commandList->CopyBufferRegion(m_indexBufferDefault.Get(), 0, m_indexBufferUpload.Get(), 0, m_indexBufferSize);
+
+	// 5. 상태변환
+	D3D12_RESOURCE_BARRIER ibBarrier = {};
+	ibBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	ibBarrier.Transition.pResource = m_indexBufferDefault.Get();
+	ibBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+	ibBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_INDEX_BUFFER;
+	ibBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	m_commandList->ResourceBarrier(1, &ibBarrier);
 
 	m_commandList->Close();
 
@@ -1096,9 +1115,6 @@ void GOERenderer::CreateFence()
 	{
 		HRESULT_FROM_WIN32(GetLastError());
 	}
-
-	// 이전 프레임의 GPU 작업이 완전히 끝날 때까지 CPU를 대기시키는 함수
-	//WaitForPreviousFrame();
 }
 
 /// <summary>
@@ -1162,11 +1178,8 @@ void GOERenderer::PopulateCommandList()
 	// 6. 그리기 전 세팅
 	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
-	m_commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer->GetGPUVirtualAddress());
-
-	
 	m_commandList->IASetIndexBuffer(&m_indexBufferView);
-
+	m_commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer->GetGPUVirtualAddress());
 	
 	// 7. 그리기 명령
 		// DrawInstanced() : 인스턴스화된 정점 데이터를 사용하여 도형을 그립니다.

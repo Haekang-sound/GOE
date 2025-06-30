@@ -20,9 +20,16 @@ using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
 using namespace DirectX;
 
+// model-view-projection 행렬을 담는 구조체
 struct MVP
 {
 	DirectX::XMFLOAT4X4 mvp; // 64바이트(행렬), row-major/col-major는 HLSL에서 맞춰줌
+};
+
+struct Vertex
+{
+	XMFLOAT3 position;
+	XMFLOAT4 color;
 };
 
 
@@ -64,12 +71,11 @@ private:
 	void CompileShaders();
 	void CreatePipelineState();
 	void CreateCommandList();
+
 	void CreateVertexBuffer();
 	void SetVertexBufferView();
-
 	void CreateIndexBuffer();
 	void CreateConstantBuffer();
-	ComPtr<ID3D12Resource> m_constantBuffer;
 
 	void CreateFence();
 	void CopyUploadHeapToDefault();
@@ -81,18 +87,6 @@ private:
 
 private:
 	float m_angle = 0.0f;
-
-	XMFLOAT3 RotateCubeVertex(float x, float y, float z)
-	{
-		// Y축 45도, X축 30도
-		XMMATRIX rotY = XMMatrixRotationY(XMConvertToRadians(45.0f));
-		XMMATRIX rotX = XMMatrixRotationX(XMConvertToRadians(30.0f));
-		XMVECTOR pos = XMVectorSet(x, y, z, 1.0f);
-		pos = XMVector3TransformCoord(pos, rotY * rotX);
-		XMFLOAT3 out;
-		XMStoreFloat3(&out, pos);
-		return out;
-	}
 
 	inline void ThrowIfFailed(const HRESULT& hr)
 	{
@@ -107,61 +101,54 @@ private:
 	UINT m_height = 0;
 	HWND m_hWnd;
 
-	bool m_useWarpDevice = false;
-
 private:
-	ComPtr<ID3D12Resource> m_indexBufferUpload = nullptr;
-	ComPtr<ID3D12Resource> m_indexBufferDefault = nullptr;
-	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
-	UINT m_indexBufferSize = 0;
-
-
-private:
-	static const UINT m_frameBufferCount = 2;
-
 	D3D12_VIEWPORT m_viewport = {};
 	RECT m_scissorRect = {};
 	float m_aspectRatio;
-	// 올바른 코드 예시
-	float aspect = (float)m_width / (float)m_height;
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), aspect, 0.1f, 100.0f);
+	XMMATRIX proj = {};
 
-
+private:
 	UINT m_dxgiFactoryFlags = 0;
 	ComPtr<IDXGIFactory6> m_dxgiFactory = nullptr;
-	ComPtr<IDXGISwapChain3> m_swapChain = nullptr;;
+	bool m_useWarpDevice = false;
 	ComPtr<IDXGIAdapter1> m_adpter = nullptr;;
 	ComPtr<ID3D12Device> m_device = nullptr;;
+
+	static const UINT m_frameBufferCount = 2;
+	UINT m_frameIndex = 0;
+	ComPtr<IDXGISwapChain3> m_swapChain = nullptr;;
 
 	ComPtr<ID3D12Resource> m_renderTargets[m_frameBufferCount] = {};
 	ComPtr<ID3D12DescriptorHeap> m_rtvHeap = nullptr;;
 	UINT m_rtvDescriptorSize = 0;
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;;
 	ComPtr<ID3D12CommandQueue> m_commandQueue = nullptr;;
-	
+
 	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;;
-
-	struct Vertex
-	{
-		XMFLOAT3 position;
-		float color[4];
-	};
-
 	ComPtr<ID3DBlob> m_vertexShader = nullptr;;
 	ComPtr<ID3DBlob> m_pixelShader = nullptr;;
+
 	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[2] = {};
 	Vertex m_triangleVertices[24] = {};
 	UINT m_vertexBufferSize = 0;
-
 	ComPtr<ID3D12Resource> m_vertexBufferUpload = nullptr;
 	ComPtr<ID3D12Resource> m_vertexBufferDefault = nullptr;
-
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView = {};
+	
+	// CB
+	ComPtr<ID3D12DescriptorHeap> m_cbvHeap;
+	D3D12_CONSTANT_BUFFER_VIEW_DESC m_cbvDesc = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE m_cbvHandle = {};
+	ComPtr<ID3D12Resource> m_constantBuffer;
+
+	UINT m_indexBufferSize = 0;
+	ComPtr<ID3D12Resource> m_indexBufferUpload = nullptr;
+	ComPtr<ID3D12Resource> m_indexBufferDefault = nullptr;
+	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
 
 	ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
 	ComPtr<ID3D12GraphicsCommandList> m_commandList = nullptr;
 
-	UINT m_frameIndex = 0;
 	HANDLE m_fenceEvent = nullptr;
 	ComPtr<ID3D12Fence> m_fence = nullptr;
 
