@@ -1,4 +1,6 @@
 ﻿#include "GOERenderer.h"
+#include "Camera.h" // Add this include to ensure the Camera class is fully defined
+#include "Cube.h"
 
 /// <summary>
 /// GOERenderer의 생성자
@@ -30,6 +32,12 @@ void GOERenderer::OnInit()
 	SetViewport();
 
 	LoadPipeline();
+
+	m_camera = new Camera();
+	m_cube = new Cube(m_device, m_aspectRatio);
+	m_cube->m_aspectRatio = m_aspectRatio;
+	m_cube->InitCube();
+
 	LoadAssets();
 
 	CopyUploadHeapToDefault();
@@ -40,39 +48,37 @@ void GOERenderer::OnInit()
 /// </summary>
 void GOERenderer::OnUpdate()
 {
-	// 각도 누적 (1프레임당 1도씩 증가, 초당 60도. 더 빠르게 하려면 값 키워도 됨)
-	m_angle += 1.0f;
-	if (m_angle > 360.0f)
-	{
-		m_angle -= 360.0f;
+	RECT rect;
+	GetClientRect(m_hWnd, &rect);
+
+	int centerX = (rect.right - rect.left) / 2;
+	int centerY = (rect.bottom - rect.top) / 2;
+
+	POINT centerPt = { centerX, centerY };
+	ClientToScreen(m_hWnd, &centerPt);
+
+
+	m_camera->OnUpdate(centerPt);
+	m_cube->OnUpdate();
+
+	ShowCursor(false);
+
+	
+	{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트
+		XMMATRIX mvp =
+			m_cube->GetLocalTransForm()
+			* m_camera->GetViewTransform()
+			* XMLoadFloat4x4(&m_proj);
+		MVP cbData = {};
+		XMStoreFloat4x4(&cbData.mvp, XMMatrixTranspose(mvp));
+
+		// CUBE의 CBV에 업로드
+		void* pData = nullptr;
+		D3D12_RANGE readRange = { 0, 0 };
+		ThrowIfFailed(m_cube->m_constantBuffer->Map(0, &readRange, &pData));
+		memcpy(pData, &cbData, sizeof(MVP));
+		m_cube->m_constantBuffer->Unmap(0, nullptr);
 	}
-
-	// 월드 행렬 = 회전 적용
-	XMMATRIX world = XMMatrixRotationY(XMConvertToRadians(m_angle));
-	XMMATRIX world2 = XMMatrixRotationX(XMConvertToRadians(-m_angle));
-	XMMATRIX world3 = XMMatrixRotationZ(XMConvertToRadians(m_angle));
-
-	XMMATRIX view = XMMatrixLookAtLH(
-		XMVectorSet(0, 0, -2, 1),	// 카메라의 위치
-		XMVectorSet(0, 0, 0, 1),	// 보는 방향
-		XMVectorSet(0, 1, 0, 0)		// 업벡터
-	);
-
-	assert(m_aspectRatio > 0);
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(
-		XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f
-	);
-	XMMATRIX mvp = world* world2 * world3 * view * proj;
-
-	MVP cbData = {};
-	XMStoreFloat4x4(&cbData.mvp, XMMatrixTranspose(mvp));
-
-	// CBV에 업로드
-	void* pData = nullptr;
-	D3D12_RANGE readRange = { 0, 0 };
-	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, &pData));
-	memcpy(pData, &cbData, sizeof(MVP));
-	m_constantBuffer->Unmap(0, nullptr);
 }
 
 
@@ -111,6 +117,8 @@ void GOERenderer::OnDestroy()
 {
 	WaitForFence(m_fenceValue);
 	CloseHandle(m_fenceEvent);
+	delete m_cube;
+	delete m_camera;
 }
 
 /// <summary>
@@ -124,7 +132,10 @@ void GOERenderer::SetViewport()
 	m_height = m_scissorRect.bottom - m_scissorRect.top;
 
 	m_aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
-	proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f);
+	
+	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f);
+	XMStoreFloat4x4(&m_proj, proj);
+	
 	m_viewport = {
 		0.0f,                      // TopLeftX
 		0.0f,                      // TopLeftY
@@ -169,11 +180,7 @@ void GOERenderer::LoadAssets()
 	CompileShaders();
 	CreatePipelineState();
 	CreateCommandList();
-	CreateVertexBuffer();
-	SetVertexBufferView();
-	
-	CreateIndexBuffer();
-	CreateConstantBuffer();
+	m_cube->LoadCube();
 	
 	CreateFence();
 }
@@ -739,124 +746,7 @@ void GOERenderer::CreateCommandList()
 /// 업로드 힙에 정점 데이터를 복사합니다.
 /// </summary>
 /// <returns></returns>
-void GOERenderer::CreateVertexBuffer()
-{
-	XMFLOAT4 faceColors[6] =
-	{
-		{1, 0, 0, 1}, // 앞면
-		{0, 1, 0, 1}, // 뒷면
-		{0, 0, 1, 1}, // 오른쪽
-		{1, 1, 0, 1}, // 왼쪽
-		{0, 1, 1, 1}, // 윗면
-		{1, 0, 1, 1}  // 아랫면
-	};
 
-	Vertex vertexArray[24] =
-	{
-		// 앞면 (z = +0.25f)
-		{ {-0.25f,  0.25f ,  0.25f},	{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 0
-		{ {0.25f,  0.25f ,  0.25f},		{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 1
-		{ {0.25f, -0.25f ,  0.25f},		{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 2
-		{ {-0.25f, -0.25f ,  0.25f},	{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 3
-
-		// 뒷면 (z = -0.25f)
-		{ {-0.25f,  0.25f , -0.25f},	{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 4
-		{ {0.25f,  0.25f , -0.25f},		{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 5
-		{ {0.25f, -0.25f , -0.25f},		{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 6
-		{ {-0.25f, -0.25f , -0.25f},	{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 7
-
-		// 오른쪽면 (x = +0.25f)
-		{ {0.25f,  0.25f ,  0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 8
-		{ {0.25f,  0.25f , -0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 9
-		{ {0.25f, -0.25f , -0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 10
-		{ {0.25f, -0.25f ,  0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 11
-
-		// 왼쪽면 (x = -0.25f)
-		{ {-0.25f,  0.25f , -0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 12
-		{ {-0.25f,  0.25f ,  0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 13
-		{ {-0.25f, -0.25f ,  0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 14
-		{ {-0.25f, -0.25f , -0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 15
-
-		// 윗면 (y = +0.25f )
-		{ {-0.25f,  0.25f , -0.25f},	{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 16
-		{ {0.25f,  0.25f , -0.25f},		{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 17
-		{ {0.25f,  0.25f ,  0.25f},		{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 18
-		{ {-0.25f,  0.25f ,  0.25f},	{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 19
-
-		// 아랫면 (y = -0.25f )
-		{ {-0.25f, -0.25f ,  0.25f},	{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }, // 20
-		{ {0.25f, -0.25f ,  0.25f},		{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }, // 21
-		{ {0.25f, -0.25f , -0.25f},		{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }, // 22
-		{ {-0.25f, -0.25f , -0.25f},	{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }  // 23
-	};
-	
-	for(int i = 0; i < 24; ++i)
-	{
-		m_triangleVertices[i] = vertexArray[i];
-	}
-
-	// 버텍스버퍼의 크기를 계산합니다.
-	m_vertexBufferSize = sizeof(m_triangleVertices);
-
-
-	// 1. 디폴트 힙 리소스 생성
-	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
-	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-
-	D3D12_RESOURCE_DESC bufferDesc = {};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Width = m_vertexBufferSize;
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	ThrowIfFailed(m_device->CreateCommittedResource(
-		&defaultHeapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&bufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST, // 일단 복사 대상으로 생성
-		nullptr,
-		IID_PPV_ARGS(&m_vertexBufferDefault)
-	));
-
-	// D3D12_HEAP_PROPERTIES
-	// : 힙의 속성을 정의하는 구조체입니다.
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD; 					// 리소스를 할당할 힙의 속성을 정의합니다. 
-	
-	// D3D12_RESOURCE_DESC
-	// : 리소스의 속성을 정의하는 구조체입니다.
-	D3D12_RESOURCE_DESC resDesc = {}; 
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;// 버퍼 리소스입니다.
-	resDesc.Alignment = 0;								// 정렬은 0으로 설정합니다.(자동설정됨)
-	resDesc.Width = m_vertexBufferSize;					// 버퍼라면 바이트 크기, 텍스쳐면 x축 픽셀 수
-	resDesc.Height = 1;									// 텍스쳐의 높이, 버퍼일 경우 높이는 1로 설정
-	resDesc.DepthOrArraySize = 1;						// 깊이 또는 배열 크기
-	resDesc.MipLevels = 1;								// 밉맵레벨 수, 버퍼는1 (1이면 밉맵없음)
-	resDesc.Format = DXGI_FORMAT_UNKNOWN;				// 버퍼는 포맷이 필요 없습니다.
-	resDesc.SampleDesc.Count = 1;						// 샘플링은 1로 설정
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;	// 버퍼는 반드시 ROW_MAJOR로 설정합니다.
-	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;			// 리소스 플래그는 없습니다.
-
-	// CreateCommittedResource()
-	// : 커밋된 리소스를 생성하는 메서드입니다.
-	// 이 메서드는 힙과 리소스를 동시에 생성합니다.
-	/*“커밋된(Committed)” 리소스란,
-		리소스를 생성할 때 힙(메모리 공간)도 자동으로 같이 만들어서
-		리소스와 힙이 1:1로 매칭되는 가장 단순한 형태.*/
-	//	반대되는 개념 : “Placed Resource”
-	ThrowIfFailed(m_device->CreateCommittedResource(
-		&heapProps,				// 힙 속성
-		D3D12_HEAP_FLAG_NONE,	// 힙 플래그, 일반적으로 D3D12_HEAP_FLAG_NONE 사용
-		&resDesc,				// 리소스 설명
-		D3D12_RESOURCE_STATE_GENERIC_READ, // 리소스 생성 직후의 상태
-		nullptr,				// 최적화된 클리어 값 포인터(텍스처, RTV, DSV 등만 해당) 일반 버퍼는 nullptr
-		IID_PPV_ARGS(&m_vertexBufferUpload))); // 반환될 인터페이스의 ID
-}
 
 /// <summary>
 /// 업로드힙에 정점 데이터 복사하고,
@@ -864,185 +754,16 @@ void GOERenderer::CreateVertexBuffer()
 /// 
 /// </summary>
 /// <returns></returns>
-void GOERenderer::SetVertexBufferView()
-{	
-	// 업로드 힙에 정점 데이터를 복사하기 위해
-	// 업로드 힙의 시작 주소를 가져옵니다.
-	UINT8* pVertexDataBegin;
-
-	// D3D12_RANGE
-	// : 업로드 힙의 데이터를 CPU가 읽을 수 있도록 매핑할 때 사용하는 구조체입니다.
-	// Map() 호출 시 : CPU가 실제로 "읽을 범위"를 지정(읽을 게 없다면 {0, 0}로 설정)
-	// Unmap() 호출 시:CPU가 실제로 "썼던 범위"를 지정
-	D3D12_RANGE readRange = {0,0}; // 읽을 필요 없는 경우(주로 데이터 쓸 때)
-	/*readRange가{ 0, 0 }이면
-		GPU 드라이버는
-		→ 메모리 캐시에서 버퍼 내용을 "CPU 쪽으로 읽어올 필요 없다"고 판단!
-		→ memcpy로 쓰기만 할 테니 “최소한의 작업”만 해줌*/
-
-	// Map() 메서드는 업로드 힙의 데이터를 CPU가 읽을 수 있도록 매핑합니다.
-	ThrowIfFailed(m_vertexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-	// memcpy() 함수를 사용하여 정점 데이터를 업로드 힙에 복사합니다.
-	memcpy(pVertexDataBegin, m_triangleVertices, sizeof(m_triangleVertices));
-	// Unmap() 메서드는 업로드 힙의 매핑을 해제합니다.
-	m_vertexBufferUpload->Unmap(0, nullptr);
-
-	
 
 
-	// D3D12_VERTEX_BUFFER_VIEW
-	// : 정점 버퍼 뷰를 정의하는 구조체입니다.
-	// 이후 DrawCall 시 이 정보를 넘김
-	// 이 뷰는 GPU가 정점 데이터를 읽을 때 사용됩니다.
-	m_vertexBufferView.BufferLocation = m_vertexBufferDefault->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
-	m_vertexBufferView.StrideInBytes = sizeof(Vertex);		// 정점버퍼 전체 크기(바이트 단위)
-	m_vertexBufferView.SizeInBytes = m_vertexBufferSize;	// 정점 하나당 크기(바이트 단위)
-
-}
-
-void GOERenderer::CreateIndexBuffer()
-{
-	// 면별 4정점, 삼각형 2개씩. 6면×2×3=36
-	UINT16 indexArray[36] =
-	{
-		// 앞면 (z=+0.25)
-		0, 2, 1,    0, 3, 2,
-		// 뒷면 (z=-0.25)
-		4, 5, 6,  4, 6, 7,
-		// 오른쪽(x=+0.25)
-		8, 10, 9,   8, 11, 10,
-		// 왼쪽(x=-0.25)
-		12, 14, 13, 12, 15, 14,
-		// 윗면(y=+0.25)
-		16, 18, 17, 16, 19, 18,
-		// 아랫면(y=-0.25)
-		20, 22, 21, 20, 23, 22
-	};
-
-	m_indexBufferSize = sizeof(indexArray);
-
-	// 1. Default Heap (GPU)
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-
-	D3D12_RESOURCE_DESC bufferDesc = {};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Width = m_indexBufferSize;
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	ThrowIfFailed(m_device->CreateCommittedResource(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&bufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		IID_PPV_ARGS(&m_indexBufferDefault)
-	));
-
-	// 2. Upload Heap (CPU)
-	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-	ThrowIfFailed(m_device->CreateCommittedResource(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&bufferDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&m_indexBufferUpload)
-	));
-
-	// 3. 데이터 복사
-	UINT8* pIndexDataBegin;
-	D3D12_RANGE readRange = { 0, 0 };
-	ThrowIfFailed(m_indexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
-	memcpy(pIndexDataBegin, indexArray, m_indexBufferSize);
-	m_indexBufferUpload->Unmap(0, nullptr);
-
-	// 6. 인덱스버퍼 뷰 생성
-	m_indexBufferView.BufferLocation = m_indexBufferDefault->GetGPUVirtualAddress();
-	m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
-	m_indexBufferView.SizeInBytes = m_indexBufferSize;
-}
-
-void GOERenderer::CreateConstantBuffer()
-{
-	// CBV디스크립터힙 heapProps
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-	heapProps.CreationNodeMask = 0;
-	heapProps.VisibleNodeMask = 0;
-	
-	// 리소스 description
-	D3D12_RESOURCE_DESC cbDesc = {};
-	cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	cbDesc.Alignment = 0;
-	cbDesc.Width = 256; // 최소 256바이트(행렬 64 + 패딩)
-	cbDesc.Height = 1;
-	cbDesc.DepthOrArraySize = 1;
-	cbDesc.MipLevels = 1;
-	cbDesc.Format = DXGI_FORMAT_UNKNOWN;
-	cbDesc.SampleDesc.Count = 1;
-	cbDesc.SampleDesc.Quality = 0;
-	cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	cbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	// CB 리소스생성
-	HRESULT hr = m_device->CreateCommittedResource(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&cbDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&m_constantBuffer)
-	);
-	ThrowIfFailed(hr);
-	
-	// CBV 디스크립터 힙 생성
-	D3D12_DESCRIPTOR_HEAP_DESC heapDescCBV = {};
-	heapDescCBV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // Constant Buffer View, Shader Resource View, Unordered Access View
-	heapDescCBV.NumDescriptors = 1; // CBV 하나만 사용
-	heapDescCBV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // 셰이더에서 접근 가능하도록 설정
-	heapDescCBV.NodeMask = 0; // 멀티 GPU 시스템에서 사용할 노드 마스크, 단일 GPU 시스템에서는 1로 설정
-
-	m_device->CreateDescriptorHeap(&heapDescCBV, IID_PPV_ARGS(&m_cbvHeap));
-
-	// CBV 디스크립터 생성
-	m_cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
-	m_cbvDesc.SizeInBytes = (sizeof(MVP) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
-
-	m_cbvHandle = m_cbvHeap->GetCPUDescriptorHandleForHeapStart();
-	m_device->CreateConstantBufferView(&m_cbvDesc, m_cbvHandle);
-
-	DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
-	DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(
-		DirectX::XMVectorSet(0, 0, -2, 1),    // eye
-		DirectX::XMVectorSet(0, 0, 0, 1),     // at
-		DirectX::XMVectorSet(0, 1, 0, 0)      // up
-	);
-	DirectX::XMMATRIX proj = DirectX::XMMatrixPerspectiveFovLH(
-		DirectX::XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f
-	);
-	DirectX::XMMATRIX mvp = world * view * proj;
-
-	MVP cbData = {};
-	DirectX::XMStoreFloat4x4(&cbData.mvp, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
-
-	void* pData = nullptr;
-	D3D12_RANGE readRange = { 0, 0 };
-	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, &pData));
-	memcpy(pData, &cbData, sizeof(MVP));
-	m_constantBuffer->Unmap(0, nullptr);
-}
 
 
+
+
+/// <summary>
+/// 업로드 힙의 데이터를 디폴트 힙으로 복사합니다.
+/// 
+/// </summary>
 void GOERenderer::CopyUploadHeapToDefault()
 {
 	WaitForFence(m_fenceValue); // GPU가 이전 작업을 끝낼 때까지 기다립니다.
@@ -1054,32 +775,7 @@ void GOERenderer::CopyUploadHeapToDefault()
 	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
 	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
 
-	m_commandList->CopyBufferRegion(
-		m_vertexBufferDefault.Get(), 0,	// Dest
-		m_vertexBufferUpload.Get(), 0,	// Src
-		m_vertexBufferSize				// Size
-	);
-	// (3) 상태변환: 복사에서 VertexBuffer로 전환
-	D3D12_RESOURCE_BARRIER vsBarrier = {};
-	vsBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	vsBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	vsBarrier.Transition.pResource = m_vertexBufferDefault.Get();
-	vsBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-	vsBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-	vsBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	m_commandList->ResourceBarrier(1, &vsBarrier);
-
-	// 인덱스 버퍼도 동일한 방식으로 복사합니다.
-	m_commandList->CopyBufferRegion(m_indexBufferDefault.Get(), 0, m_indexBufferUpload.Get(), 0, m_indexBufferSize);
-
-	// 5. 상태변환
-	D3D12_RESOURCE_BARRIER ibBarrier = {};
-	ibBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	ibBarrier.Transition.pResource = m_indexBufferDefault.Get();
-	ibBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-	ibBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_INDEX_BUFFER;
-	ibBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	m_commandList->ResourceBarrier(1, &ibBarrier);
+	m_cube->CopyUploadHeapToDefault(m_commandList);
 
 	m_commandList->Close();
 
@@ -1123,30 +819,6 @@ void GOERenderer::CreateFence()
 /// </summary>
 void GOERenderer::PopulateCommandList()
 {
-	/*1. 베리어(Barrier)란 ?
-		GPU 리소스(버퍼, 텍스처 등)의 “상태 전환”을 명시적으로 선언하는 명령
-		D3D12에서 리소스는 “읽기”, “쓰기”, “카피”, “표시(Present)”, “렌더타겟”, “셰이더리소스” 등 다양한 상태를 가짐
-		GPU 파이프라인의 단계마다 리소스가 “올바른 상태”에 있어야만 GPU가 올바르게 처리함
-		베리어는 “지금부터 이 리소스 상태를 바꾼다”를 GPU에 알려주는 명령어*/
-
-	// D3D12_RESOURCE_BARRIER
-	// : 리소스의 상태 전환을 정의하는 구조체입니다.
-	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;	// 리소스 상태 전환을 정의합니다.
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;		// 베리어 플래그, 일반적으로 D3D12_RESOURCE_BARRIER_FLAG_NONE 사용
-	barrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();			// 상태를 변경할 리소스(렌더 타겟) 지정
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;	// 리소스의 모든 서브리소스에 대해 상태 전환을 적용합니다.
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;		// 상태 전환 이전의 리소스 상태를 지정합니다.
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;	// 상태 전환 이후의 리소스 상태를 지정합니다.
-
-	D3D12_RESOURCE_BARRIER b2arrier = {};
-	b2arrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	b2arrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	b2arrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();
-	b2arrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	b2arrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	b2arrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-
 	// 1. 커맨드 할당자와 커맨드 리스트 초기화
 		// 이전에 기록된 GPU 작업(커맨드 리스트)이 끝났으니, 새롭게 명령을 기록할 수 있도록 할당자(Allocator)를 리셋합니다.
 	m_commandAllocator->Reset();
@@ -1160,6 +832,23 @@ void GOERenderer::PopulateCommandList()
 	m_commandList->RSSetViewports(1, &m_viewport);
 		// ScissorRECT 지정. 이 영역 바깥은 렌더링 안 함(클리핑).
 	m_commandList->RSSetScissorRects(1, &m_scissorRect);
+
+
+	/*1. 베리어(Barrier)란 ?
+		GPU 리소스(버퍼, 텍스처 등)의 “상태 전환”을 명시적으로 선언하는 명령
+		D3D12에서 리소스는 “읽기”, “쓰기”, “카피”, “표시(Present)”, “렌더타겟”, “셰이더리소스” 등 다양한 상태를 가짐
+		GPU 파이프라인의 단계마다 리소스가 “올바른 상태”에 있어야만 GPU가 올바르게 처리함
+		베리어는 “지금부터 이 리소스 상태를 바꾼다”를 GPU에 알려주는 명령어*/
+
+		// D3D12_RESOURCE_BARRIER
+		// : 리소스의 상태 전환을 정의하는 구조체입니다.
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;	// 리소스 상태 전환을 정의합니다.
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;		// 베리어 플래그, 일반적으로 D3D12_RESOURCE_BARRIER_FLAG_NONE 사용
+	barrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();			// 상태를 변경할 리소스(렌더 타겟) 지정
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;	// 리소스의 모든 서브리소스에 대해 상태 전환을 적용합니다.
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;		// 상태 전환 이전의 리소스 상태를 지정합니다.
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;	// 상태 전환 이후의 리소스 상태를 지정합니다.
 
 	//3. 리소스 배리어(상태 변경) – “Present → RenderTarget”
 		// 현재 그릴 렌더타겟(BackBuffer)의 상태를 “화면에 표시(PRESENT)” → “렌더링(RTT)” 상태로 전환
@@ -1175,11 +864,8 @@ void GOERenderer::PopulateCommandList()
 	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
-	// 6. 그리기 전 세팅
-	m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	m_commandList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
-	m_commandList->IASetIndexBuffer(&m_indexBufferView);
-	m_commandList->SetGraphicsRootConstantBufferView(0, m_constantBuffer->GetGPUVirtualAddress());
+	// 큐브 그리기 세팅
+	m_cube->SetDrawCube(m_commandList);
 	
 	// 7. 그리기 명령
 		// DrawInstanced() : 인스턴스화된 정점 데이터를 사용하여 도형을 그립니다.
@@ -1187,6 +873,13 @@ void GOERenderer::PopulateCommandList()
 		// 첫 번째 인자는 그릴 정점의 개수, 두 번째 인자는 인스턴스의 개수, 세 번째 인자는 시작 정점 오프셋, 네 번째 인자는 시작 인스턴스 오프셋입니다.
 	m_commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
 
+	D3D12_RESOURCE_BARRIER b2arrier = {};
+	b2arrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	b2arrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	b2arrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();
+	b2arrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	b2arrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	b2arrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
 	// 8. 리소스 배리어(상태 변경) – “RenderTarget → Present”
 		// 렌더링이 끝났으니, 다시 "화면에 표시(PRESENT)" 상태로 전환
 		// 이 상태 변경은 GPU가 커맨드 리스트를 실행하는 동안 자동으로 처리됩니다.

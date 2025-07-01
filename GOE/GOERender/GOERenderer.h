@@ -1,37 +1,14 @@
 ﻿#pragma once
-
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <D3Dcompiler.h>
-#include <DirectXMath.h>
-
-#include <windows.h>
-#include <string>
-#include <wrl.h>
-#include <shellapi.h>
-#include <stdexcept>
-#include <comdef.h>
-
 #include "ID3DRenderer.h"
+#include "GOETypes.h"
 
-#include <DirectXMath.h>
 
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
 using namespace DirectX;
 
-// model-view-projection 행렬을 담는 구조체
-struct MVP
-{
-	DirectX::XMFLOAT4X4 mvp; // 64바이트(행렬), row-major/col-major는 HLSL에서 맞춰줌
-};
-
-struct Vertex
-{
-	XMFLOAT3 position;
-	XMFLOAT4 color;
-};
-
+class Cube;
+class Camera;
 
 /// <summary>
 /// 인터페이스를 상속받아 구현된 랜더러
@@ -72,11 +49,6 @@ private:
 	void CreatePipelineState();
 	void CreateCommandList();
 
-	void CreateVertexBuffer();
-	void SetVertexBufferView();
-	void CreateIndexBuffer();
-	void CreateConstantBuffer();
-
 	void CreateFence();
 	void CopyUploadHeapToDefault();
 
@@ -85,16 +57,10 @@ private:
 	void SignalFence(const UINT64& fenceValue);
 	void WaitForFence(const UINT64& fenceValue);
 
-private:
-	float m_angle = 0.0f;
-
-	inline void ThrowIfFailed(const HRESULT& hr)
-	{
-		if (FAILED(hr))
-		{
-			throw std::runtime_error("HRESULT failed!");
-		}
-	}
+	// 임시로 둔것에 가깝다
+public: 
+	Camera* m_camera;
+	Cube* m_cube;
 
 private:
 	UINT m_width = 0;
@@ -105,46 +71,32 @@ private:
 	D3D12_VIEWPORT m_viewport = {};
 	RECT m_scissorRect = {};
 	float m_aspectRatio;
-	XMMATRIX proj = {};
+
+	// 프로젝션 행렬
+	XMFLOAT4X4 m_proj = {};
 
 private:
 	UINT m_dxgiFactoryFlags = 0;
 	ComPtr<IDXGIFactory6> m_dxgiFactory = nullptr;
 	bool m_useWarpDevice = false;
-	ComPtr<IDXGIAdapter1> m_adpter = nullptr;;
-	ComPtr<ID3D12Device> m_device = nullptr;;
+	ComPtr<IDXGIAdapter1> m_adpter = nullptr;
+	ComPtr<ID3D12Device> m_device = nullptr;
 
 	static const UINT m_frameBufferCount = 2;
 	UINT m_frameIndex = 0;
-	ComPtr<IDXGISwapChain3> m_swapChain = nullptr;;
+	ComPtr<IDXGISwapChain3> m_swapChain = nullptr;
 
 	ComPtr<ID3D12Resource> m_renderTargets[m_frameBufferCount] = {};
-	ComPtr<ID3D12DescriptorHeap> m_rtvHeap = nullptr;;
+	ComPtr<ID3D12DescriptorHeap> m_rtvHeap = nullptr;
 	UINT m_rtvDescriptorSize = 0;
-	ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;;
-	ComPtr<ID3D12CommandQueue> m_commandQueue = nullptr;;
+	ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;
+	ComPtr<ID3D12CommandQueue> m_commandQueue = nullptr;
 
-	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;;
-	ComPtr<ID3DBlob> m_vertexShader = nullptr;;
-	ComPtr<ID3DBlob> m_pixelShader = nullptr;;
+	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
+	ComPtr<ID3DBlob> m_vertexShader = nullptr;
+	ComPtr<ID3DBlob> m_pixelShader = nullptr;
 
 	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[2] = {};
-	Vertex m_triangleVertices[24] = {};
-	UINT m_vertexBufferSize = 0;
-	ComPtr<ID3D12Resource> m_vertexBufferUpload = nullptr;
-	ComPtr<ID3D12Resource> m_vertexBufferDefault = nullptr;
-	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView = {};
-	
-	// CB
-	ComPtr<ID3D12DescriptorHeap> m_cbvHeap;
-	D3D12_CONSTANT_BUFFER_VIEW_DESC m_cbvDesc = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE m_cbvHandle = {};
-	ComPtr<ID3D12Resource> m_constantBuffer;
-
-	UINT m_indexBufferSize = 0;
-	ComPtr<ID3D12Resource> m_indexBufferUpload = nullptr;
-	ComPtr<ID3D12Resource> m_indexBufferDefault = nullptr;
-	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
 
 	ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
 	ComPtr<ID3D12GraphicsCommandList> m_commandList = nullptr;

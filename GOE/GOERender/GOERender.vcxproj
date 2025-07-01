@@ -20,10 +20,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Cube.h" />
     <ClInclude Include="GOERenderer.h" />
+    <ClInclude Include="GOETypes.h" />
     <ClInclude Include="ID3DRenderer.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Cube.cpp" />
     <ClCompile Include="GOERenderer.cpp" />
   </ItemGroup>
   <ItemGroup>
