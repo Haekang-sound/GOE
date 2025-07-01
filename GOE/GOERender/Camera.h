@@ -12,7 +12,7 @@ public:
 
 public: 
 	XMFLOAT4X4 m_local = {};
-	// ╫╨диюо, х╦юЭ(╤С╣П╬х), ю╖д║
+	// Л┼╓Л╪─Л²╪, М ▄Л═└(К²╪К■■Л∙┬), Л°└Л╧≤
 	XMFLOAT3 m_position = {0, 0, -2};
 	XMFLOAT3 m_rotation = {};
 	XMFLOAT3 m_scale = {1,1,1};

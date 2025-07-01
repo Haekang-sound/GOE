@@ -21,7 +21,7 @@ using namespace Microsoft::WRL;
 using namespace DirectX;
 
 /// <summary>
-/// ≈•∫Íø¿∫Í¡ß∆Æ∏¶ ±∏«ˆ«œ±‚ ¿ß«— ≈¨∑°Ω∫ 
+/// ÌÅêÎ∏åÏò§Î∏åÏ†ùÌä∏Î•º Íµ¨ÌòÑÌïòÍ∏∞ ÏúÑÌïú ÌÅ¥ÎûòÏä§ 
 ///
 /// 2025.06.30 ohk
 /// </summary>
@@ -52,7 +52,7 @@ public:
 	// device
 	ComPtr<ID3D12Device> m_device = nullptr;
 	float m_aspectRatio = 0.f;
-	// ø˘µÂ ∏≈∆Æ∏ØΩ∫
+	// ÏõîÎìú Îß§Ìä∏Î¶≠Ïä§
 	XMFLOAT4X4 m_local = {};
 
 	XMFLOAT3 m_position;
@@ -62,7 +62,7 @@ public:
 	float m_angle = 0.f;
 
 	/// <summary>
-	/// ¿Ã ±∏∞£¿∫ ∏Æº“Ω∫∏¶ ∞Æ¥¬¥Ÿ.
+	/// Ïù¥ Íµ¨Í∞ÑÏùÄ Î¶¨ÏÜåÏä§Î•º Í∞ñÎäîÎã§.
 	/// </summary>
 public:
 	// VS
@@ -78,7 +78,7 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE m_cbvHandle = {};
 	ComPtr<ID3D12Resource> m_constantBuffer = {};
 
-	// ¿Œµ¶Ω∫
+	// Ïù∏Îç±Ïä§
 	UINT m_indexBufferSize = 0;
 	ComPtr<ID3D12Resource> m_indexBufferUpload = nullptr;
 	ComPtr<ID3D12Resource> m_indexBufferDefault = nullptr;
@@ -88,47 +88,47 @@ public:
 public:
 	XMFLOAT4 m_faceColors[6] =
 	{
-		{1, 0, 0, 1}, // æ’∏È
-		{0, 1, 0, 1}, // µﬁ∏È
-		{0, 0, 1, 1}, // ø¿∏•¬ 
-		{1, 1, 0, 1}, // øﬁ¬ 
-		{0, 1, 1, 1}, // ¿≠∏È
-		{1, 0, 1, 1}  // æ∆∑ß∏È
+		{1, 0, 0, 1}, // ÏïûÎ©¥
+		{0, 1, 0, 1}, // Îí∑Î©¥
+		{0, 0, 1, 1}, // Ïò§Î•∏Ï™Ω
+		{1, 1, 0, 1}, // ÏôºÏ™Ω
+		{0, 1, 1, 1}, // ÏúóÎ©¥
+		{1, 0, 1, 1}  // ÏïÑÎû´Î©¥
 	};
 
 	Vertex m_vertexArray[24] =
 	{
-		// æ’∏È (z = +0.25f)
+		// ÏïûÎ©¥ (z = +0.25f)
 		{ {-0.25f,  0.25f ,  0.25f},	{ m_faceColors[0].x, m_faceColors[0].y, m_faceColors[0].z, m_faceColors[0].w } }, // 0
 		{ {0.25f,  0.25f ,  0.25f},		{ m_faceColors[0].x, m_faceColors[0].y, m_faceColors[0].z, m_faceColors[0].w } }, // 1
 		{ {0.25f, -0.25f ,  0.25f},		{ m_faceColors[0].x, m_faceColors[0].y, m_faceColors[0].z, m_faceColors[0].w } }, // 2
 		{ {-0.25f, -0.25f ,  0.25f},	{ m_faceColors[0].x, m_faceColors[0].y, m_faceColors[0].z, m_faceColors[0].w } }, // 3
 
-		// µﬁ∏È (z = -0.25f)
+		// Îí∑Î©¥ (z = -0.25f)
 		{ {-0.25f,  0.25f , -0.25f},	{ m_faceColors[1].x, m_faceColors[1].y, m_faceColors[1].z, m_faceColors[1].w } }, // 4
 		{ {0.25f,  0.25f , -0.25f},		{ m_faceColors[1].x, m_faceColors[1].y, m_faceColors[1].z, m_faceColors[1].w } }, // 5
 		{ {0.25f, -0.25f , -0.25f},		{ m_faceColors[1].x, m_faceColors[1].y, m_faceColors[1].z, m_faceColors[1].w } }, // 6
 		{ {-0.25f, -0.25f , -0.25f},	{ m_faceColors[1].x, m_faceColors[1].y, m_faceColors[1].z, m_faceColors[1].w } }, // 7
 
-		// ø¿∏•¬ ∏È (x = +0.25f)
+		// Ïò§Î•∏Ï™ΩÎ©¥ (x = +0.25f)
 		{ {0.25f,  0.25f ,  0.25f},		{ m_faceColors[2].x, m_faceColors[2].y, m_faceColors[2].z, m_faceColors[2].w} }, // 8
 		{ {0.25f,  0.25f , -0.25f},		{ m_faceColors[2].x, m_faceColors[2].y, m_faceColors[2].z, m_faceColors[2].w} }, // 9
 		{ {0.25f, -0.25f , -0.25f},		{ m_faceColors[2].x, m_faceColors[2].y, m_faceColors[2].z, m_faceColors[2].w} }, // 10
 		{ {0.25f, -0.25f ,  0.25f},		{ m_faceColors[2].x, m_faceColors[2].y, m_faceColors[2].z, m_faceColors[2].w} }, // 11
 
-		// øﬁ¬ ∏È (x = -0.25f)
+		// ÏôºÏ™ΩÎ©¥ (x = -0.25f)
 		{ {-0.25f,  0.25f , -0.25f},	{ m_faceColors[3].x, m_faceColors[3].y, m_faceColors[3].z, m_faceColors[3].w } }, // 12
 		{ {-0.25f,  0.25f ,  0.25f},	{ m_faceColors[3].x, m_faceColors[3].y, m_faceColors[3].z, m_faceColors[3].w } }, // 13
 		{ {-0.25f, -0.25f ,  0.25f},	{ m_faceColors[3].x, m_faceColors[3].y, m_faceColors[3].z, m_faceColors[3].w } }, // 14
 		{ {-0.25f, -0.25f , -0.25f},	{ m_faceColors[3].x, m_faceColors[3].y, m_faceColors[3].z, m_faceColors[3].w } }, // 15
 
-		// ¿≠∏È (y = +0.25f )
+		// ÏúóÎ©¥ (y = +0.25f )
 		{ {-0.25f,  0.25f , -0.25f},	{ m_faceColors[4].x, m_faceColors[4].y, m_faceColors[4].z, m_faceColors[4].w } }, // 16
 		{ {0.25f,  0.25f , -0.25f},		{ m_faceColors[4].x, m_faceColors[4].y, m_faceColors[4].z, m_faceColors[4].w } }, // 17
 		{ {0.25f,  0.25f ,  0.25f},		{ m_faceColors[4].x, m_faceColors[4].y, m_faceColors[4].z, m_faceColors[4].w } }, // 18
 		{ {-0.25f,  0.25f ,  0.25f},	{ m_faceColors[4].x, m_faceColors[4].y, m_faceColors[4].z, m_faceColors[4].w } }, // 19
 
-		// æ∆∑ß∏È (y = -0.25f )
+		// ÏïÑÎû´Î©¥ (y = -0.25f )
 		{ {-0.25f, -0.25f ,  0.25f},	{ m_faceColors[5].x, m_faceColors[5].y, m_faceColors[5].z, m_faceColors[5].w } }, // 20
 		{ {0.25f, -0.25f ,  0.25f},		{ m_faceColors[5].x, m_faceColors[5].y, m_faceColors[5].z, m_faceColors[5].w } }, // 21
 		{ {0.25f, -0.25f , -0.25f},		{ m_faceColors[5].x, m_faceColors[5].y, m_faceColors[5].z, m_faceColors[5].w } }, // 22

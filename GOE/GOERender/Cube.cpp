@@ -42,7 +42,7 @@ void Cube::OnUpdate()
 	}
 
 
-	// ¿ùµå Çà·Ä = È¸Àü Àû¿ë
+	// ì›”ë“œ í–‰ë ¬ = íšŒì „ ì ìš©
 	XMMATRIX world = XMMatrixRotationY(XMConvertToRadians(m_angle));
 	XMMATRIX world2 = XMMatrixRotationX(XMConvertToRadians(-m_angle));
 	XMMATRIX world3 = XMMatrixRotationZ(XMConvertToRadians(m_angle));
@@ -56,47 +56,47 @@ void Cube::CreateVertexBuffer()
 {
 	XMFLOAT4 faceColors[6] =
 	{
-		{1, 0, 0, 1}, // ¾Õ¸é
-		{0, 1, 0, 1}, // µŞ¸é
-		{0, 0, 1, 1}, // ¿À¸¥ÂÊ
-		{1, 1, 0, 1}, // ¿ŞÂÊ
-		{0, 1, 1, 1}, // À­¸é
-		{1, 0, 1, 1}  // ¾Æ·§¸é
+		{1, 0, 0, 1}, // ì•ë©´
+		{0, 1, 0, 1}, // ë’·ë©´
+		{0, 0, 1, 1}, // ì˜¤ë¥¸ìª½
+		{1, 1, 0, 1}, // ì™¼ìª½
+		{0, 1, 1, 1}, // ìœ—ë©´
+		{1, 0, 1, 1}  // ì•„ë«ë©´
 	};
 
 	Vertex vertexArray[24] =
 	{
-		// ¾Õ¸é (z = +0.25f)
+		// ì•ë©´ (z = +0.25f)
 		{ {-0.25f,  0.25f ,  0.25f},	{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 0
 		{ {0.25f,  0.25f ,  0.25f},		{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 1
 		{ {0.25f, -0.25f ,  0.25f},		{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 2
 		{ {-0.25f, -0.25f ,  0.25f},	{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 3
 
-		// µŞ¸é (z = -0.25f)
+		// ë’·ë©´ (z = -0.25f)
 		{ {-0.25f,  0.25f , -0.25f},	{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 4
 		{ {0.25f,  0.25f , -0.25f},		{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 5
 		{ {0.25f, -0.25f , -0.25f},		{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 6
 		{ {-0.25f, -0.25f , -0.25f},	{ faceColors[1].x, faceColors[1].y, faceColors[1].z, faceColors[1].w } }, // 7
 
-		// ¿À¸¥ÂÊ¸é (x = +0.25f)
+		// ì˜¤ë¥¸ìª½ë©´ (x = +0.25f)
 		{ {0.25f,  0.25f ,  0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 8
 		{ {0.25f,  0.25f , -0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 9
 		{ {0.25f, -0.25f , -0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 10
 		{ {0.25f, -0.25f ,  0.25f},		{ faceColors[2].x, faceColors[2].y, faceColors[2].z, faceColors[2].w} }, // 11
 
-		// ¿ŞÂÊ¸é (x = -0.25f)
+		// ì™¼ìª½ë©´ (x = -0.25f)
 		{ {-0.25f,  0.25f , -0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 12
 		{ {-0.25f,  0.25f ,  0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 13
 		{ {-0.25f, -0.25f ,  0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 14
 		{ {-0.25f, -0.25f , -0.25f},	{ faceColors[3].x, faceColors[3].y, faceColors[3].z, faceColors[3].w } }, // 15
 
-		// À­¸é (y = +0.25f )
+		// ìœ—ë©´ (y = +0.25f )
 		{ {-0.25f,  0.25f , -0.25f},	{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 16
 		{ {0.25f,  0.25f , -0.25f},		{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 17
 		{ {0.25f,  0.25f ,  0.25f},		{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 18
 		{ {-0.25f,  0.25f ,  0.25f},	{ faceColors[4].x, faceColors[4].y, faceColors[4].z, faceColors[4].w } }, // 19
 
-		// ¾Æ·§¸é (y = -0.25f )
+		// ì•„ë«ë©´ (y = -0.25f )
 		{ {-0.25f, -0.25f ,  0.25f},	{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }, // 20
 		{ {0.25f, -0.25f ,  0.25f},		{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }, // 21
 		{ {0.25f, -0.25f , -0.25f},		{ faceColors[5].x, faceColors[5].y, faceColors[5].z, faceColors[5].w } }, // 22
@@ -108,11 +108,11 @@ void Cube::CreateVertexBuffer()
 		m_triangleVertices[i] = vertexArray[i];
 	}
 
-	// ¹öÅØ½º¹öÆÛÀÇ Å©±â¸¦ °è»êÇÕ´Ï´Ù.
+	// ë²„í…ìŠ¤ë²„í¼ì˜ í¬ê¸°ë¥¼ ê³„ì‚°í•©ë‹ˆë‹¤.
 	m_vertexBufferSize = sizeof(m_triangleVertices);
 
 
-	// 1. µğÆúÆ® Èü ¸®¼Ò½º »ı¼º
+	// 1. ë””í´íŠ¸ í™ ë¦¬ì†ŒìŠ¤ ìƒì„±
 	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
 	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
 
@@ -131,98 +131,98 @@ void Cube::CreateVertexBuffer()
 		&defaultHeapProps,
 		D3D12_HEAP_FLAG_NONE,
 		&bufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST, // ÀÏ´Ü º¹»ç ´ë»óÀ¸·Î »ı¼º
+		D3D12_RESOURCE_STATE_COPY_DEST, // ì¼ë‹¨ ë³µì‚¬ ëŒ€ìƒìœ¼ë¡œ ìƒì„±
 		nullptr,
 		IID_PPV_ARGS(&m_vertexBufferDefault)
 	));
 
 	// D3D12_HEAP_PROPERTIES
-	// : ÈüÀÇ ¼Ó¼ºÀ» Á¤ÀÇÇÏ´Â ±¸Á¶Ã¼ÀÔ´Ï´Ù.
+	// : í™ì˜ ì†ì„±ì„ ì •ì˜í•˜ëŠ” êµ¬ì¡°ì²´ì…ë‹ˆë‹¤.
 	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD; 					// ¸®¼Ò½º¸¦ ÇÒ´çÇÒ ÈüÀÇ ¼Ó¼ºÀ» Á¤ÀÇÇÕ´Ï´Ù. 
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD; 					// ë¦¬ì†ŒìŠ¤ë¥¼ í• ë‹¹í•  í™ì˜ ì†ì„±ì„ ì •ì˜í•©ë‹ˆë‹¤. 
 
 	// D3D12_RESOURCE_DESC
-	// : ¸®¼Ò½ºÀÇ ¼Ó¼ºÀ» Á¤ÀÇÇÏ´Â ±¸Á¶Ã¼ÀÔ´Ï´Ù.
+	// : ë¦¬ì†ŒìŠ¤ì˜ ì†ì„±ì„ ì •ì˜í•˜ëŠ” êµ¬ì¡°ì²´ì…ë‹ˆë‹¤.
 	D3D12_RESOURCE_DESC resDesc = {};
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;// ¹öÆÛ ¸®¼Ò½ºÀÔ´Ï´Ù.
-	resDesc.Alignment = 0;								// Á¤·ÄÀº 0À¸·Î ¼³Á¤ÇÕ´Ï´Ù.(ÀÚµ¿¼³Á¤µÊ)
-	resDesc.Width = m_vertexBufferSize;					// ¹öÆÛ¶ó¸é ¹ÙÀÌÆ® Å©±â, ÅØ½ºÃÄ¸é xÃà ÇÈ¼¿ ¼ö
-	resDesc.Height = 1;									// ÅØ½ºÃÄÀÇ ³ôÀÌ, ¹öÆÛÀÏ °æ¿ì ³ôÀÌ´Â 1·Î ¼³Á¤
-	resDesc.DepthOrArraySize = 1;						// ±íÀÌ ¶Ç´Â ¹è¿­ Å©±â
-	resDesc.MipLevels = 1;								// ¹Ó¸Ê·¹º§ ¼ö, ¹öÆÛ´Â1 (1ÀÌ¸é ¹Ó¸Ê¾øÀ½)
-	resDesc.Format = DXGI_FORMAT_UNKNOWN;				// ¹öÆÛ´Â Æ÷¸ËÀÌ ÇÊ¿ä ¾ø½À´Ï´Ù.
-	resDesc.SampleDesc.Count = 1;						// »ùÇÃ¸µÀº 1·Î ¼³Á¤
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;	// ¹öÆÛ´Â ¹İµå½Ã ROW_MAJOR·Î ¼³Á¤ÇÕ´Ï´Ù.
-	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;			// ¸®¼Ò½º ÇÃ·¡±×´Â ¾ø½À´Ï´Ù.
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;// ë²„í¼ ë¦¬ì†ŒìŠ¤ì…ë‹ˆë‹¤.
+	resDesc.Alignment = 0;								// ì •ë ¬ì€ 0ìœ¼ë¡œ ì„¤ì •í•©ë‹ˆë‹¤.(ìë™ì„¤ì •ë¨)
+	resDesc.Width = m_vertexBufferSize;					// ë²„í¼ë¼ë©´ ë°”ì´íŠ¸ í¬ê¸°, í…ìŠ¤ì³ë©´ xì¶• í”½ì…€ ìˆ˜
+	resDesc.Height = 1;									// í…ìŠ¤ì³ì˜ ë†’ì´, ë²„í¼ì¼ ê²½ìš° ë†’ì´ëŠ” 1ë¡œ ì„¤ì •
+	resDesc.DepthOrArraySize = 1;						// ê¹Šì´ ë˜ëŠ” ë°°ì—´ í¬ê¸°
+	resDesc.MipLevels = 1;								// ë°‰ë§µë ˆë²¨ ìˆ˜, ë²„í¼ëŠ”1 (1ì´ë©´ ë°‰ë§µì—†ìŒ)
+	resDesc.Format = DXGI_FORMAT_UNKNOWN;				// ë²„í¼ëŠ” í¬ë§·ì´ í•„ìš” ì—†ìŠµë‹ˆë‹¤.
+	resDesc.SampleDesc.Count = 1;						// ìƒ˜í”Œë§ì€ 1ë¡œ ì„¤ì •
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;	// ë²„í¼ëŠ” ë°˜ë“œì‹œ ROW_MAJORë¡œ ì„¤ì •í•©ë‹ˆë‹¤.
+	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;			// ë¦¬ì†ŒìŠ¤ í”Œë˜ê·¸ëŠ” ì—†ìŠµë‹ˆë‹¤.
 
 	// CreateCommittedResource()
-	// : Ä¿¹ÔµÈ ¸®¼Ò½º¸¦ »ı¼ºÇÏ´Â ¸Ş¼­µåÀÔ´Ï´Ù.
-	// ÀÌ ¸Ş¼­µå´Â Èü°ú ¸®¼Ò½º¸¦ µ¿½Ã¿¡ »ı¼ºÇÕ´Ï´Ù.
-	/*¡°Ä¿¹ÔµÈ(Committed)¡± ¸®¼Ò½º¶õ,
-		¸®¼Ò½º¸¦ »ı¼ºÇÒ ¶§ Èü(¸Ş¸ğ¸® °ø°£)µµ ÀÚµ¿À¸·Î °°ÀÌ ¸¸µé¾î¼­
-		¸®¼Ò½º¿Í ÈüÀÌ 1:1·Î ¸ÅÄªµÇ´Â °¡Àå ´Ü¼øÇÑ ÇüÅÂ.*/
-		//	¹İ´ëµÇ´Â °³³ä : ¡°Placed Resource¡±
+	// : ì»¤ë°‹ëœ ë¦¬ì†ŒìŠ¤ë¥¼ ìƒì„±í•˜ëŠ” ë©”ì„œë“œì…ë‹ˆë‹¤.
+	// ì´ ë©”ì„œë“œëŠ” í™ê³¼ ë¦¬ì†ŒìŠ¤ë¥¼ ë™ì‹œì— ìƒì„±í•©ë‹ˆë‹¤.
+	/*â€œì»¤ë°‹ëœ(Committed)â€ ë¦¬ì†ŒìŠ¤ë€,
+		ë¦¬ì†ŒìŠ¤ë¥¼ ìƒì„±í•  ë•Œ í™(ë©”ëª¨ë¦¬ ê³µê°„)ë„ ìë™ìœ¼ë¡œ ê°™ì´ ë§Œë“¤ì–´ì„œ
+		ë¦¬ì†ŒìŠ¤ì™€ í™ì´ 1:1ë¡œ ë§¤ì¹­ë˜ëŠ” ê°€ì¥ ë‹¨ìˆœí•œ í˜•íƒœ.*/
+		//	ë°˜ëŒ€ë˜ëŠ” ê°œë… : â€œPlaced Resourceâ€
 	ThrowIfFailed(m_device->CreateCommittedResource(
-		&heapProps,				// Èü ¼Ó¼º
-		D3D12_HEAP_FLAG_NONE,	// Èü ÇÃ·¡±×, ÀÏ¹İÀûÀ¸·Î D3D12_HEAP_FLAG_NONE »ç¿ë
-		&resDesc,				// ¸®¼Ò½º ¼³¸í
-		D3D12_RESOURCE_STATE_GENERIC_READ, // ¸®¼Ò½º »ı¼º Á÷ÈÄÀÇ »óÅÂ
-		nullptr,				// ÃÖÀûÈ­µÈ Å¬¸®¾î °ª Æ÷ÀÎÅÍ(ÅØ½ºÃ³, RTV, DSV µî¸¸ ÇØ´ç) ÀÏ¹İ ¹öÆÛ´Â nullptr
-		IID_PPV_ARGS(&m_vertexBufferUpload))); // ¹İÈ¯µÉ ÀÎÅÍÆäÀÌ½ºÀÇ ID
+		&heapProps,				// í™ ì†ì„±
+		D3D12_HEAP_FLAG_NONE,	// í™ í”Œë˜ê·¸, ì¼ë°˜ì ìœ¼ë¡œ D3D12_HEAP_FLAG_NONE ì‚¬ìš©
+		&resDesc,				// ë¦¬ì†ŒìŠ¤ ì„¤ëª…
+		D3D12_RESOURCE_STATE_GENERIC_READ, // ë¦¬ì†ŒìŠ¤ ìƒì„± ì§í›„ì˜ ìƒíƒœ
+		nullptr,				// ìµœì í™”ëœ í´ë¦¬ì–´ ê°’ í¬ì¸í„°(í…ìŠ¤ì²˜, RTV, DSV ë“±ë§Œ í•´ë‹¹) ì¼ë°˜ ë²„í¼ëŠ” nullptr
+		IID_PPV_ARGS(&m_vertexBufferUpload))); // ë°˜í™˜ë  ì¸í„°í˜ì´ìŠ¤ì˜ ID
 }
 
 void Cube::SetVertexBufferView()
 {
-	// ¾÷·Îµå Èü¿¡ Á¤Á¡ µ¥ÀÌÅÍ¸¦ º¹»çÇÏ±â À§ÇØ
-	// ¾÷·Îµå ÈüÀÇ ½ÃÀÛ ÁÖ¼Ò¸¦ °¡Á®¿É´Ï´Ù.
+	// ì—…ë¡œë“œ í™ì— ì •ì  ë°ì´í„°ë¥¼ ë³µì‚¬í•˜ê¸° ìœ„í•´
+	// ì—…ë¡œë“œ í™ì˜ ì‹œì‘ ì£¼ì†Œë¥¼ ê°€ì ¸ì˜µë‹ˆë‹¤.
 	UINT8* pVertexDataBegin;
 
 	// D3D12_RANGE
-	// : ¾÷·Îµå ÈüÀÇ µ¥ÀÌÅÍ¸¦ CPU°¡ ÀĞÀ» ¼ö ÀÖµµ·Ï ¸ÅÇÎÇÒ ¶§ »ç¿ëÇÏ´Â ±¸Á¶Ã¼ÀÔ´Ï´Ù.
-	// Map() È£Ãâ ½Ã : CPU°¡ ½ÇÁ¦·Î "ÀĞÀ» ¹üÀ§"¸¦ ÁöÁ¤(ÀĞÀ» °Ô ¾ø´Ù¸é {0, 0}·Î ¼³Á¤)
-	// Unmap() È£Ãâ ½Ã:CPU°¡ ½ÇÁ¦·Î "½è´ø ¹üÀ§"¸¦ ÁöÁ¤
-	D3D12_RANGE readRange = { 0,0 }; // ÀĞÀ» ÇÊ¿ä ¾ø´Â °æ¿ì(ÁÖ·Î µ¥ÀÌÅÍ ¾µ ¶§)
-	/*readRange°¡{ 0, 0 }ÀÌ¸é
-		GPU µå¶óÀÌ¹ö´Â
-		¡æ ¸Ş¸ğ¸® Ä³½Ã¿¡¼­ ¹öÆÛ ³»¿ëÀ» "CPU ÂÊÀ¸·Î ÀĞ¾î¿Ã ÇÊ¿ä ¾ø´Ù"°í ÆÇ´Ü!
-		¡æ memcpy·Î ¾²±â¸¸ ÇÒ Å×´Ï ¡°ÃÖ¼ÒÇÑÀÇ ÀÛ¾÷¡±¸¸ ÇØÁÜ*/
+	// : ì—…ë¡œë“œ í™ì˜ ë°ì´í„°ë¥¼ CPUê°€ ì½ì„ ìˆ˜ ìˆë„ë¡ ë§¤í•‘í•  ë•Œ ì‚¬ìš©í•˜ëŠ” êµ¬ì¡°ì²´ì…ë‹ˆë‹¤.
+	// Map() í˜¸ì¶œ ì‹œ : CPUê°€ ì‹¤ì œë¡œ "ì½ì„ ë²”ìœ„"ë¥¼ ì§€ì •(ì½ì„ ê²Œ ì—†ë‹¤ë©´ {0, 0}ë¡œ ì„¤ì •)
+	// Unmap() í˜¸ì¶œ ì‹œ:CPUê°€ ì‹¤ì œë¡œ "ì¼ë˜ ë²”ìœ„"ë¥¼ ì§€ì •
+	D3D12_RANGE readRange = { 0,0 }; // ì½ì„ í•„ìš” ì—†ëŠ” ê²½ìš°(ì£¼ë¡œ ë°ì´í„° ì“¸ ë•Œ)
+	/*readRangeê°€{ 0, 0 }ì´ë©´
+		GPU ë“œë¼ì´ë²„ëŠ”
+		â†’ ë©”ëª¨ë¦¬ ìºì‹œì—ì„œ ë²„í¼ ë‚´ìš©ì„ "CPU ìª½ìœ¼ë¡œ ì½ì–´ì˜¬ í•„ìš” ì—†ë‹¤"ê³  íŒë‹¨!
+		â†’ memcpyë¡œ ì“°ê¸°ë§Œ í•  í…Œë‹ˆ â€œìµœì†Œí•œì˜ ì‘ì—…â€ë§Œ í•´ì¤Œ*/
 
-		// Map() ¸Ş¼­µå´Â ¾÷·Îµå ÈüÀÇ µ¥ÀÌÅÍ¸¦ CPU°¡ ÀĞÀ» ¼ö ÀÖµµ·Ï ¸ÅÇÎÇÕ´Ï´Ù.
+		// Map() ë©”ì„œë“œëŠ” ì—…ë¡œë“œ í™ì˜ ë°ì´í„°ë¥¼ CPUê°€ ì½ì„ ìˆ˜ ìˆë„ë¡ ë§¤í•‘í•©ë‹ˆë‹¤.
 	ThrowIfFailed(m_vertexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-	// memcpy() ÇÔ¼ö¸¦ »ç¿ëÇÏ¿© Á¤Á¡ µ¥ÀÌÅÍ¸¦ ¾÷·Îµå Èü¿¡ º¹»çÇÕ´Ï´Ù.
+	// memcpy() í•¨ìˆ˜ë¥¼ ì‚¬ìš©í•˜ì—¬ ì •ì  ë°ì´í„°ë¥¼ ì—…ë¡œë“œ í™ì— ë³µì‚¬í•©ë‹ˆë‹¤.
 	memcpy(pVertexDataBegin, m_triangleVertices, sizeof(m_triangleVertices));
-	// Unmap() ¸Ş¼­µå´Â ¾÷·Îµå ÈüÀÇ ¸ÅÇÎÀ» ÇØÁ¦ÇÕ´Ï´Ù.
+	// Unmap() ë©”ì„œë“œëŠ” ì—…ë¡œë“œ í™ì˜ ë§¤í•‘ì„ í•´ì œí•©ë‹ˆë‹¤.
 	m_vertexBufferUpload->Unmap(0, nullptr);
 
 
 
 
 	// D3D12_VERTEX_BUFFER_VIEW
-	// : Á¤Á¡ ¹öÆÛ ºä¸¦ Á¤ÀÇÇÏ´Â ±¸Á¶Ã¼ÀÔ´Ï´Ù.
-	// ÀÌÈÄ DrawCall ½Ã ÀÌ Á¤º¸¸¦ ³Ñ±è
-	// ÀÌ ºä´Â GPU°¡ Á¤Á¡ µ¥ÀÌÅÍ¸¦ ÀĞÀ» ¶§ »ç¿ëµË´Ï´Ù.
-	m_vertexBufferView.BufferLocation = m_vertexBufferDefault->GetGPUVirtualAddress();	// GPU¿¡¼­ ÀĞÀ» Á¤Á¡¹öÆÛ ½ÃÀÛ ÁÖ¼Ò, Á¤Á¡ ¹öÆÛÀÇ GPU °¡»ó ÁÖ¼Ò
-	m_vertexBufferView.StrideInBytes = sizeof(Vertex);		// Á¤Á¡¹öÆÛ ÀüÃ¼ Å©±â(¹ÙÀÌÆ® ´ÜÀ§)
-	m_vertexBufferView.SizeInBytes = m_vertexBufferSize;	// Á¤Á¡ ÇÏ³ª´ç Å©±â(¹ÙÀÌÆ® ´ÜÀ§)
+	// : ì •ì  ë²„í¼ ë·°ë¥¼ ì •ì˜í•˜ëŠ” êµ¬ì¡°ì²´ì…ë‹ˆë‹¤.
+	// ì´í›„ DrawCall ì‹œ ì´ ì •ë³´ë¥¼ ë„˜ê¹€
+	// ì´ ë·°ëŠ” GPUê°€ ì •ì  ë°ì´í„°ë¥¼ ì½ì„ ë•Œ ì‚¬ìš©ë©ë‹ˆë‹¤.
+	m_vertexBufferView.BufferLocation = m_vertexBufferDefault->GetGPUVirtualAddress();	// GPUì—ì„œ ì½ì„ ì •ì ë²„í¼ ì‹œì‘ ì£¼ì†Œ, ì •ì  ë²„í¼ì˜ GPU ê°€ìƒ ì£¼ì†Œ
+	m_vertexBufferView.StrideInBytes = sizeof(Vertex);		// ì •ì ë²„í¼ ì „ì²´ í¬ê¸°(ë°”ì´íŠ¸ ë‹¨ìœ„)
+	m_vertexBufferView.SizeInBytes = m_vertexBufferSize;	// ì •ì  í•˜ë‚˜ë‹¹ í¬ê¸°(ë°”ì´íŠ¸ ë‹¨ìœ„)
 
 }
 
 void Cube::CreateIndexBuffer()
 {
-	// ¸éº° 4Á¤Á¡, »ï°¢Çü 2°³¾¿. 6¸é¡¿2¡¿3=36
+	// ë©´ë³„ 4ì •ì , ì‚¼ê°í˜• 2ê°œì”©. 6ë©´Ã—2Ã—3=36
 	UINT16 indexArray[36] =
 	{
-		// ¾Õ¸é (z=+0.25)
+		// ì•ë©´ (z=+0.25)
 		0, 2, 1,    0, 3, 2,
-		// µŞ¸é (z=-0.25)
+		// ë’·ë©´ (z=-0.25)
 		4, 5, 6,  4, 6, 7,
-		// ¿À¸¥ÂÊ(x=+0.25)
+		// ì˜¤ë¥¸ìª½(x=+0.25)
 		8, 10, 9,   8, 11, 10,
-		// ¿ŞÂÊ(x=-0.25)
+		// ì™¼ìª½(x=-0.25)
 		12, 14, 13, 12, 15, 14,
-		// À­¸é(y=+0.25)
+		// ìœ—ë©´(y=+0.25)
 		16, 18, 17, 16, 19, 18,
-		// ¾Æ·§¸é(y=-0.25)
+		// ì•„ë«ë©´(y=-0.25)
 		20, 22, 21, 20, 23, 22
 	};
 
@@ -264,14 +264,14 @@ void Cube::CreateIndexBuffer()
 		IID_PPV_ARGS(&m_indexBufferUpload)
 	));
 
-	// 3. µ¥ÀÌÅÍ º¹»ç
+	// 3. ë°ì´í„° ë³µì‚¬
 	UINT8* pIndexDataBegin;
 	D3D12_RANGE readRange = { 0, 0 };
 	ThrowIfFailed(m_indexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
 	memcpy(pIndexDataBegin, indexArray, m_indexBufferSize);
 	m_indexBufferUpload->Unmap(0, nullptr);
 
-	// 6. ÀÎµ¦½º¹öÆÛ ºä »ı¼º
+	// 6. ì¸ë±ìŠ¤ë²„í¼ ë·° ìƒì„±
 	m_indexBufferView.BufferLocation = m_indexBufferDefault->GetGPUVirtualAddress();
 	m_indexBufferView.Format = DXGI_FORMAT_R16_UINT;
 	m_indexBufferView.SizeInBytes = m_indexBufferSize;
@@ -279,7 +279,7 @@ void Cube::CreateIndexBuffer()
 
 void Cube::CreateConstantBuffer()
 {
-	// CBVµğ½ºÅ©¸³ÅÍÈü heapProps
+	// CBVë””ìŠ¤í¬ë¦½í„°í™ heapProps
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -287,11 +287,11 @@ void Cube::CreateConstantBuffer()
 	heapProps.CreationNodeMask = 0;
 	heapProps.VisibleNodeMask = 0;
 
-	// ¸®¼Ò½º description
+	// ë¦¬ì†ŒìŠ¤ description
 	D3D12_RESOURCE_DESC cbDesc = {};
 	cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	cbDesc.Alignment = 0;
-	cbDesc.Width = 256; // ÃÖ¼Ò 256¹ÙÀÌÆ®(Çà·Ä 64 + ÆĞµù)
+	cbDesc.Width = 256; // ìµœì†Œ 256ë°”ì´íŠ¸(í–‰ë ¬ 64 + íŒ¨ë”©)
 	cbDesc.Height = 1;
 	cbDesc.DepthOrArraySize = 1;
 	cbDesc.MipLevels = 1;
@@ -301,7 +301,7 @@ void Cube::CreateConstantBuffer()
 	cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	cbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	// CB ¸®¼Ò½º»ı¼º
+	// CB ë¦¬ì†ŒìŠ¤ìƒì„±
 	HRESULT hr = m_device->CreateCommittedResource(
 		&heapProps,
 		D3D12_HEAP_FLAG_NONE,
@@ -312,18 +312,18 @@ void Cube::CreateConstantBuffer()
 	);
 	ThrowIfFailed(hr);
 
-	// CBV µğ½ºÅ©¸³ÅÍ Èü »ı¼º
+	// CBV ë””ìŠ¤í¬ë¦½í„° í™ ìƒì„±
 	D3D12_DESCRIPTOR_HEAP_DESC heapDescCBV = {};
 	heapDescCBV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // Constant Buffer View, Shader Resource View, Unordered Access View
-	heapDescCBV.NumDescriptors = 1; // CBV ÇÏ³ª¸¸ »ç¿ë
-	heapDescCBV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // ¼ÎÀÌ´õ¿¡¼­ Á¢±Ù °¡´ÉÇÏµµ·Ï ¼³Á¤
-	heapDescCBV.NodeMask = 0; // ¸ÖÆ¼ GPU ½Ã½ºÅÛ¿¡¼­ »ç¿ëÇÒ ³ëµå ¸¶½ºÅ©, ´ÜÀÏ GPU ½Ã½ºÅÛ¿¡¼­´Â 1·Î ¼³Á¤
+	heapDescCBV.NumDescriptors = 1; // CBV í•˜ë‚˜ë§Œ ì‚¬ìš©
+	heapDescCBV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // ì…°ì´ë”ì—ì„œ ì ‘ê·¼ ê°€ëŠ¥í•˜ë„ë¡ ì„¤ì •
+	heapDescCBV.NodeMask = 0; // ë©€í‹° GPU ì‹œìŠ¤í…œì—ì„œ ì‚¬ìš©í•  ë…¸ë“œ ë§ˆìŠ¤í¬, ë‹¨ì¼ GPU ì‹œìŠ¤í…œì—ì„œëŠ” 1ë¡œ ì„¤ì •
 
 	m_device->CreateDescriptorHeap(&heapDescCBV, IID_PPV_ARGS(&m_cbvHeap));
 
-	// CBV µğ½ºÅ©¸³ÅÍ »ı¼º
-	m_cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress(); // CB ¸®¼Ò½ºÀÇ GPU °¡»ó ÁÖ¼Ò
-	m_cbvDesc.SizeInBytes = (sizeof(MVP) + 255) & ~255; // CBV´Â 256¹ÙÀÌÆ® Á¤·ÄÀÌ ÇÊ¿äÇÏ¹Ç·Î, Å©±â¸¦ 256¹ÙÀÌÆ®·Î ¿Ã¸² Ã³¸®
+	// CBV ë””ìŠ¤í¬ë¦½í„° ìƒì„±
+	m_cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress(); // CB ë¦¬ì†ŒìŠ¤ì˜ GPU ê°€ìƒ ì£¼ì†Œ
+	m_cbvDesc.SizeInBytes = (sizeof(MVP) + 255) & ~255; // CBVëŠ” 256ë°”ì´íŠ¸ ì •ë ¬ì´ í•„ìš”í•˜ë¯€ë¡œ, í¬ê¸°ë¥¼ 256ë°”ì´íŠ¸ë¡œ ì˜¬ë¦¼ ì²˜ë¦¬
 
 	m_cbvHandle = m_cbvHeap->GetCPUDescriptorHandleForHeapStart();
 	m_device->CreateConstantBufferView(&m_cbvDesc, m_cbvHandle);
@@ -340,7 +340,7 @@ void Cube::CreateConstantBuffer()
 	DirectX::XMMATRIX mvp = world * view * proj;
 
 	MVP cbData = {};
-	DirectX::XMStoreFloat4x4(&cbData.mvp, DirectX::XMMatrixTranspose(mvp)); // HLSL¿¡¼­ row-major¸é Transpose
+	DirectX::XMStoreFloat4x4(&cbData.mvp, DirectX::XMMatrixTranspose(mvp)); // HLSLì—ì„œ row-majorë©´ Transpose
 
 	void* pData = nullptr;
 	D3D12_RANGE readRange = { 0, 0 };
@@ -355,7 +355,7 @@ void Cube::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& comm
 		m_vertexBufferUpload.Get(), 0,	// Src
 		m_vertexBufferSize				// Size
 	);
-	// (3) »óÅÂº¯È¯: º¹»ç¿¡¼­ VertexBuffer·Î ÀüÈ¯
+	// (3) ìƒíƒœë³€í™˜: ë³µì‚¬ì—ì„œ VertexBufferë¡œ ì „í™˜
 	D3D12_RESOURCE_BARRIER vsBarrier = {};
 	vsBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	vsBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
@@ -365,10 +365,10 @@ void Cube::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& comm
 	vsBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	commadList->ResourceBarrier(1, &vsBarrier);
 
-	// ÀÎµ¦½º ¹öÆÛµµ µ¿ÀÏÇÑ ¹æ½ÄÀ¸·Î º¹»çÇÕ´Ï´Ù.
+	// ì¸ë±ìŠ¤ ë²„í¼ë„ ë™ì¼í•œ ë°©ì‹ìœ¼ë¡œ ë³µì‚¬í•©ë‹ˆë‹¤.
 	commadList->CopyBufferRegion(m_indexBufferDefault.Get(), 0, m_indexBufferUpload.Get(), 0, m_indexBufferSize);
 
-	// 5. »óÅÂº¯È¯
+	// 5. ìƒíƒœë³€í™˜
 	D3D12_RESOURCE_BARRIER ibBarrier = {};
 	ibBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
 	ibBarrier.Transition.pResource = m_indexBufferDefault.Get();
@@ -381,7 +381,7 @@ void Cube::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& comm
 
 void Cube::SetDrawCube(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 {
-	// 6. ±×¸®±â Àü ¼¼ÆÃ
+	// 6. ê·¸ë¦¬ê¸° ì „ ì„¸íŒ…
 	commadList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	commadList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
 	commadList->IASetIndexBuffer(&m_indexBufferView);

@@ -10,8 +10,8 @@ Camera::~Camera()
 
 void Camera::OnUpdate(POINT center)
 {
-	// ¸¶¿ì½º x´Â yÃà È¸Àü
-	// ¸¶¿ì½º y´Â xÃà È¸Àü
+	// ë§ˆìš°ìŠ¤ xëŠ” yì¶• íšŒì „
+	// ë§ˆìš°ìŠ¤ yëŠ” xì¶• íšŒì „
 	POINT current;
 	GetCursorPos(&current);
 	SetCursorPos(center.x, center.y);
@@ -24,13 +24,13 @@ void Camera::OnUpdate(POINT center)
 
 	XMVECTOR pos = XMLoadFloat3(&m_position);
 
-	// right (local xÃà)
+	// right (local xì¶•)
 	XMVECTOR right = XMVector3Normalize(XMVectorSet(m_local._11, m_local._21, m_local._31, 0.0f));
 
-	// up (local yÃà)
+	// up (local yì¶•)
 	XMVECTOR up = XMVector3Normalize(XMVectorSet(m_local._12, m_local._22, m_local._32, 0.0f));
 
-	// front (local zÃà)
+	// front (local zì¶•)
 	XMVECTOR front = XMVector3Normalize(XMVectorSet(m_local._13, m_local._23, m_local._33, 0.0f));
 
 
@@ -43,12 +43,12 @@ void Camera::OnUpdate(POINT center)
 
 	 XMStoreFloat3(&m_position,pos);
 
-	// (1) °¢ º¯È¯À» XMMATRIX·Î »ı¼º
+	// (1) ê° ë³€í™˜ì„ XMMATRIXë¡œ ìƒì„±
 	XMMATRIX S = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z);
-	XMMATRIX R = XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, m_rotation.z); // ¼ø¼­ À¯ÀÇ
+	XMMATRIX R = XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, m_rotation.z); // ìˆœì„œ ìœ ì˜
 	XMMATRIX T = XMMatrixTranslationFromVector(pos);
 
-	// (2) ÇÕ¼º
+	// (2) í•©ì„±
 	XMMATRIX world = S * R * T;
 
 	XMStoreFloat4x4(&m_local, XMMatrixInverse(nullptr, world));
