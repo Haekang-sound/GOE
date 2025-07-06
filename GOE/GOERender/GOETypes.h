@@ -14,11 +14,11 @@
 #include <stdexcept>
 #include <DirectXMath.h>  
 using namespace DirectX;
-// GOETypes Çì´õ ÆÄÀÏ¿¡ ÇÊ¿äÇÑ ±¸Á¶Ã¼ ¹× Å¸ÀÔ Á¤ÀÇ  
+// GOETypes í—¤ë” íŒŒì¼ì— í•„ìš”í•œ êµ¬ì¡°ì²´ ë° íƒ€ì… ì •ì˜  
 
 struct MVP  
 {
-	XMFLOAT4X4 mvp; // 64¹ÙÀÌÆ®(Çà·Ä), row-major/col-major´Â HLSL¿¡¼­ ¸ÂÃçÁÜ  
+	XMFLOAT4X4 mvp; // 64ë°”ì´íŠ¸(í–‰ë ¬), row-major/col-majorëŠ” HLSLì—ì„œ ë§ì¶°ì¤Œ  
 };  
 
 struct Vertex  

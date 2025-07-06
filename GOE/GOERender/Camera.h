@@ -13,6 +13,12 @@ public:
 public: 
 	XMFLOAT4X4 m_local = {};
 	// 스케일, 회전(라디안), 위치
+	XMVECTOR m_quat = XMQuaternionIdentity();
+
+	float m_rollSpeed = 0.01;
+	float wheelValue = 0;
+	int prev_wheelValue = 0;
+
 	XMFLOAT3 m_position = {0, 0, -2};
 	XMFLOAT3 m_rotation = {};
 	XMFLOAT3 m_scale = {1,1,1};
@@ -31,6 +37,8 @@ public:
 	{
 		return XMLoadFloat4x4(&m_local);
 	}
+
+
 
 };
 

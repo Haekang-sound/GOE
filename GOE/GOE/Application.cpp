@@ -1,4 +1,4 @@
-﻿#include "Application.h"
+#include "Application.h"
 #include "../GOERender/GOERenderer.h"  
 
 Application::Application(GOE::WinDesc info)
@@ -31,6 +31,8 @@ int Application::Run()
 		}
 
 		m_renderer->OnRender(); // 렌더링 호출
+
+		if(GetAsyncKeyState(VK_ESCAPE) & 0x8000) DestroyWindow(m_hWnd);
 	}
 
 	return 0;
@@ -90,7 +92,6 @@ LRESULT Application::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
 		case WM_DESTROY:
 			PostQuitMessage(0); // 애플리케이션 종료 요청
 			break;
-
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam); // 기본 처리 위임
 	}
