@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 /// <summary>
 /// 사용자가 다루게될 최전방의 인터페이스 

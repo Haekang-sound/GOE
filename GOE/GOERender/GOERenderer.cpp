@@ -1,6 +1,8 @@
 ﻿#include "GOERenderer.h"
 #include "Camera.h" // Add this include to ensure the Camera class is fully defined
 #include "Cube.h"
+#include "../Imgui/imgui_impl_dx12.h"
+#include "../Imgui/imgui_impl_win32.h"
 
 /// <summary>
 /// GOERenderer의 생성자
@@ -41,6 +43,7 @@ void GOERenderer::OnInit()
 	LoadAssets();
 
 	CopyUploadHeapToDefault();
+	CreateImguiDescriptorHeap();
 }
 
 /// <summary>
@@ -61,7 +64,7 @@ void GOERenderer::OnUpdate()
 	m_camera->OnUpdate(centerPt);
 	m_cube->OnUpdate();
 
-	ShowCursor(false);
+	//ShowCursor(false);
 
 	
 	{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트
@@ -100,7 +103,7 @@ void GOERenderer::OnRender()
 	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
 	m_swapChain->Present(1, 0);
-	
+
 	m_fenceValue++;
 	SignalFence(m_fenceValue);
 
@@ -885,6 +888,32 @@ void GOERenderer::PopulateCommandList()
 		// 이 상태 변경은 GPU가 커맨드 리스트를 실행하는 동안 자동으로 처리됩니다.
 	m_commandList->ResourceBarrier(1, &b2arrier);
 
+	ImGui::Render();
+
+	D3D12_RESOURCE_BARRIER imguiBarrier = {};
+	imguiBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	imguiBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	imguiBarrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();
+	imguiBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	imguiBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	imguiBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	//m_commandList->Reset(m_commandAllocator.Get(), nullptr);
+	m_commandList->ResourceBarrier(1, &imguiBarrier);
+
+	// Render Dear ImGui graphics
+	//const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
+	//m_commandList->ClearRenderTargetView(m_renderTargets[m_frameIndex].Get(), clear_color_with_alpha, 0, nullptr);
+	//m_commandList->OMSetRenderTargets(1, &m_renderTargets[m_frameIndex].Get(), FALSE, nullptr);
+	// .Get()으로 원시 포인터를 가져와 임시 변수에 저장합니다.
+	ID3D12DescriptorHeap* pHeap = m_imguiDescriptorHeap.Get();
+
+	// 임시 변수의 주소를 전달합니다.
+	m_commandList->SetDescriptorHeaps(1, &pHeap);
+	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_commandList.Get());
+	imguiBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	imguiBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	m_commandList->ResourceBarrier(1, &imguiBarrier);
+
 	// 9. 커맨드 리스트 닫기
 		// 커맨드 리스트에 더 이상 명령을 추가하지 않겠다고 선언합니다.
 		// 이 메서드를 호출한 후에는 커맨드 리스트를 실행할 수 있습니다.
@@ -918,3 +947,14 @@ void GOERenderer::WaitForFence(const UINT64& fenceValue)
 	}
 }
 
+/// <summary>
+/// imgui를 위한 디스크립터 힙 생성
+/// </summary>
+void GOERenderer::CreateImguiDescriptorHeap()
+{
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // CBV/SRV/UAV용
+	desc.NumDescriptors = 64;               // 보통 ImGui는 1~2면 충분
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // 반드시 shader visible!
+	ThrowIfFailed(m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_imguiDescriptorHeap)));
+}

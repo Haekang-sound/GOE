@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "framework.h"  
 
 namespace GOE
@@ -8,7 +8,7 @@ namespace GOE
 		std::wstring name;
 		HINSTANCE hInstance;
 		int nCmdShow;
-		size_t height;
 		size_t width;
+		size_t height;
 	};
 }

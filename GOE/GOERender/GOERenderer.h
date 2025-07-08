@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "ID3DRenderer.h"
 #include "GOETypes.h"
 
@@ -26,6 +26,13 @@ public:
 	void OnRender() override;
 	void OnDestroy() override;
 
+public: 
+	inline ID3D12Device* GetDevice() { return m_device.Get(); }
+	inline ID3D12CommandQueue* GetCommandQueue() { return m_commandQueue.Get(); }
+	inline int GetFrameCount() { return m_frameBufferCount; }
+	inline ID3D12DescriptorHeap* GetDescriptorHeap() { return m_imguiDescriptorHeap.Get(); }
+	inline ID3D12GraphicsCommandList* GetCommandList() { return m_commandList.Get(); }
+	
 private:
 	void SetViewport();
 
@@ -56,6 +63,9 @@ private:
 	void PopulateCommandList();
 	void SignalFence(const UINT64& fenceValue);
 	void WaitForFence(const UINT64& fenceValue);
+
+private: 
+	void CreateImguiDescriptorHeap();
 
 	// 임시로 둔것에 가깝다
 public: 
@@ -106,4 +116,7 @@ private:
 
 	// 프레임마다 동기화를 위한 fece값을 갖는다.
 	UINT64 m_fenceValue = 0;
+
+private: 
+	ComPtr<ID3D12DescriptorHeap> m_imguiDescriptorHeap = nullptr;
 };

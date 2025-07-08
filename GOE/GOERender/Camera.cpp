@@ -1,5 +1,5 @@
 #include "Camera.h"
-#include <iostream>
+#include "imgui.h"
 Camera::Camera()
 {
 	XMStoreFloat4x4(&m_local, XMMatrixIdentity());
@@ -11,35 +11,53 @@ Camera::~Camera()
 
 void Camera::OnUpdate(POINT center)
 {
+	bool tb = true;
+	ImGui::Begin("cameratest", &tb);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+	ImGui::Text("Hello from another window!");
+	if (ImGui::Button("Close Me"))
+		tb = false;
+	ImGui::End();
+
 	// 기저벡터
 	XMVECTOR right = XMVector3Normalize(XMVectorSet(m_local._11, m_local._21, m_local._31, 0.0f));
 	XMVECTOR up = XMVector3Normalize(XMVectorSet(m_local._12, m_local._22, m_local._32, 0.0f));
 	XMVECTOR forward = XMVector3Normalize(XMVectorSet(m_local._13, m_local._23, m_local._33, 0.0f));
 
-	// 마우스 x는 y축 회전
-	// 마우스 y는 x축 회전
-	POINT current;
-	GetCursorPos(&current);
-	SetCursorPos(center.x, center.y);
+	if(GetAsyncKeyState(VK_RBUTTON) & 0x8000)
+	{
+		GetCursorPos(&m_currentMouse);
+
+		if (!m_keydown)
+		{
+			m_prevMouse = m_currentMouse;
+			m_keydown = true;
+		}
+	}
+	else
+	{
+		m_keydown = false;
+	}
+
 
 	XMMATRIX R = {};
 	if (true)
 	{
-		m_rotation.x += (current.y - center.y) * m_roatateSpeed;
-		m_rotation.y += (current.x - center.x) * m_roatateSpeed;
+		m_rotation.x += (m_currentMouse.y - m_prevMouse.y) * m_roatateSpeed;
+		m_rotation.y += (m_currentMouse.x - m_prevMouse.x) * m_roatateSpeed;
 		R = XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, m_rotation.z);
 		
 	}
 	else
 	{
 		// 카메라 회전
-		XMVECTOR rotQX = XMQuaternionRotationAxis(right, (current.y - center.y) * m_roatateSpeed);
-		XMVECTOR rotQY = XMQuaternionRotationAxis(up, (current.x - center.x) * m_roatateSpeed);
+		XMVECTOR rotQX = XMQuaternionRotationAxis(right, (m_currentMouse.y - center.y) * m_roatateSpeed);
+		XMVECTOR rotQY = XMQuaternionRotationAxis(up, (m_currentMouse.x - center.x) * m_roatateSpeed);
 		m_quat = XMQuaternionNormalize(XMQuaternionMultiply(m_quat, rotQX));
 		m_quat = XMQuaternionNormalize(XMQuaternionMultiply(m_quat, rotQY));
 		R = XMMatrixRotationQuaternion(m_quat);
 	}
-	
+	m_prevMouse = m_currentMouse;
+
 	// 카메라 이동
 	XMVECTOR pos = XMLoadFloat3(&m_position);
 	if (GetAsyncKeyState('W') & 0x8000)	pos += forward * m_moveSpeed;

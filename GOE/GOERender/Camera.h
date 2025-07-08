@@ -29,8 +29,10 @@ public:
 	float cam_z = -2.f;
 
 	float m_roatateSpeed = 0.001f;
-	POINT m_prevMouse = {};
 
+	POINT m_currentMouse = {};
+	POINT m_prevMouse = {};
+	bool m_keydown = false;
 
 public: 
 	inline XMMATRIX GetViewTransform()
