@@ -38,8 +38,9 @@
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
     <ProjectGuid>{52aad547-8cff-42fb-a05d-30a3229f4d8c}</ProjectGuid>
-    <RootNamespace>GOERender</RootNamespace>
+    <RootNamespace>GOE_Render</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>GOE_Render</ProjectName>
   </PropertyGroup>
   <PropertyGroup Label="Globals" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Microsoft_Direct3D_D3D12_SkipLibraryCopy>false</Microsoft_Direct3D_D3D12_SkipLibraryCopy>

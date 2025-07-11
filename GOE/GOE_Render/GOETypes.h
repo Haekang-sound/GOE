@@ -36,3 +36,18 @@ inline void ThrowIfFailed(const HRESULT& hr)
 		throw std::runtime_error("HRESULT failed!");
 	}
 }
+
+struct UIInitInfo
+{
+	ID3D12Device* device = nullptr;
+	ID3D12CommandQueue* commandQueue = nullptr;
+	ID3D12DescriptorHeap* imguiDescriptorHeap = nullptr;
+	int frameBufferCount = {};
+};
+
+struct UILoopInfo
+{
+	ID3D12DescriptorHeap* imguiDescriptorHeap = nullptr;
+	ID3D12GraphicsCommandList* commandlist = nullptr;
+	ID3D12Resource* rendertarget = nullptr;
+};

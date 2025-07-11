@@ -8,9 +8,13 @@
 class ID3DRenderer
 {
 public:
+	virtual ~ID3DRenderer() {}
+
 	virtual void OnInit() = 0;
 	virtual void OnUpdate() = 0;
+	virtual void BeginRender() = 0;
 	virtual void OnRender() = 0;
+	virtual void EndRender() = 0;
 	virtual void OnDestroy() = 0;
-	virtual ~ID3DRenderer() {}
+
 };

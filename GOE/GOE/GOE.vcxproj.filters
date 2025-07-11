@@ -11,9 +11,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="imgui">
-      <UniqueIdentifier>{f9da3901-9d1a-4170-901e-2585c9d5b7f1}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
@@ -30,30 +27,6 @@
     </ClInclude>
     <ClInclude Include="Infomation.h">
       <Filter>EntryPoint</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Imgui\imconfig.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Imgui\imgui.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Imgui\imgui_impl_dx12.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Imgui\imgui_impl_win32.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Imgui\imgui_internal.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Imgui\imstb_rectpack.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Imgui\imstb_textedit.h">
-      <Filter>imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Imgui\imstb_truetype.h">
-      <Filter>imgui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -75,27 +48,6 @@
     </ClCompile>
     <ClCompile Include="Application.cpp">
       <Filter>EntryPoint</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Imgui\imgui.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Imgui\imgui_demo.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Imgui\imgui_draw.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Imgui\imgui_impl_dx12.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Imgui\imgui_impl_win32.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Imgui\imgui_tables.cpp">
-      <Filter>imgui</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Imgui\imgui_widgets.cpp">
-      <Filter>imgui</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

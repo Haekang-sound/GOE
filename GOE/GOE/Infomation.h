@@ -1,6 +1,7 @@
 #pragma once
 #include "framework.h"  
 
+
 namespace GOE
 {
 	struct WinDesc
@@ -11,4 +12,5 @@ namespace GOE
 		size_t width;
 		size_t height;
 	};
+
 }

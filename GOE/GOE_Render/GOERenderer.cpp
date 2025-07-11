@@ -1,8 +1,6 @@
 ﻿#include "GOERenderer.h"
 #include "Camera.h" // Add this include to ensure the Camera class is fully defined
 #include "Cube.h"
-#include "../Imgui/imgui_impl_dx12.h"
-#include "../Imgui/imgui_impl_win32.h"
 
 /// <summary>
 /// GOERenderer의 생성자
@@ -84,6 +82,22 @@ void GOERenderer::OnUpdate()
 	}
 }
 
+/// <summary>
+/// 그리기 전에 필요한 동작을 합니다.
+/// 
+/// </summary>
+void GOERenderer::BeginRender()
+{
+	WaitForFence(m_fenceValue);
+
+	// 1. 커맨드 할당자와 커맨드 리스트 초기화
+	// 이전에 기록된 GPU 작업(커맨드 리스트)이 끝났으니, 새롭게 명령을 기록할 수 있도록 할당자(Allocator)를 리셋합니다.
+	m_commandAllocator->Reset();
+	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
+	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
+
+}
+
 
 /// <summary>
 /// 랜더링 루프를 담당합니다.
@@ -94,11 +108,21 @@ void GOERenderer::OnUpdate()
 /// </summary>
 void GOERenderer::OnRender()
 {
-	OnUpdate();
-
-	WaitForFence(m_fenceValue);
-
+	//OnUpdate();	
 	PopulateCommandList();
+}
+
+/// <summary>
+/// 그리고 나서 필요한 동작을 합니다.
+/// 
+/// </summary>
+void GOERenderer::EndRender()
+{
+	// 9. 커맨드 리스트 닫기
+		// 커맨드 리스트에 더 이상 명령을 추가하지 않겠다고 선언합니다.
+		// 이 메서드를 호출한 후에는 커맨드 리스트를 실행할 수 있습니다.
+	m_commandList->Close();
+
 	ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
 	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
@@ -108,7 +132,7 @@ void GOERenderer::OnRender()
 	SignalFence(m_fenceValue);
 
 	// GPU 작업이 끝났으니, swapchain에서 새로운 백버퍼 인덱스를 받아옴.
-	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();	
+	m_frameIndex = m_swapChain->GetCurrentBackBufferIndex();
 
 }
 
@@ -133,7 +157,7 @@ void GOERenderer::SetViewport()
 	GetClientRect(m_hWnd, &m_scissorRect);
 	m_width = m_scissorRect.right - m_scissorRect.left;
 	m_height = m_scissorRect.bottom - m_scissorRect.top;
-
+	
 	m_aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
 	
 	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f);
@@ -822,11 +846,6 @@ void GOERenderer::CreateFence()
 /// </summary>
 void GOERenderer::PopulateCommandList()
 {
-	// 1. 커맨드 할당자와 커맨드 리스트 초기화
-		// 이전에 기록된 GPU 작업(커맨드 리스트)이 끝났으니, 새롭게 명령을 기록할 수 있도록 할당자(Allocator)를 리셋합니다.
-	m_commandAllocator->Reset();
-		// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
-	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
 
 	// 2. 그래픽스 파이프라인 세팅
 		// 셰이더들이 쓸 수 있는 리소스(텍스처, 버퍼 등)들의 묶음인 Root Signature를 바인딩.
@@ -888,36 +907,7 @@ void GOERenderer::PopulateCommandList()
 		// 이 상태 변경은 GPU가 커맨드 리스트를 실행하는 동안 자동으로 처리됩니다.
 	m_commandList->ResourceBarrier(1, &b2arrier);
 
-	ImGui::Render();
-
-	D3D12_RESOURCE_BARRIER imguiBarrier = {};
-	imguiBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	imguiBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	imguiBarrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();
-	imguiBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	imguiBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	imguiBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	//m_commandList->Reset(m_commandAllocator.Get(), nullptr);
-	m_commandList->ResourceBarrier(1, &imguiBarrier);
-
-	// Render Dear ImGui graphics
-	//const float clear_color_with_alpha[4] = { clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w, clear_color.w };
-	//m_commandList->ClearRenderTargetView(m_renderTargets[m_frameIndex].Get(), clear_color_with_alpha, 0, nullptr);
-	//m_commandList->OMSetRenderTargets(1, &m_renderTargets[m_frameIndex].Get(), FALSE, nullptr);
-	// .Get()으로 원시 포인터를 가져와 임시 변수에 저장합니다.
-	ID3D12DescriptorHeap* pHeap = m_imguiDescriptorHeap.Get();
-
-	// 임시 변수의 주소를 전달합니다.
-	m_commandList->SetDescriptorHeaps(1, &pHeap);
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), m_commandList.Get());
-	imguiBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	imguiBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	m_commandList->ResourceBarrier(1, &imguiBarrier);
-
-	// 9. 커맨드 리스트 닫기
-		// 커맨드 리스트에 더 이상 명령을 추가하지 않겠다고 선언합니다.
-		// 이 메서드를 호출한 후에는 커맨드 리스트를 실행할 수 있습니다.
-	m_commandList->Close();
+	
 }
 
 /// <summary>

@@ -39,6 +39,7 @@
     <ProjectGuid>{49e60c72-63cb-4beb-9d42-5992d4253851}</ProjectGuid>
     <RootNamespace>Shader</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>GOE_Shader</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -2,7 +2,6 @@
 #include "ID3DRenderer.h"
 #include "GOETypes.h"
 
-
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
 using namespace DirectX;
@@ -23,7 +22,11 @@ public:
 
 	void OnInit() override;
 	void OnUpdate() override;
+
+	void BeginRender() override;
 	void OnRender() override;
+	void EndRender() override;
+
 	void OnDestroy() override;
 
 public: 
@@ -32,6 +35,7 @@ public:
 	inline int GetFrameCount() { return m_frameBufferCount; }
 	inline ID3D12DescriptorHeap* GetDescriptorHeap() { return m_imguiDescriptorHeap.Get(); }
 	inline ID3D12GraphicsCommandList* GetCommandList() { return m_commandList.Get(); }
+	inline ID3D12Resource* GetCurrentRendertarget() { return m_renderTargets[m_frameIndex].Get(); }
 	
 private:
 	void SetViewport();

@@ -1,5 +1,4 @@
 #include "Camera.h"
-#include "imgui.h"
 Camera::Camera()
 {
 	XMStoreFloat4x4(&m_local, XMMatrixIdentity());
@@ -11,13 +10,6 @@ Camera::~Camera()
 
 void Camera::OnUpdate(POINT center)
 {
-	bool tb = true;
-	ImGui::Begin("cameratest", &tb);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-	ImGui::Text("Hello from another window!");
-	if (ImGui::Button("Close Me"))
-		tb = false;
-	ImGui::End();
-
 	// 기저벡터
 	XMVECTOR right = XMVector3Normalize(XMVectorSet(m_local._11, m_local._21, m_local._31, 0.0f));
 	XMVECTOR up = XMVector3Normalize(XMVectorSet(m_local._12, m_local._22, m_local._32, 0.0f));
