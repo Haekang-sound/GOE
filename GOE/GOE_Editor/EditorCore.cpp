@@ -8,7 +8,8 @@ namespace Editor
 
 EditorCore::EditorCore(HWND hwnd)
 	:m_hWnd(hwnd)
-{}
+{
+}
 
 EditorCore::EditorCore()
 {
@@ -26,13 +27,9 @@ EditorCore::~EditorCore()
 
 void EditorCore::Initialize(UIInitInfo* uiInfo)
 {
-	// Make process DPI aware and obtain main monitor scale
-	// 모니터 배율을 가져온다.
 	ImGui_ImplWin32_EnableDpiAwareness();
-	// 원래는 이걸 화면비에 곱해주는데 지금은 그런거 없다.
 	float main_scale = ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT{ 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
 
-	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -73,16 +70,7 @@ void EditorCore::Initialize(UIInitInfo* uiInfo)
 			return Editor::g_allocator.Free(cpu_handle, gpu_handle);
 		};
 
-	// (before 1.91.6 the DirectX12 backend required a single SRV descriptor passed)
-	// (there is a legacy version of ImGui_ImplDX12_Init() that supports those, but a future version of Dear ImGuii will requires more descriptors to be allocated)
 
-	///test
-	{
-		m_info.Device = uiInfo->device;
-		m_info.CommandQueue = uiInfo->commandQueue;
-		m_info.NumFramesInFlight = uiInfo->frameBufferCount;
-	}
-	
 	ImGui_ImplDX12_Init(&init_info);
 }
 

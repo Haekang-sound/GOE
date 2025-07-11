@@ -1,53 +1,53 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="ect">
-      <UniqueIdentifier>{9badf12b-79a0-480c-8b9f-697f6ad50a39}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="EntryPoint">
+    <Filter Include="00_EntryPoint">
       <UniqueIdentifier>{e066ec1e-3186-4f44-8703-687ff12f4988}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ect\리소스 파일">
+    <Filter Include="99_ect">
+      <UniqueIdentifier>{9badf12b-79a0-480c-8b9f-697f6ad50a39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="99_ect\리소스 파일">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">
-      <Filter>EntryPoint</Filter>
+      <Filter>00_EntryPoint</Filter>
     </ClInclude>
     <ClInclude Include="Application.h">
-      <Filter>EntryPoint</Filter>
+      <Filter>00_EntryPoint</Filter>
     </ClInclude>
     <ClInclude Include="framework.h">
-      <Filter>ect</Filter>
+      <Filter>99_ect</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
-      <Filter>ect</Filter>
+      <Filter>99_ect</Filter>
     </ClInclude>
     <ClInclude Include="Infomation.h">
-      <Filter>EntryPoint</Filter>
+      <Filter>00_EntryPoint</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GOE.rc">
-      <Filter>ect\리소스 파일</Filter>
+      <Filter>99_ect\리소스 파일</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="small.ico">
-      <Filter>ect\리소스 파일</Filter>
+      <Filter>99_ect\리소스 파일</Filter>
     </Image>
     <Image Include="GOE.ico">
-      <Filter>ect\리소스 파일</Filter>
+      <Filter>99_ect\리소스 파일</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
-      <Filter>EntryPoint</Filter>
+      <Filter>00_EntryPoint</Filter>
     </ClCompile>
     <ClCompile Include="Application.cpp">
-      <Filter>EntryPoint</Filter>
+      <Filter>00_EntryPoint</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

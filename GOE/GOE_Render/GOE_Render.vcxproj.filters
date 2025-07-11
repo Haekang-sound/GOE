@@ -1,39 +1,39 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Sources">
-      <UniqueIdentifier>{892a5a93-0823-4ef4-8fa9-e5f4cdc0cf97}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers">
+    <Filter Include="00_Headers">
       <UniqueIdentifier>{af910965-b680-4ea4-8751-327098448a41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00_Sources">
+      <UniqueIdentifier>{892a5a93-0823-4ef4-8fa9-e5f4cdc0cf97}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GOERenderer.h">
-      <Filter>Headers</Filter>
+      <Filter>00_Headers</Filter>
     </ClInclude>
     <ClInclude Include="ID3DRenderer.h">
-      <Filter>Headers</Filter>
+      <Filter>00_Headers</Filter>
     </ClInclude>
     <ClInclude Include="Camera.h">
-      <Filter>Headers</Filter>
+      <Filter>00_Headers</Filter>
     </ClInclude>
     <ClInclude Include="Cube.h">
-      <Filter>Headers</Filter>
+      <Filter>00_Headers</Filter>
     </ClInclude>
     <ClInclude Include="GOETypes.h">
-      <Filter>Headers</Filter>
+      <Filter>00_Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GOERenderer.cpp">
-      <Filter>Sources</Filter>
+      <Filter>00_Sources</Filter>
     </ClCompile>
     <ClCompile Include="Camera.cpp">
-      <Filter>Sources</Filter>
+      <Filter>00_Sources</Filter>
     </ClCompile>
     <ClCompile Include="Cube.cpp">
-      <Filter>Sources</Filter>
+      <Filter>00_Sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

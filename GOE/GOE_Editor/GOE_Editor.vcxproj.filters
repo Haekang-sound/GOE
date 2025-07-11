@@ -1,69 +1,75 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{14d84ab8-6dfa-4cd0-8da5-08d5114f8db8}</UniqueIdentifier>
+    <Filter Include="Common">
+      <UniqueIdentifier>{3da9abd0-a5c7-44c4-9089-067ed9b8817f}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources">
+    <Filter Include="00_Sources">
       <UniqueIdentifier>{2434b6a0-5596-42e1-978a-e7c3d3818ab7}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Imgui">
+    <Filter Include="00_Headers">
+      <UniqueIdentifier>{14d84ab8-6dfa-4cd0-8da5-08d5114f8db8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="10_Imgui">
       <UniqueIdentifier>{87dcff45-6124-4755-8d01-9aef7a4ec31b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EditorCore.cpp">
-      <Filter>Sources</Filter>
+      <Filter>00_Sources</Filter>
     </ClCompile>
     <ClCompile Include="..\Imgui\imgui.cpp">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\Imgui\imgui_demo.cpp">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\Imgui\imgui_draw.cpp">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\Imgui\imgui_impl_dx12.cpp">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\Imgui\imgui_impl_win32.cpp">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\Imgui\imgui_tables.cpp">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClCompile>
     <ClCompile Include="..\Imgui\imgui_widgets.cpp">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EditorCore.h">
-      <Filter>Headers</Filter>
+      <Filter>00_Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\Imgui\imconfig.h">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\Imgui\imgui.h">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\Imgui\imgui_impl_dx12.h">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\Imgui\imgui_impl_win32.h">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\Imgui\imgui_internal.h">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\Imgui\imstb_rectpack.h">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\Imgui\imstb_textedit.h">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
     </ClInclude>
     <ClInclude Include="..\Imgui\imstb_truetype.h">
-      <Filter>Imgui</Filter>
+      <Filter>10_Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="SingletonBase.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
