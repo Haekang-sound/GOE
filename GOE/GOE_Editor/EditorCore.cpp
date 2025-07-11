@@ -18,9 +18,10 @@ EditorCore::EditorCore()
 
 EditorCore::~EditorCore()
 {
+	Editor::g_allocator.Destroy();
+
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
-
 	ImGui::DestroyContext();
 }
 
