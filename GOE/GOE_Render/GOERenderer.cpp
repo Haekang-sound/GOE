@@ -108,7 +108,6 @@ void GOERenderer::BeginRender()
 /// </summary>
 void GOERenderer::OnRender()
 {
-	//OnUpdate();	
 	PopulateCommandList();
 }
 

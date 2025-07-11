@@ -39,6 +39,9 @@
     <ClCompile Include="..\Imgui\imgui_widgets.cpp">
       <Filter>10_Imgui</Filter>
     </ClCompile>
+    <ClCompile Include="DebugManager.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EditorCore.h">
@@ -70,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="SingletonBase.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugManager.h">
+      <Filter>00_Headers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

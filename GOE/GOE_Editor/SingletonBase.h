@@ -1,6 +1,6 @@
 #pragma once
 template<typename T>
-class SingleTonBase
+class SingletonBase
 {
 public:
 	static T& GetInstance()
@@ -10,8 +10,8 @@ public:
 	}
 
 protected:
-	SingleTonBase() = default;
-	~SingleTonBase() = default;
+	SingletonBase() = default;
+	~SingletonBase() = default;
 
 	SingletonBase(const SingletonBase&) = delete;
 	SingletonBase& operator=(const SingletonBase&) = delete;
