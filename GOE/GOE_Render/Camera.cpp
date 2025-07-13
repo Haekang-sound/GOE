@@ -1,4 +1,5 @@
 #include "Camera.h"
+#include "../GOE_Editor/DebugManager.h"
 Camera::Camera()
 {
 	XMStoreFloat4x4(&m_local, XMMatrixIdentity());
@@ -69,4 +70,19 @@ void Camera::OnUpdate(POINT center)
 
 	XMStoreFloat4x4(&m_local, XMMatrixInverse(nullptr, world));
 	XMStoreFloat3(&m_position,pos);
+
+
+	DebugManager::GetInstance().PushDebugData(
+		[this]()
+		{
+			static float f = 0.0f;
+			static int counter = 0;
+			ImGui::Begin("Camera Debuger");                 
+			ImGui::Text(" 카메라의 디버깅을 위한 디버깅 윈도우 ");
+			// position을 x, y, z 멤버를 가진 구조체라고 가정
+			ImGui::Text("위치: X:%.2f, Y:%.2f, Z:%.2f", m_position.x, m_position.y, m_position.z);
+			ImGui::Text("회전: X:%.2f, Y:%.2f, Z:%.2f", m_rotation.x, m_rotation.y, m_rotation.z);
+
+			ImGui::End();
+		});
 }

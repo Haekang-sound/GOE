@@ -1,5 +1,4 @@
 #include "DebugManager.h"
-
 DebugManager::DebugManager()
 {
 }

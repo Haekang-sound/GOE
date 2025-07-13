@@ -1,4 +1,5 @@
 #include "EditorCore.h"
+#include "DebugManager.h"
 
 namespace Editor
 {
@@ -34,6 +35,34 @@ void EditorCore::Initialize(UIInitInfo* uiInfo)
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
+
+	/// 폰트설정
+	{
+		const char* font_path = "..\\Fonts\\D2Coding.ttc"; // .ttc 파일 경로
+		float font_size = 16.0f;
+
+		// 한글 범위 지정
+		static const ImWchar korean_ranges[] =
+		{
+			0x0020, 0x007E, // Basic Latin
+			0x3131, 0x3163, // Hangul Jamo
+			0xAC00, 0xD7A3, // Hangul Syllables
+			0,
+		};
+
+		// 1. 폰트 설정을 위한 객체 생성
+		ImFontConfig font_config;
+
+		// 2. .ttc 파일 내에서 사용할 폰트의 인덱스를 지정 (0 = 첫 번째 폰트)
+		// D2Coding.ttc의 경우 보통 0번이 일반(Regular) 굵기입니다.
+		font_config.FontNo = 0;
+
+		// 3. 설정 객체와 함께 폰트 로드
+		io.Fonts->AddFontFromFileTTF(font_path, font_size, &font_config, korean_ranges);
+
+		// 폰트 텍스처 빌드는 백엔드가 자동으로 처리해줍니다.
+	}
+
 	Editor::g_io = io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -78,28 +107,9 @@ void EditorCore::Initialize(UIInitInfo* uiInfo)
 
 void EditorCore::OnUpdate()
 {
-	///Imgui테스트를 위한 구간
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
-
-	static float f = 0.0f;
-	static int counter = 0;
-
-	ImGui::Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-
-	ImGui::Text("This is some useful text.");               // Display some text (you can use a format strings too)
-
-	ImGui::SliderFloat("float", &f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-	ImGui::ColorEdit3("clear color", (float*)&clear_color); // Edit 3 floats representing a color
-
-	if (ImGui::Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-		counter++;
-	ImGui::SameLine();
-	ImGui::Text("counter = %d", counter);
-
-	ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / Editor::g_io.Framerate, Editor::g_io.Framerate);
-	ImGui::End();
 }
 
 void EditorCore::OnRender(UILoopInfo* uiInfo)

@@ -1,5 +1,7 @@
 #pragma once
 #include"SingletonBase.h"
+#include "EditorCore.h"
+
 #include <functional>
 #include <queue>
 /// <summary>
@@ -26,7 +28,7 @@ public:
 public: 
 	// funtional Queue 를 이용해서 함수들을 전달받고 
 	// 순서대로 재생 pop
-	void PushDebugData(std::function<void()> debugData) { m_debugQueue.push(debugData); }
+	inline void PushDebugData(std::function<void()> debugData) { m_debugQueue.push(debugData); }
 
 private:
 	std::queue<std::function<void()>> m_debugQueue = {};

@@ -1,5 +1,6 @@
 #include "Application.h"
 #include "../GOE_Render/GOERenderer.h"  
+#include "../GOE_Editor/DebugManager.h"
 
 Application::Application(GOE::WinDesc info)
 	: m_hInst(info.hInstance), m_nCmdShow(info.nCmdShow),
@@ -47,6 +48,8 @@ int Application::Run()
 		m_renderer->OnUpdate();
 
 		m_editor->OnUpdate();
+
+		DebugManager::GetInstance().OnDebugUpdate();
 		
 		UILoopInfo uiInfo;
 		uiInfo.commandlist = dynamic_cast<GOERenderer*>(m_renderer.get())->GetCommandList();
