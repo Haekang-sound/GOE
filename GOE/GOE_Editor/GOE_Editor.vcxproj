@@ -29,7 +29,6 @@
     <ClInclude Include="..\Imgui\imstb_truetype.h" />
     <ClInclude Include="DebugManager.h" />
     <ClInclude Include="EditorCore.h" />
-    <ClInclude Include="SingletonBase.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Imgui\imgui.cpp" />

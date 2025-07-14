@@ -36,6 +36,22 @@ public:
 	inline ID3D12DescriptorHeap* GetDescriptorHeap() { return m_imguiDescriptorHeap.Get(); }
 	inline ID3D12GraphicsCommandList* GetCommandList() { return m_commandList.Get(); }
 	inline ID3D12Resource* GetCurrentRendertarget() { return m_renderTargets[m_frameIndex].Get(); }
+
+	inline UIInitInfo* GetUIInfo() 
+	{
+		m_UIInitInfo.commandQueue = m_commandQueue.Get();
+		m_UIInitInfo.device = m_device.Get();
+		m_UIInitInfo.frameBufferCount = m_frameBufferCount;
+		m_UIInitInfo.imguiDescriptorHeap = m_imguiDescriptorHeap.Get();
+		return &m_UIInitInfo; 
+	}
+	inline UILoopInfo* GetUILoopInfo() 
+	{
+		m_UILoopInfo.commandlist = m_commandList.Get();
+		m_UILoopInfo.imguiDescriptorHeap = m_imguiDescriptorHeap.Get();
+		m_UILoopInfo.rendertarget = m_renderTargets[m_frameIndex].Get();
+		return &m_UILoopInfo; 
+	}
 	
 private:
 	void SetViewport();
@@ -123,4 +139,6 @@ private:
 
 private: 
 	ComPtr<ID3D12DescriptorHeap> m_imguiDescriptorHeap = nullptr;
+	UILoopInfo m_UILoopInfo;
+	UIInitInfo m_UIInitInfo;
 };

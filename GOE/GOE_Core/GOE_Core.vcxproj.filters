@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="00_Sources">
+      <UniqueIdentifier>{797793bd-1a08-4402-9461-762b3514c51d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="00_Headers">
+      <UniqueIdentifier>{88b09688-9892-4b47-b9b1-a5f074abc901}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{54cbf3dd-0b01-4a9e-aab1-e18196e04c94}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="SingletonBase.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Infomation.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Window.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

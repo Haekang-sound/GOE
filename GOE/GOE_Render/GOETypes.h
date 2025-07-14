@@ -14,7 +14,7 @@
 #include <comdef.h>
 #include <windows.h>
 #include <stdexcept>
-#include <DirectXMath.h>  
+#include <functional>
 using namespace DirectX;
 // GOETypes 헤더 파일에 필요한 구조체 및 타입 정의  
 

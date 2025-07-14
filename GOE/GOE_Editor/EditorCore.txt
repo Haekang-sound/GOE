@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 ///imgui 테스트중
 #include "../Imgui/imgui.h"
 #include "../Imgui/imgui_impl_dx12.h"

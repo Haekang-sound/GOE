@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Common">
-      <UniqueIdentifier>{3da9abd0-a5c7-44c4-9089-067ed9b8817f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="00_Sources">
       <UniqueIdentifier>{2434b6a0-5596-42e1-978a-e7c3d3818ab7}</UniqueIdentifier>
     </Filter>
@@ -70,9 +67,6 @@
     </ClInclude>
     <ClInclude Include="..\Imgui\imstb_truetype.h">
       <Filter>10_Imgui</Filter>
-    </ClInclude>
-    <ClInclude Include="SingletonBase.h">
-      <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="DebugManager.h">
       <Filter>00_Headers</Filter>

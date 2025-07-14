@@ -1,14 +1,14 @@
 #pragma once
-#include"SingletonBase.h"
+#include"../GOE_Core/SingletonBase.h"
 #include "EditorCore.h"
 
 #include <functional>
 #include <queue>
 /// <summary>
-/// µ¨¸®°ÔÀÌÆ® ¹æ½ÄÀ¸·Î 
-/// µğ¹ö±ëÁ¤º¸¸¦ ¶ç¿öÁÖ´Â DebugManager
+/// ë¸ë¦¬ê²Œì´íŠ¸ ë°©ì‹ìœ¼ë¡œ 
+/// ë””ë²„ê¹…ì •ë³´ë¥¼ ë„ì›Œì£¼ëŠ” DebugManager
 /// 
-/// ½Ì±ÛÅÏÀ¸·Î »ç¿ëÇÕ´Ï´Ù.
+/// ì‹±ê¸€í„´ìœ¼ë¡œ ì‚¬ìš©í•©ë‹ˆë‹¤.
 /// 
 /// ohk	2025.07.11
 /// </summary>
@@ -19,15 +19,15 @@ public:
 	~DebugManager();
 
 public: 
-	// update¿¡¼­ Á¤º¸¸¦ ¹Ş¾Æ¿À°í ³ª¼­ ½ÇÇàÇÏ¾ß ÇÏ´Ï±î 
-	// ÀÏ¹İÀûÀÎ ¾÷µ¥ÀÌÆ®¿Í ½ÇÇà¼ø¼­°¡ ±¸ºĞµÇ¾î¾ß ÇÑ´Ù.
-	// lateupdate¿Íµµ ¿ÏÀüÈ÷ ±¸ºĞ, °ÔÀÓ·ÎÁ÷¿¡ ¿µÇâÀ» ÁÖ¸é ¾ÈµÈ´Ù.
+	// updateì—ì„œ ì •ë³´ë¥¼ ë°›ì•„ì˜¤ê³  ë‚˜ì„œ ì‹¤í–‰í•˜ì•¼ í•˜ë‹ˆê¹Œ 
+	// ì¼ë°˜ì ì¸ ì—…ë°ì´íŠ¸ì™€ ì‹¤í–‰ìˆœì„œê°€ êµ¬ë¶„ë˜ì–´ì•¼ í•œë‹¤.
+	// lateupdateì™€ë„ ì™„ì „íˆ êµ¬ë¶„, ê²Œì„ë¡œì§ì— ì˜í–¥ì„ ì£¼ë©´ ì•ˆëœë‹¤.
 	void OnDebugUpdate();
 	void OnRender();
 
 public: 
-	// funtional Queue ¸¦ ÀÌ¿ëÇØ¼­ ÇÔ¼öµéÀ» Àü´Ş¹Ş°í 
-	// ¼ø¼­´ë·Î Àç»ı pop
+	// funtional Queue ë¥¼ ì´ìš©í•´ì„œ í•¨ìˆ˜ë“¤ì„ ì „ë‹¬ë°›ê³  
+	// ìˆœì„œëŒ€ë¡œ ì¬ìƒ pop
 	inline void PushDebugData(std::function<void()> debugData) { m_debugQueue.push(debugData); }
 
 private:
