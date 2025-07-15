@@ -762,30 +762,6 @@ void GOERenderer::CreateCommandList()
 	ThrowIfFailed(m_commandList->Close());
 }
 
-
-
-
-/// <summary>
-/// 정점버퍼를 생성하고 초기화합니다.
-/// 
-/// 이 함수는 삼각형의 정점 데이터를 설정하고,
-/// 업로드 힙에 정점 데이터를 복사합니다.
-/// </summary>
-/// <returns></returns>
-
-
-/// <summary>
-/// 업로드힙에 정점 데이터 복사하고,
-/// 디폴트 힙에 정점 버퍼 뷰를 설정합니다.
-/// 
-/// </summary>
-/// <returns></returns>
-
-
-
-
-
-
 /// <summary>
 /// 업로드 힙의 데이터를 디폴트 힙으로 복사합니다.
 /// 

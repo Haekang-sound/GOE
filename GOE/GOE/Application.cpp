@@ -27,9 +27,9 @@ int Application::Run()
 	{
 		m_editor->OnUpdate();
 		m_renderer->OnUpdate();
+		DebugManager::GetInstance().OnDebugUpdate();
 
 		m_renderer->BeginRender();
-		DebugManager::GetInstance().OnDebugUpdate();
 		m_renderer->OnRender(); // 렌더링 호출
 		m_editor->OnRender(m_renderer.get()->GetUILoopInfo());
 		m_renderer->EndRender();
