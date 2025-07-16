@@ -1,8 +1,15 @@
 #pragma once  
 #include "resource.h"  
+
 #include "../GOE_Render/GOERenderer.h"
 #include "../GOE_Editor/EditorCore.h"
 #include "../GOE_Core/Window.h"
+#include "../GOE_AssetLoader/AssetCore.h"
+
+//class Window;
+//class GOERenderer;
+//class EditorCore;
+
 
 /// <summary>
 /// 프로그램의 최전방 Application
@@ -22,4 +29,5 @@ private:
 	std::unique_ptr<Window> m_winCore;
 	std::unique_ptr<GOERenderer> m_renderer;
 	std::unique_ptr<EditorCore> m_editor;
+	std::unique_ptr<AssetCore> m_assetCore;
 };

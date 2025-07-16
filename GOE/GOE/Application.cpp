@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "../GOE_Editor/DebugManager.h"
 
+
 Application::Application(HINSTANCE hInst, int nCmdShow)
 	:m_winCore(nullptr), m_renderer(nullptr), m_editor(nullptr)
 {
@@ -11,6 +12,8 @@ Application::~Application(){}
 
 void Application::Initialize()
 {
+	m_assetCore = std::make_unique<AssetCore>();
+	m_assetCore.get()->test();
 	m_winCore->InitInstance();
 	m_winCore->SetExternalMsgHandler(&ImGui_ImplWin32_WndProcHandler);
 

@@ -89,13 +89,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Renderer;$(SolutionDir)GOE_Editor</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Renderer;$(SolutionDir)GOE_Editor;$(SolutionDir)GOE_AssetLoader;$(SolutionDir)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>GOE_Render.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;GOE_Editor.lib;GOE_Core.lib</AdditionalDependencies>
+      <AdditionalDependencies>GOE_Render.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;GOE_Editor.lib;GOE_Core.lib;GOE_AssetLoader.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -107,7 +107,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Renderer;$(SolutionDir)GOE_Editor</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Renderer;$(SolutionDir)GOE_Editor;$(SolutionDir)GOE_AssetLoader;$(SolutionDir)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -115,7 +115,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>GOE_Render.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;GOE_Editor.lib;GOE_Core.lib</AdditionalDependencies>
+      <AdditionalDependencies>GOE_Render.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;GOE_Editor.lib;GOE_Core.lib;GOE_AssetLoader.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -125,13 +125,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Renderer;$(SolutionDir)GOE_Editor</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Renderer;$(SolutionDir)GOE_Editor;$(SolutionDir)GOE_AssetLoader;$(SolutionDir)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>GOE_Render.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;GOE_Editor.lib;GOE_Core.lib</AdditionalDependencies>
+      <AdditionalDependencies>GOE_Render.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;GOE_Editor.lib;GOE_Core.lib;GOE_AssetLoader.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -143,7 +143,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Renderer;$(SolutionDir)GOE_Editor</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Renderer;$(SolutionDir)GOE_Editor;$(SolutionDir)GOE_AssetLoader;$(SolutionDir)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -151,7 +151,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>GOE_Render.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;GOE_Editor.lib;GOE_Core.lib</AdditionalDependencies>
+      <AdditionalDependencies>GOE_Render.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;GOE_Editor.lib;GOE_Core.lib;GOE_AssetLoader.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
