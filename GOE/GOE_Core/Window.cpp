@@ -1,3 +1,4 @@
+#include "Core_pch.h"
 #include "Window.h"
 #include "../GOE/Resource.h"  
 Window::Window(const std::wstring& title, int width, int height, HINSTANCE hInstance, int nCmdShow)

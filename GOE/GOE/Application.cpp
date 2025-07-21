@@ -1,5 +1,15 @@
 #include "Application.h"
+
+#include "../GOE_Core/Core_pch.h"
+#include "../GOE_Render/Renderer_pch.h"
+#include "../GOE_Editor/Editor_pch.h"
+#include "../GOE_AssetLoader/AssetLoader_pch.h"
+
 #include "../GOE_Editor/DebugManager.h"
+#include "../GOE_Render/GOERenderer.h"
+#include "../GOE_Editor/EditorCore.h"
+#include "../GOE_Core/Window.h"
+#include "../GOE_AssetLoader/AssetCore.h"
 
 
 Application::Application(HINSTANCE hInst, int nCmdShow)
@@ -13,15 +23,22 @@ Application::~Application(){}
 void Application::Initialize()
 {
 	m_assetCore = std::make_unique<AssetCore>();
-	m_assetCore.get()->test();
+	m_assetCore.get()->CreateAssetLoader();
+	
 	m_winCore->InitInstance();
 	m_winCore->SetExternalMsgHandler(&ImGui_ImplWin32_WndProcHandler);
 
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND()); 
 	m_renderer->OnInit();
 	
+	// 쿠라몬의 데이터를 받아온다.
+	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx", *m_renderer->GetKuramonMeshData());
+	m_renderer->TransVertexKuramon();
+
 	m_editor = std::make_unique<EditorCore>(m_winCore->GetHWND());
 	m_editor->Initialize(m_renderer.get()->GetUIInfo());
+
+	
 }
 
 int Application::Run()

@@ -7,6 +7,9 @@
     <Filter Include="00_Sources">
       <UniqueIdentifier>{892a5a93-0823-4ef4-8fa9-e5f4cdc0cf97}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Common">
+      <UniqueIdentifier>{26b6baa6-7e69-4d11-8324-43fdd34abac1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GOERenderer.h">
@@ -21,8 +24,11 @@
     <ClInclude Include="Cube.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="GOETypes.h">
+    <ClInclude Include="Kuramon.h">
       <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer_pch.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -34,6 +40,12 @@
     </ClCompile>
     <ClCompile Include="Cube.cpp">
       <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Kuramon.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer_pch.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

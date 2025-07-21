@@ -1,6 +1,11 @@
-﻿#include "GOERenderer.h"
-#include "Camera.h" // Add this include to ensure the Camera class is fully defined
+﻿#include "Renderer_pch.h"
+#include "GOERenderer.h"
+#include "../GOE_Core/Commons.h"
+
+// 야들은 구조적으로 사라지게 될 수 밖에 없는거야
+#include "Camera.h" 
 #include "Cube.h"
+#include "Kuramon.h"
 
 /// <summary>
 /// GOERenderer의 생성자
@@ -11,7 +16,12 @@
 /// <param name="hWnd">윈도우 핸들</param>
 GOERenderer::GOERenderer(const HWND& hWnd)
 	: m_hWnd(hWnd)
-{}
+{
+	m_UIInitInfo = std::make_unique<UIInitInfo>();
+	m_UILoopInfo = std::make_unique <UILoopInfo>();
+
+
+}
 
 /// <summary>
 /// GOERenderer의 소멸자
@@ -32,11 +42,15 @@ void GOERenderer::OnInit()
 	SetViewport();
 
 	LoadPipeline();
-
 	m_camera = new Camera();
+
 	m_cube = new Cube(m_device, m_aspectRatio);
 	m_cube->m_aspectRatio = m_aspectRatio;
 	m_cube->InitCube();
+
+	m_kuramon = new Kuramon(m_device, m_aspectRatio);
+	m_kuramon->m_aspectRatio = m_aspectRatio;
+	m_kuramon->InitKuramon();
 
 	LoadAssets();
 
@@ -61,11 +75,10 @@ void GOERenderer::OnUpdate()
 
 	m_camera->OnUpdate(centerPt);
 	m_cube->OnUpdate();
+	m_kuramon->OnUpdate();
 
-	//ShowCursor(false);
 
-	
-	{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트
+	{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트(cube)
 		XMMATRIX mvp =
 			m_cube->GetLocalTransForm()
 			* m_camera->GetViewTransform()
@@ -79,6 +92,22 @@ void GOERenderer::OnUpdate()
 		ThrowIfFailed(m_cube->m_constantBuffer->Map(0, &readRange, &pData));
 		memcpy(pData, &cbData, sizeof(MVP));
 		m_cube->m_constantBuffer->Unmap(0, nullptr);
+	}
+	{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트(kuramon)
+		XMMATRIX mvp =
+			m_cube->GetLocalTransForm()*
+			m_kuramon->GetLocalTransForm()
+			* m_camera->GetViewTransform()
+			* XMLoadFloat4x4(&m_proj);
+		MVP cbData = {};
+		XMStoreFloat4x4(&cbData.mvp, XMMatrixTranspose(mvp));
+
+		// CUBE의 CBV에 업로드
+		void* pData = nullptr;
+		D3D12_RANGE readRange = { 0, 0 };
+		ThrowIfFailed(m_kuramon->m_kuramonConstantBuffer->Map(0, &readRange, &pData));
+		memcpy(pData, &cbData, sizeof(MVP));
+		m_kuramon->m_kuramonConstantBuffer->Unmap(0, nullptr);
 	}
 }
 
@@ -109,6 +138,8 @@ void GOERenderer::BeginRender()
 void GOERenderer::OnRender()
 {
 	PopulateCommandList();
+	m_cube->OnRender(m_commandList.Get());
+	m_kuramon->OnRender(m_commandList.Get());
 }
 
 /// <summary>
@@ -117,6 +148,19 @@ void GOERenderer::OnRender()
 /// </summary>
 void GOERenderer::EndRender()
 {
+
+	D3D12_RESOURCE_BARRIER b2arrier = {};
+	b2arrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	b2arrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	b2arrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();
+	b2arrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	b2arrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	b2arrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	// 8. 리소스 배리어(상태 변경) – “RenderTarget → Present”
+		// 렌더링이 끝났으니, 다시 "화면에 표시(PRESENT)" 상태로 전환
+		// 이 상태 변경은 GPU가 커맨드 리스트를 실행하는 동안 자동으로 처리됩니다.
+	m_commandList->ResourceBarrier(1, &b2arrier);
+
 	// 9. 커맨드 리스트 닫기
 		// 커맨드 리스트에 더 이상 명령을 추가하지 않겠다고 선언합니다.
 		// 이 메서드를 호출한 후에는 커맨드 리스트를 실행할 수 있습니다.
@@ -147,6 +191,23 @@ void GOERenderer::OnDestroy()
 	delete m_camera;
 }
 
+UIInitInfo* GOERenderer::GetUIInfo()
+{
+	m_UIInitInfo.get()->commandQueue = m_commandQueue.Get();
+	m_UIInitInfo.get()->device = m_device.Get();
+	m_UIInitInfo.get()->frameBufferCount = m_frameBufferCount;
+	m_UIInitInfo.get()->imguiDescriptorHeap = m_imguiDescriptorHeap.Get();
+	return m_UIInitInfo.get();
+}
+
+UILoopInfo* GOERenderer::GetUILoopInfo()
+{
+	m_UILoopInfo.get()->commandlist = m_commandList.Get();
+	m_UILoopInfo.get()->imguiDescriptorHeap = m_imguiDescriptorHeap.Get();
+	m_UILoopInfo.get()->rendertarget = m_renderTargets[m_frameIndex].Get();
+	return m_UILoopInfo.get();
+}
+
 /// <summary>
 /// 뷰포트의 크기를 설정합니다.
 /// 
@@ -156,12 +217,12 @@ void GOERenderer::SetViewport()
 	GetClientRect(m_hWnd, &m_scissorRect);
 	m_width = m_scissorRect.right - m_scissorRect.left;
 	m_height = m_scissorRect.bottom - m_scissorRect.top;
-	
+
 	m_aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
-	
+
 	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f);
 	XMStoreFloat4x4(&m_proj, proj);
-	
+
 	m_viewport = {
 		0.0f,                      // TopLeftX
 		0.0f,                      // TopLeftY
@@ -207,7 +268,8 @@ void GOERenderer::LoadAssets()
 	CreatePipelineState();
 	CreateCommandList();
 	m_cube->LoadCube();
-	
+	m_kuramon->LoadKuramon();
+
 	CreateFence();
 }
 
@@ -472,7 +534,7 @@ void GOERenderer::CreateDescriptorHeaps()
 	// : 디스크립터 힙을 생성하는 메서드입니다.
 	ThrowIfFailed(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
 
-	
+
 }
 
 /// <summary>
@@ -495,11 +557,11 @@ void GOERenderer::CreateRenderTargets()
 		// 스왑체인의 버퍼를 가져옵니다.
 		ThrowIfFailed(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
 		m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
-		
+
 		// rtvHandle을 다음 디스크립터로 이동합니다.
 		// 핸들을 이동시켜주지 않으면 같은 주소에 rtv를 덮어쓰게 됩니다.
 		rtvHandle.ptr += m_rtvDescriptorSize;
-	}	
+	}
 }
 
 /// <summary>
@@ -542,28 +604,28 @@ void GOERenderer::CreateRootSignature()
 	//rootSignatureDesc.NumStaticSamplers = 0; // 정적 샘플러 없음
 	//rootSignatureDesc.pStaticSamplers = nullptr; // 정적 샘플러 배열 없음
 	//rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT; // 입력 어셈블러 입력 레이아웃 허용
-	
-		D3D12_ROOT_PARAMETER rootParameters[1] = {};
-		rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-		rootParameters[0].Descriptor.ShaderRegister = 0; // b0
-		rootParameters[0].Descriptor.RegisterSpace = 0;
-		rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
-		rootSignatureDesc.NumParameters = 1;
-		rootSignatureDesc.pParameters = rootParameters;
-		rootSignatureDesc.NumStaticSamplers = 0;
-		rootSignatureDesc.pStaticSamplers = nullptr;
-		rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	D3D12_ROOT_PARAMETER rootParameters[1] = {};
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[0].Descriptor.ShaderRegister = 0; // b0
+	rootParameters[0].Descriptor.RegisterSpace = 0;
+	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
-	
+	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+	rootSignatureDesc.NumParameters = 1;
+	rootSignatureDesc.pParameters = rootParameters;
+	rootSignatureDesc.NumStaticSamplers = 0;
+	rootSignatureDesc.pStaticSamplers = nullptr;
+	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+
 
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 	D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 	ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
 
-	
+
 }
 
 /// <summary>
@@ -593,7 +655,7 @@ void GOERenderer::CompileShaders()
 		0,				// pFlags2		: 추가 플래그 (거의 안 씀, 항상 0으로 두면 됨)
 		&m_pixelShader,	// ppCode		: 컴파일된 결과(바이너리 셰이더 코드)를 받을 포인터(ID3DBlob**)
 		nullptr));		// ppErrorMsgs	: 컴파일 에러, 경고 메시지를 받을 포인터(ID3DBlob**)
-	
+
 	ComPtr<ID3DBlob> errorBlob = nullptr;
 	HRESULT hr = D3DCompileFromFile(
 		L"..\\Shader\\shader_vs.hlsl",
@@ -672,12 +734,12 @@ void GOERenderer::CreatePipelineState()
 		픽셀을 그릴 때 "지금 그리려는 픽셀"과 "이미 화면에 있는 픽셀(배경 픽셀)"을
 		어떤 방식으로 섞어서(blend) 최종 색을 만들지 정하는 과정.*/
 
-	// D3D12_BLEND_DESC
-	// : 블렌드 상태를 정의하는 구조체입니다.
+		// D3D12_BLEND_DESC
+		// : 블렌드 상태를 정의하는 구조체입니다.
 	D3D12_BLEND_DESC blendDesc = {};
 	blendDesc.AlphaToCoverageEnable = FALSE;	// AlphaToCoverageEnable : 알파 투 커버리지(Alpha to Coverage) 사용 여부, 알파값을 멀티샘플링 커버리지 마스크에 적용해서, 부드러운 반투명/투명 효과를 낼 수 있음 (주로 vegetation, 트리 리프, 파티클 등에 씀)
 	blendDesc.IndependentBlendEnable = FALSE;	// IndependentBlendEnable : 여러 렌더 타겟을 사용할 때, 각 타겟마다 블렌드 상태를 다르게 할지 여부
-	
+
 	// RenderTarget[8] : 최대 8개의 렌더타겟 각각에 대한 블렌딩 설정
 	for (int i = 0; i < D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT; ++i)	// D3D12_SIMULTANEOUS_RENDER_TARGET_COUNT : 동시에 렌더링할 수 있는 최대 렌더 타겟 개수
 	{
@@ -708,7 +770,7 @@ void GOERenderer::CreatePipelineState()
 	psoDesc.SampleMask = UINT_MAX;					// 샘플 마스크를 설정합니다. 각 멀티샘플 픽셀(멀티샘플링/MSAA)마다 어떤 샘플에만 쓰기를 허용할지 마스킹, 대부분의 경우 UINT_MAX(모든 샘플에 기록) 사용
 	psoDesc.RasterizerState = rasterizerDesc;		// 래스터라이저 상태를 설정합니다.<>
 	psoDesc.DepthStencilState;						// 뎁스/스텐실 상태 
-	psoDesc.DepthStencilState.DepthEnable = FALSE;	
+	psoDesc.DepthStencilState.DepthEnable = FALSE;
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
 	psoDesc.InputLayout = { m_inputElementDescs, _countof(m_inputElementDescs) };	// 입력 레이아웃을 설정합니다. 정점 버퍼에서 셰이더로 보낼 데이터의 포맷/구조(어떤 데이터가 어디에 있는지)
 	psoDesc.IBStripCutValue;														// 인덱스 버퍼 스트립 컷 값, 프리미티브 스트립(예: 삼각형 스트립)에서 "컷"으로 쓸 특별한 인덱스 값(primitive restart)
@@ -730,12 +792,12 @@ void GOERenderer::CreatePipelineState()
 
 		PSO(파이프라인) 만들 때 RTVFormats 지정
 		⇒ 앞으로 파이프라인에서 렌더타겟으로 쓸 뷰들의 포맷을 명확히 선언
-		
+
 		이 세 단계가 다 일치해야만 Direct3D 12가 파이프라인을 올바르게 동작시킴*/
 
 
-	// CreateGraphicsPipelineState()
-	// : 그래픽스 파이프라인 상태 객체(PSO)를 생성합니다.
+		// CreateGraphicsPipelineState()
+		// : 그래픽스 파이프라인 상태 객체(PSO)를 생성합니다.
 	ThrowIfFailed(m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 }
 
@@ -825,9 +887,9 @@ void GOERenderer::PopulateCommandList()
 	// 2. 그래픽스 파이프라인 세팅
 		// 셰이더들이 쓸 수 있는 리소스(텍스처, 버퍼 등)들의 묶음인 Root Signature를 바인딩.
 	m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-		// 뷰포트(화면에 그릴 영역의 크기와 위치, 카메라 뷰)를 지정.
+	// 뷰포트(화면에 그릴 영역의 크기와 위치, 카메라 뷰)를 지정.
 	m_commandList->RSSetViewports(1, &m_viewport);
-		// ScissorRECT 지정. 이 영역 바깥은 렌더링 안 함(클리핑).
+	// ScissorRECT 지정. 이 영역 바깥은 렌더링 안 함(클리핑).
 	m_commandList->RSSetScissorRects(1, &m_scissorRect);
 
 
@@ -854,35 +916,18 @@ void GOERenderer::PopulateCommandList()
 	// 4. 렌더 타겟 뷰 바인딩
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
 	rtvHandle.ptr += m_frameIndex * m_rtvDescriptorSize;
-		// Output Merger(최종 출력단)에 "이 렌더타겟에 그려라" 지정.
+	// Output Merger(최종 출력단)에 "이 렌더타겟에 그려라" 지정.
 	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
 	// 5. 렌더 타겟 클리어(색상 초기화)
 	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
-	// 큐브 그리기 세팅
-	m_cube->SetDrawCube(m_commandList);
-	
-	// 7. 그리기 명령
-		// DrawInstanced() : 인스턴스화된 정점 데이터를 사용하여 도형을 그립니다.
-		// 3개의 정점을 사용하여 1개의 삼각형을 그립니다.
-		// 첫 번째 인자는 그릴 정점의 개수, 두 번째 인자는 인스턴스의 개수, 세 번째 인자는 시작 정점 오프셋, 네 번째 인자는 시작 인스턴스 오프셋입니다.
-	m_commandList->DrawIndexedInstanced(36, 1, 0, 0, 0);
 
-	D3D12_RESOURCE_BARRIER b2arrier = {};
-	b2arrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	b2arrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	b2arrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();
-	b2arrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	b2arrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	b2arrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	// 8. 리소스 배리어(상태 변경) – “RenderTarget → Present”
-		// 렌더링이 끝났으니, 다시 "화면에 표시(PRESENT)" 상태로 전환
-		// 이 상태 변경은 GPU가 커맨드 리스트를 실행하는 동안 자동으로 처리됩니다.
-	m_commandList->ResourceBarrier(1, &b2arrier);
 
-	
+
+
+
 }
 
 /// <summary>
@@ -905,7 +950,7 @@ void GOERenderer::SignalFence(const UINT64& fenceValue)
 void GOERenderer::WaitForFence(const UINT64& fenceValue)
 {
 	UINT64 b = m_fence.Get()->GetCompletedValue();
- 	if (m_fence.Get()->GetCompletedValue() < fenceValue)
+	if (m_fence.Get()->GetCompletedValue() < fenceValue)
 	{
 		m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent);
 		WaitForSingleObject(m_fenceEvent, INFINITE);
@@ -924,3 +969,16 @@ void GOERenderer::CreateImguiDescriptorHeap()
 	ThrowIfFailed(m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_imguiDescriptorHeap)));
 }
 
+MeshData* GOERenderer::GetKuramonMeshData()
+{
+	return m_kuramon->m_kuramonMeshData;
+}
+
+void GOERenderer::TransVertexKuramon()
+{
+	m_kuramon->DirextXVertexToKuramonVertex();
+	m_kuramon->CreateVertexBuffer();
+	m_kuramon->SetVertexBufferView();
+	m_kuramon->CreateIndexBuffer();
+	m_kuramon->CreateConstantBuffer();
+}

@@ -1,22 +1,20 @@
 #pragma once  
+///
+/// STL의 컴파일 부담을 없애려면
+/// 미리컴파일된 헤더를 사용하는게 좋을것
+/// 같다고 판단해서 만들게된 pch 파일입니다.
+/// 
+/// ohk 2025.07.21
+#include <../GOE_Core/Core_pch.h>
 
+// directX
 #include <d3d12.h>
-#include <d3dx12/d3dx12.h>
-
 #include <dxgi1_6.h>
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
 
-#include <string>
-#include <wrl.h>
-#include <shellapi.h>
-
-#include <comdef.h>
-#include <windows.h>
-#include <stdexcept>
-#include <functional>
+#include <d3dx12/d3dx12.h>
 using namespace DirectX;
-// GOETypes 헤더 파일에 필요한 구조체 및 타입 정의  
 
 struct MVP  
 {
@@ -25,17 +23,9 @@ struct MVP
 
 struct Vertex  
 {
-	DirectX::XMFLOAT3 position;  
-    DirectX::XMFLOAT4 color;  
+	XMFLOAT3 position;  
+	XMFLOAT4 color = {1,0,1,1};
 };
-
-inline void ThrowIfFailed(const HRESULT& hr)
-{
-	if (FAILED(hr))
-	{
-		throw std::runtime_error("HRESULT failed!");
-	}
-}
 
 struct UIInitInfo
 {

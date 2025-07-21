@@ -1,6 +1,7 @@
 #pragma once
-
-#include"GOETypes.h"
+#include <DirectXMath.h>
+#include <windef.h>
+using namespace DirectX;
 
 class Camera
 {

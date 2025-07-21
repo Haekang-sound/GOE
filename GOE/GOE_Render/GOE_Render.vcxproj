@@ -23,13 +23,21 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="GOERenderer.h" />
-    <ClInclude Include="GOETypes.h" />
+    <ClInclude Include="Renderer_pch.h" />
     <ClInclude Include="ID3DRenderer.h" />
+    <ClInclude Include="Kuramon.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="GOERenderer.cpp" />
+    <ClCompile Include="Kuramon.cpp" />
+    <ClCompile Include="Renderer_pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -110,8 +118,10 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)Imgui;$(SolutionDir)GOE_Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Core;$(SolutionDir)GOE_Editor</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Renderer_pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -134,8 +144,10 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)Imgui;$(SolutionDir)GOE_Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Core;$(SolutionDir)GOE_Editor</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Renderer_pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -158,8 +170,10 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)Imgui;$(SolutionDir)GOE_Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Core;$(SolutionDir)GOE_Editor</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Renderer_pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -185,8 +199,10 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)Imgui;$(SolutionDir)GOE_Core</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)packages\Microsoft.Direct3D.D3D12.1.616.1\build\native\include;$(SolutionDir)GOE_Core;$(SolutionDir)GOE_Editor</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>Renderer_pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

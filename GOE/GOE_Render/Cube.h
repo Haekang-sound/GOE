@@ -1,23 +1,9 @@
 #pragma once
-
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <D3Dcompiler.h>
 #include <DirectXMath.h>
-
 #include <windows.h>
-#include <string>
 #include <wrl.h>
-#include <shellapi.h>
-#include <stdexcept>
-#include <comdef.h>
-
-#include "ID3DRenderer.h"
-#include "GOETypes.h"
-
 
 using Microsoft::WRL::ComPtr;
-using namespace Microsoft::WRL;
 using namespace DirectX;
 
 /// <summary>
@@ -35,6 +21,7 @@ public:
 	void InitCube();
 	void LoadCube();
 	void OnUpdate();
+	void OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList);
 
 	void CreateVertexBuffer();
 	void SetVertexBufferView();
@@ -43,7 +30,7 @@ public:
 
 	void CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& commadList);
 
-	void SetDrawCube(const ComPtr<ID3D12GraphicsCommandList>& commadList);
+	//void SetDrawCube(const ComPtr<ID3D12GraphicsCommandList>& commadList);
 
 public: 
 	inline XMMATRIX GetLocalTransForm() { return XMLoadFloat4x4(&m_local); }

@@ -15,16 +15,22 @@
     <ClInclude Include="SingletonBase.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="Infomation.h">
-      <Filter>Common</Filter>
-    </ClInclude>
     <ClInclude Include="Window.h">
       <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Commons.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Core_pch.h">
+      <Filter>Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
       <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core_pch.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

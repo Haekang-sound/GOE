@@ -1,3 +1,5 @@
+#include "Editor_pch.h"
+#include "EditorCore.h"
 #include "DebugManager.h"
 DebugManager::DebugManager()
 {

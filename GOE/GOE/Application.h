@@ -1,15 +1,11 @@
 #pragma once  
-#include "resource.h"  
+#include <memory>
+#include <Windows.h>
 
-#include "../GOE_Render/GOERenderer.h"
-#include "../GOE_Editor/EditorCore.h"
-#include "../GOE_Core/Window.h"
-#include "../GOE_AssetLoader/AssetCore.h"
-
-//class Window;
-//class GOERenderer;
-//class EditorCore;
-
+class Window;
+class GOERenderer;
+class EditorCore;
+class AssetCore;
 
 /// <summary>
 /// 프로그램의 최전방 Application

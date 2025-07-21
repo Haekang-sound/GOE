@@ -1,0 +1,10 @@
+#pragma once
+///
+/// STL의 컴파일 부담을 없애려면
+/// 미리컴파일된 헤더를 사용하는게 좋을것
+/// 같다고 판단해서 만들게된 pch 파일입니다.
+/// 
+/// ohk 2025.07.21
+
+#include <../GOE_Render/Renderer_pch.h>
+#include <../GOE_Editor/Editor_pch.h>

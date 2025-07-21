@@ -1,10 +1,13 @@
 ﻿#pragma once
 ///imgui 테스트중
+#include "Editor_pch.h"
 #include "../Imgui/imgui.h"
 #include "../Imgui/imgui_impl_dx12.h"
 #include "../Imgui/imgui_impl_win32.h"
 #include "../GOE_Render/GOERenderer.h"
-#include "../GOE_Render/GOETypes.h"
+
+struct UIInitInfo;
+struct UILoopInfo;
 
 // Simple free list based allocator
 struct ExampleDescriptorHeapAllocator

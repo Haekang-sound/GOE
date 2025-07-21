@@ -1,9 +1,8 @@
 #pragma once
 #include"../GOE_Core/SingletonBase.h"
-#include "EditorCore.h"
-
 #include <functional>
 #include <queue>
+
 /// <summary>
 /// 델리게이트 방식으로 
 /// 디버깅정보를 띄워주는 DebugManager

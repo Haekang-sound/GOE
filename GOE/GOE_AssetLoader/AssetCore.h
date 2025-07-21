@@ -1,17 +1,25 @@
-// GOE_AssetLoader/AssetCore.h
 #include <memory> 
-class AssetCoreImpl; // 내부 구현 클래스를 전방 선언
+#include <string>
+#include "../GOE_Core/Commons.h"
 
+class AssetLoader;
+
+/// <summary>
+/// 에셋을 불러오기위한 전초기지
+/// 
+/// ohk 2025.07.17
+/// </summary>
 class AssetCore
 {
 public:
 	AssetCore();
-	~AssetCore(); // 소멸자는 cpp 파일에 구현해야 함
+	~AssetCore();
 
-	// test 함수는 그대로 공개
-	void test();
+public:
+	void CreateAssetLoader();
+	void LoadModel(const std::string& filePath, MeshData& outMeshData);
 
-private:
-	// 실제 구현을 가리키는 포인터만 멤버로 가짐
-	std::unique_ptr<AssetCoreImpl> m_pimpl;
+public:
+	std::unique_ptr<AssetLoader> m_assetLoader = nullptr;
+
 };

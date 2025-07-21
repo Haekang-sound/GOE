@@ -1,13 +1,24 @@
 #pragma once
 #include "ID3DRenderer.h"
-#include "GOETypes.h"
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <D3Dcompiler.h>
+#include <DirectXMath.h>
+
+#include <d3dx12/d3dx12.h>
+
+#include <wrl.h>
+#include <windows.h>
 
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
-using namespace DirectX;
 
 class Cube;
+class Kuramon;
 class Camera;
+class UIInitInfo;
+class UILoopInfo;
+struct MeshData;
 
 /// <summary>
 /// 인터페이스를 상속받아 구현된 랜더러
@@ -37,21 +48,9 @@ public:
 	inline ID3D12GraphicsCommandList* GetCommandList() { return m_commandList.Get(); }
 	inline ID3D12Resource* GetCurrentRendertarget() { return m_renderTargets[m_frameIndex].Get(); }
 
-	inline UIInitInfo* GetUIInfo() 
-	{
-		m_UIInitInfo.commandQueue = m_commandQueue.Get();
-		m_UIInitInfo.device = m_device.Get();
-		m_UIInitInfo.frameBufferCount = m_frameBufferCount;
-		m_UIInitInfo.imguiDescriptorHeap = m_imguiDescriptorHeap.Get();
-		return &m_UIInitInfo; 
-	}
-	inline UILoopInfo* GetUILoopInfo() 
-	{
-		m_UILoopInfo.commandlist = m_commandList.Get();
-		m_UILoopInfo.imguiDescriptorHeap = m_imguiDescriptorHeap.Get();
-		m_UILoopInfo.rendertarget = m_renderTargets[m_frameIndex].Get();
-		return &m_UILoopInfo; 
-	}
+	UIInitInfo* GetUIInfo();
+	UILoopInfo* GetUILoopInfo();
+
 	
 private:
 	void SetViewport();
@@ -87,10 +86,19 @@ private:
 private: 
 	void CreateImguiDescriptorHeap();
 
-	// 임시로 둔것에 가깝다
+
+/// <summary>
+///  얼른 오브젝트를 제대로 만들어서 없애야 하는부분
+/// </summary>
+public:
+	MeshData* GetKuramonMeshData();
+	void TransVertexKuramon();
+
+	// 임시로 둔것
 public: 
 	Camera* m_camera;
 	Cube* m_cube;
+	Kuramon* m_kuramon;
 
 private:
 	UINT m_width = 0;
@@ -139,6 +147,6 @@ private:
 
 private: 
 	ComPtr<ID3D12DescriptorHeap> m_imguiDescriptorHeap = nullptr;
-	UILoopInfo m_UILoopInfo;
-	UIInitInfo m_UIInitInfo;
+	std::unique_ptr<UILoopInfo> m_UILoopInfo;
+	std::unique_ptr<UIInitInfo> m_UIInitInfo;
 };
