@@ -59,7 +59,7 @@ void Kuramon::OnUpdate()
 	// (2) 합성
 	XMMATRIX world = S * R * T;
 
-	XMStoreFloat4x4(&m_local, XMMatrixInverse(nullptr, world));
+	XMStoreFloat4x4(&m_local, world);
 	XMStoreFloat3(&m_position, pos);
 
 	DebugManager::GetInstance().PushDebugData(
@@ -68,10 +68,16 @@ void Kuramon::OnUpdate()
 			static float f = 0.0f;
 			static int counter = 0;
 			ImGui::Begin("쿠라몬!");
-			// position을 x, y, z 멤버를 가진 구조체라고 가정
 			ImGui::Text("위치: X:%.2f, Y:%.2f, Z:%.2f", m_position.x, m_position.y, m_position.z);
 			ImGui::Text("회전: X:%.2f, Y:%.2f, Z:%.2f", m_rotation.x, m_rotation.y, m_rotation.z);
 			ImGui::Text("크기: X:%.2f, Y:%.2f, Z:%.2f", m_scale.x, m_scale.y, m_scale.z);
+			
+			ImGui::Text("local_TM", m_local._11, m_local._12, m_local._13, m_local._14);
+			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._11, m_local._12, m_local._13, m_local._14);
+			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._21, m_local._22, m_local._23, m_local._24);
+			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._31, m_local._32, m_local._33, m_local._34);
+			ImGui::Text("%.2f, %.2f, %.2f, %.2f\n", m_local._41, m_local._42, m_local._43, m_local._44);
+
 			ImGui::Text("버텍스 갯수: %d", vertexArray.size());
 			ImGui::Text("인덱스 갯수: %d", indexArray.size());
 			ImGui::Text("삼각형어쩌고 갯수: %d", m_kuramonTriangleVertices.size());
@@ -90,7 +96,7 @@ void Kuramon::OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 	commadList->SetGraphicsRootConstantBufferView(0, m_kuramonConstantBuffer->GetGPUVirtualAddress());
 
 	// 7. 그리기 명령
-	commadList->DrawIndexedInstanced(vertexArray.size(), 1, 0, 0, 0);
+	commadList->DrawIndexedInstanced(indexArray.size(), 1, 0, 0, 0);
 }
 
 void Kuramon::CreateVertexBuffer()
@@ -210,7 +216,7 @@ void Kuramon::CreateIndexBuffer()
 	// 1. Default Heap (GPU)
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-
+	
 	D3D12_RESOURCE_DESC bufferDesc = {};
 	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	bufferDesc.Width = m_kuramonIndexBufferSize;
@@ -252,7 +258,8 @@ void Kuramon::CreateIndexBuffer()
 
 	// 6. 인덱스버퍼 뷰 생성
 	m_kuramonIndexBufferView.BufferLocation = m_kuramonIndexBufferDefault->GetGPUVirtualAddress();
-	m_kuramonIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
+	// CreateIndexBuffer() 함수 내부 수정
+	m_kuramonIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
 	m_kuramonIndexBufferView.SizeInBytes = m_kuramonIndexBufferSize;
 }
 void Kuramon::CreateConstantBuffer()

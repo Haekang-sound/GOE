@@ -95,7 +95,6 @@ void GOERenderer::OnUpdate()
 	}
 	{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트(kuramon)
 		XMMATRIX mvp =
-			m_cube->GetLocalTransForm()*
 			m_kuramon->GetLocalTransForm()
 			* m_camera->GetViewTransform()
 			* XMLoadFloat4x4(&m_proj);
@@ -922,11 +921,6 @@ void GOERenderer::PopulateCommandList()
 	// 5. 렌더 타겟 클리어(색상 초기화)
 	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-
-
-
-
-
 
 }
 

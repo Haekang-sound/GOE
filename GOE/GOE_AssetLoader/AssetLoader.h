@@ -14,5 +14,7 @@ public:
 
 public: 
 	bool LoadModelFromFile(const std::string& filePath, MeshData& outMeshData);
+	void ProcessNode(aiNode* node, const aiScene* scene, const aiMatrix4x4& parentTransform, MeshData& outMeshData);
+	void ProcessMesh(aiMesh* mesh, const aiScene* scene, const aiMatrix4x4& transform, MeshData& outMeshData);
 };
 
