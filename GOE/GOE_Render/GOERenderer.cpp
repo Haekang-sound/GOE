@@ -42,8 +42,8 @@ void GOERenderer::OnInit()
 	SetViewport();
 
 	LoadPipeline();
-	m_camera = new Camera();
 
+	m_camera = new Camera();
 	m_cube = new Cube(m_device, m_aspectRatio);
 	m_cube->m_aspectRatio = m_aspectRatio;
 	m_cube->InitCube();
@@ -54,12 +54,13 @@ void GOERenderer::OnInit()
 
 	LoadAssets();
 
-	CopyUploadHeapToDefault();
+	//CopyUploadHeapToDefault();
 	CreateImguiDescriptorHeap();
 }
 
 /// <summary>
-///
+/// 업데이트
+/// 
 /// </summary>
 void GOERenderer::OnUpdate()
 {
@@ -76,7 +77,6 @@ void GOERenderer::OnUpdate()
 	m_camera->OnUpdate(centerPt);
 	m_cube->OnUpdate();
 	m_kuramon->OnUpdate();
-
 
 	{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트(cube)
 		XMMATRIX mvp =
@@ -124,6 +124,45 @@ void GOERenderer::BeginRender()
 	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
 	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
 
+	// 2. 그래픽스 파이프라인 세팅
+		// 셰이더들이 쓸 수 있는 리소스(텍스처, 버퍼 등)들의 묶음인 Root Signature를 바인딩.
+	m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
+	// 뷰포트(화면에 그릴 영역의 크기와 위치, 카메라 뷰)를 지정.
+	m_commandList->RSSetViewports(1, &m_viewport);
+	// ScissorRECT 지정. 이 영역 바깥은 렌더링 안 함(클리핑).
+	m_commandList->RSSetScissorRects(1, &m_scissorRect);
+
+
+	/*1. 베리어(Barrier)란 ?
+		GPU 리소스(버퍼, 텍스처 등)의 “상태 전환”을 명시적으로 선언하는 명령
+		D3D12에서 리소스는 “읽기”, “쓰기”, “카피”, “표시(Present)”, “렌더타겟”, “셰이더리소스” 등 다양한 상태를 가짐
+		GPU 파이프라인의 단계마다 리소스가 “올바른 상태”에 있어야만 GPU가 올바르게 처리함
+		베리어는 “지금부터 이 리소스 상태를 바꾼다”를 GPU에 알려주는 명령어*/
+
+	// D3D12_RESOURCE_BARRIER
+	// : 리소스의 상태 전환을 정의하는 구조체입니다.
+	D3D12_RESOURCE_BARRIER barrier = {};
+	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;	// 리소스 상태 전환을 정의합니다.
+	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;		// 베리어 플래그, 일반적으로 D3D12_RESOURCE_BARRIER_FLAG_NONE 사용
+	barrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();			// 상태를 변경할 리소스(렌더 타겟) 지정
+	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;	// 리소스의 모든 서브리소스에 대해 상태 전환을 적용합니다.
+	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;		// 상태 전환 이전의 리소스 상태를 지정합니다.
+	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;	// 상태 전환 이후의 리소스 상태를 지정합니다.
+
+	//3. 리소스 배리어(상태 변경) – “Present → RenderTarget”
+		// 현재 그릴 렌더타겟(BackBuffer)의 상태를 “화면에 표시(PRESENT)” → “렌더링(RTT)” 상태로 전환
+	m_commandList->ResourceBarrier(1, &barrier);
+
+	// 4. 렌더 타겟 뷰 바인딩
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
+	rtvHandle.ptr += m_frameIndex * m_rtvDescriptorSize;
+	// Output Merger(최종 출력단)에 "이 렌더타겟에 그려라" 지정.
+	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+
+	// 5. 렌더 타겟 클리어(색상 초기화)
+	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+
 }
 
 
@@ -136,7 +175,7 @@ void GOERenderer::BeginRender()
 /// </summary>
 void GOERenderer::OnRender()
 {
-	PopulateCommandList();
+	//PopulateCommandList();
 	m_cube->OnRender(m_commandList.Get());
 	m_kuramon->OnRender(m_commandList.Get());
 }
@@ -597,18 +636,14 @@ void GOERenderer::CreateRootSignature()
 	// NumStaticSamplers : 정적 샘플러의 수
 	// pStaticSamplers : 정적 샘플러 배열
 	// Flags : 루트 시그니처의 플래그를 지정합니다.
-	//D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc;
-	//rootSignatureDesc.NumParameters = 0; // 파라미터 없음
-	//rootSignatureDesc.pParameters = nullptr; // 파라미터 배열 없음
-	//rootSignatureDesc.NumStaticSamplers = 0; // 정적 샘플러 없음
-	//rootSignatureDesc.pStaticSamplers = nullptr; // 정적 샘플러 배열 없음
-	//rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT; // 입력 어셈블러 입력 레이아웃 허용
 
+	// D3D12_ROOT_PARAMETER
+	// : 루트 시그니처의 파라미터를 정의하는 구조체입니다.
 	D3D12_ROOT_PARAMETER rootParameters[1] = {};
-	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameters[0].Descriptor.ShaderRegister = 0; // b0
-	rootParameters[0].Descriptor.RegisterSpace = 0;
-	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;	// Constant Buffer View
+	rootParameters[0].Descriptor.ShaderRegister = 0; // b0				// 셰이더 레지스터 번호
+	rootParameters[0].Descriptor.RegisterSpace = 0;						// 레지스터 스페이스 번호
+	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;	// 셰이더 가시성
 
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 	rootSignatureDesc.NumParameters = 1;
@@ -617,14 +652,10 @@ void GOERenderer::CreateRootSignature()
 	rootSignatureDesc.pStaticSamplers = nullptr;
 	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-
-
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 	D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 	ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
-
-
 }
 
 /// <summary>
@@ -839,6 +870,7 @@ void GOERenderer::CopyUploadHeapToDefault()
 	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
 
 	m_cube->CopyUploadHeapToDefault(m_commandList);
+	m_kuramon->CopyUploadHeapToDefault(m_commandList);
 
 	m_commandList->Close();
 
@@ -876,53 +908,16 @@ void GOERenderer::CreateFence()
 	}
 }
 
-/// <summary>
-/// 한 프레임동안 실행될 커맨드리스트를 채웁니다.
-/// 
-/// </summary>
-void GOERenderer::PopulateCommandList()
-{
-
-	// 2. 그래픽스 파이프라인 세팅
-		// 셰이더들이 쓸 수 있는 리소스(텍스처, 버퍼 등)들의 묶음인 Root Signature를 바인딩.
-	m_commandList->SetGraphicsRootSignature(m_rootSignature.Get());
-	// 뷰포트(화면에 그릴 영역의 크기와 위치, 카메라 뷰)를 지정.
-	m_commandList->RSSetViewports(1, &m_viewport);
-	// ScissorRECT 지정. 이 영역 바깥은 렌더링 안 함(클리핑).
-	m_commandList->RSSetScissorRects(1, &m_scissorRect);
-
-
-	/*1. 베리어(Barrier)란 ?
-		GPU 리소스(버퍼, 텍스처 등)의 “상태 전환”을 명시적으로 선언하는 명령
-		D3D12에서 리소스는 “읽기”, “쓰기”, “카피”, “표시(Present)”, “렌더타겟”, “셰이더리소스” 등 다양한 상태를 가짐
-		GPU 파이프라인의 단계마다 리소스가 “올바른 상태”에 있어야만 GPU가 올바르게 처리함
-		베리어는 “지금부터 이 리소스 상태를 바꾼다”를 GPU에 알려주는 명령어*/
-
-		// D3D12_RESOURCE_BARRIER
-		// : 리소스의 상태 전환을 정의하는 구조체입니다.
-	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;	// 리소스 상태 전환을 정의합니다.
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;		// 베리어 플래그, 일반적으로 D3D12_RESOURCE_BARRIER_FLAG_NONE 사용
-	barrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();			// 상태를 변경할 리소스(렌더 타겟) 지정
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;	// 리소스의 모든 서브리소스에 대해 상태 전환을 적용합니다.
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;		// 상태 전환 이전의 리소스 상태를 지정합니다.
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;	// 상태 전환 이후의 리소스 상태를 지정합니다.
-
-	//3. 리소스 배리어(상태 변경) – “Present → RenderTarget”
-		// 현재 그릴 렌더타겟(BackBuffer)의 상태를 “화면에 표시(PRESENT)” → “렌더링(RTT)” 상태로 전환
-	m_commandList->ResourceBarrier(1, &barrier);
-
-	// 4. 렌더 타겟 뷰 바인딩
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
-	rtvHandle.ptr += m_frameIndex * m_rtvDescriptorSize;
-	// Output Merger(최종 출력단)에 "이 렌더타겟에 그려라" 지정.
-	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-
-	// 5. 렌더 타겟 클리어(색상 초기화)
-	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-
-}
+///// <summary>
+///// 한 프레임동안 실행될 커맨드리스트를 채웁니다.
+///// 
+///// </summary>
+//void GOERenderer::PopulateCommandList()
+//{
+//
+//	
+//
+//}
 
 /// <summary>
 /// 지정된 펜스 값으로 명령 rmr큐에 신호를 보냅니다.
@@ -968,6 +963,7 @@ MeshData* GOERenderer::GetKuramonMeshData()
 	return m_kuramon->m_kuramonMeshData;
 }
 
+// 쿠라몬데이터를 변환하고 초기화한다.
 void GOERenderer::TransVertexKuramon()
 {
 	m_kuramon->DirextXVertexToKuramonVertex();

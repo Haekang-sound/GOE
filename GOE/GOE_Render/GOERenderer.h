@@ -58,7 +58,7 @@ private:
 	void LoadPipeline();
 	void LoadAssets();
 
-private:
+public:
 	/// 초기화를 명시적으로 이해하기 위해 
 	/// 함수들을 분리했습니다.
 	void ActiveDebugLayer(const bool& isOn);
@@ -79,7 +79,6 @@ private:
 	void CopyUploadHeapToDefault();
 
 private:
-	void PopulateCommandList();
 	void SignalFence(const UINT64& fenceValue);
 	void WaitForFence(const UINT64& fenceValue);
 

@@ -45,7 +45,7 @@ public:
 	XMFLOAT3 m_scale = { 1,1,1 };
 
 	float m_moveSpeed = 0.25f; // 이동 속도
-
+	float m_angle = 0.f; // 회전 각도
 	/// <summary>
 	/// 이 구간은 너무나 다르다!
 	/// </summary>
@@ -55,10 +55,10 @@ public:
 	/// 
 	/// </summary>
 	std::vector<Vertex> vertexArray;
-	std::vector<uint32_t> indexArray;
+	std::vector<UINT16> indexArray;
 	MeshData* m_kuramonMeshData = nullptr;
 
-
+	//Vertex m_kuramonTriangleVertices[6180] = {};
 	std::vector<Vertex> m_kuramonTriangleVertices; // 얘만 어떻게 하면 될지도? 
 	UINT m_vertexBufferSize = 0;
 	ComPtr<ID3D12Resource> m_kuramonVertexBufferUpload = nullptr;

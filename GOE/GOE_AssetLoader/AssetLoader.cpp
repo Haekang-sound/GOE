@@ -10,10 +10,11 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath, MeshData& outMe
 	outMeshData.indices.clear();
 
 	Assimp::Importer importer;
+	// Assimp를 사용하여 파일을 읽어옵니다.
 	const aiScene* scene = importer.ReadFile(filePath,
-		aiProcess_Triangulate |
-		aiProcess_FlipUVs |
-		aiProcess_CalcTangentSpace);
+		aiProcess_Triangulate |	// 삼각형으로 변환
+		aiProcess_FlipUVs |		// UV 좌표 뒤집기
+		aiProcess_CalcTangentSpace);	// 탄젠트 공간 계산
 
 	if (!scene || !scene->mRootNode || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE)
 	{

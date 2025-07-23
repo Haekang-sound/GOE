@@ -36,31 +36,31 @@ void Kuramon::LoadKuramon()
 }
 
 void Kuramon::OnUpdate()
-{
-	// 기저벡터
-	XMVECTOR right = XMVector3Normalize(XMVectorSet(m_local._11, m_local._21, m_local._31, 0.0f));
-	XMVECTOR up = XMVector3Normalize(XMVectorSet(m_local._12, m_local._22, m_local._32, 0.0f));
-	XMVECTOR forward = XMVector3Normalize(XMVectorSet(m_local._13, m_local._23, m_local._33, 0.0f));
-		
+{	
+	//// 기저벡터
+	//XMVECTOR right = XMVector3Normalize(XMVectorSet(m_local._11, m_local._21, m_local._31, 0.0f));
+	//XMVECTOR up = XMVector3Normalize(XMVectorSet(m_local._12, m_local._22, m_local._32, 0.0f));
+	//XMVECTOR forward = XMVector3Normalize(XMVectorSet(m_local._13, m_local._23, m_local._33, 0.0f));
+	//	
 
-	// 카메라 이동
-	XMVECTOR pos = XMLoadFloat3(&m_position);
-	if (GetAsyncKeyState(VK_UP) & 0x8000)	pos += forward * m_moveSpeed;
-	if (GetAsyncKeyState(VK_LEFT) & 0x8000)	pos -= right * m_moveSpeed;
-	if (GetAsyncKeyState(VK_DOWN) & 0x8000)	pos -= forward * m_moveSpeed;
-	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)	pos += right * m_moveSpeed;
-	
+	//// 카메라 이동
+	//XMVECTOR pos = XMLoadFloat3(&m_position);
+	//if (GetAsyncKeyState(VK_UP) & 0x8000)	pos += forward * m_moveSpeed;
+	//if (GetAsyncKeyState(VK_LEFT) & 0x8000)	pos -= right * m_moveSpeed;
+	//if (GetAsyncKeyState(VK_DOWN) & 0x8000)	pos -= forward * m_moveSpeed;
+	//if (GetAsyncKeyState(VK_RIGHT) & 0x8000)	pos += right * m_moveSpeed;
+	//
 
-	// (1) 각 변환을 XMMATRIX로 생성
-	XMMATRIX S = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z);
-	XMMATRIX R = XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, m_rotation.z);
-	XMMATRIX T = XMMatrixTranslationFromVector(pos);
+	//// (1) 각 변환을 XMMATRIX로 생성
+	//XMMATRIX S = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z);
+	//XMMATRIX R = XMMatrixRotationRollPitchYaw(m_rotation.x, m_rotation.y, m_rotation.z);
+	//XMMATRIX T = XMMatrixTranslationFromVector(pos);
 
-	// (2) 합성
-	XMMATRIX world = S * R * T;
+	//// (2) 합성
+	//XMMATRIX world = S * R * T;
 
-	XMStoreFloat4x4(&m_local, world);
-	XMStoreFloat3(&m_position, pos);
+	//XMStoreFloat4x4(&m_local, world);
+	//XMStoreFloat3(&m_position, pos);
 
 	DebugManager::GetInstance().PushDebugData(
 		[this]()
@@ -68,6 +68,7 @@ void Kuramon::OnUpdate()
 			static float f = 0.0f;
 			static int counter = 0;
 			ImGui::Begin("쿠라몬!");
+			ImGui::Text("조작법 : ←↑↓→");
 			ImGui::Text("위치: X:%.2f, Y:%.2f, Z:%.2f", m_position.x, m_position.y, m_position.z);
 			ImGui::Text("회전: X:%.2f, Y:%.2f, Z:%.2f", m_rotation.x, m_rotation.y, m_rotation.z);
 			ImGui::Text("크기: X:%.2f, Y:%.2f, Z:%.2f", m_scale.x, m_scale.y, m_scale.z);
@@ -87,6 +88,8 @@ void Kuramon::OnUpdate()
 
 }
 
+
+
 void Kuramon::OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 {
 	// 6. 그리기 전 세팅
@@ -101,19 +104,13 @@ void Kuramon::OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 
 void Kuramon::CreateVertexBuffer()
 {
-
-	//for (int i = 0; i < m_kuramonTriangleVertices.size(); ++i)
 	for(const auto& v : vertexArray)
 	{
-		/// 일단 vertexArray를 외부에서 받아와야한다.
-		// 벡터니까 이렇게 써줘야지
 		m_kuramonTriangleVertices.push_back(v);
 	}
-
 	// 버텍스버퍼의 크기를 계산합니다.
 	m_vertexBufferSize = sizeof(Vertex) * m_kuramonTriangleVertices.size();
-
-
+	
 	// 1. 디폴트 힙 리소스 생성
 	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
 	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
@@ -191,8 +188,9 @@ void Kuramon::SetVertexBufferView()
 		// Map() 메서드는 업로드 힙의 데이터를 CPU가 읽을 수 있도록 매핑합니다.
 	ThrowIfFailed(m_kuramonVertexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
 	// memcpy() 함수를 사용하여 정점 데이터를 업로드 힙에 복사합니다.
-	
-	memcpy(pVertexDataBegin, &m_kuramonTriangleVertices, m_vertexBufferSize);
+	// Kuramon.cpp L288
+// &m_kuramonTriangleVertices -> m_kuramonTriangleVertices.data() 로 수정
+	memcpy(pVertexDataBegin, m_kuramonTriangleVertices.data(), m_vertexBufferSize);
 	// Unmap() 메서드는 업로드 힙의 매핑을 해제합니다.
 	m_kuramonVertexBufferUpload->Unmap(0, nullptr);
 
@@ -211,7 +209,7 @@ void Kuramon::SetVertexBufferView()
 void Kuramon::CreateIndexBuffer()
 {
 	// 인덱스 배열도 마찬가지로 얻어와야한다.
-	m_kuramonIndexBufferSize = sizeof(uint32_t)* indexArray.size();
+	m_kuramonIndexBufferSize = sizeof(UINT16)* indexArray.size();
 
 	// 1. Default Heap (GPU)
 	D3D12_HEAP_PROPERTIES heapProps = {};
@@ -253,12 +251,16 @@ void Kuramon::CreateIndexBuffer()
 	UINT8* pIndexDataBegin;
 	D3D12_RANGE readRange = { 0, 0 };
 	ThrowIfFailed(m_kuramonIndexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
-	memcpy(pIndexDataBegin, &indexArray, m_kuramonIndexBufferSize);
+	// Kuramon.cpp L331
+// &indexArray -> indexArray.data() 로 수정
+	memcpy(pIndexDataBegin, indexArray.data(), m_kuramonIndexBufferSize);
+	//memcpy(pIndexDataBegin, &indexArray, m_kuramonIndexBufferSize);
 	m_kuramonIndexBufferUpload->Unmap(0, nullptr);
 
 	// 6. 인덱스버퍼 뷰 생성
 	m_kuramonIndexBufferView.BufferLocation = m_kuramonIndexBufferDefault->GetGPUVirtualAddress();
 	// CreateIndexBuffer() 함수 내부 수정
+	// Kuramon.cpp L335
 	m_kuramonIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
 	m_kuramonIndexBufferView.SizeInBytes = m_kuramonIndexBufferSize;
 }
@@ -317,6 +319,7 @@ void Kuramon::CreateConstantBuffer()
 	
 	DirectX::XMMATRIX mvp = world;
 
+
 	MVP cbData = {};
 	DirectX::XMStoreFloat4x4(&cbData.mvp, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
 
@@ -343,7 +346,10 @@ void Kuramon::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& c
 	commadList->ResourceBarrier(1, &vsBarrier);
 
 	// 인덱스 버퍼도 동일한 방식으로 복사합니다.
-	commadList->CopyBufferRegion(m_kuramonVertexBufferDefault.Get(), 0, m_kuramonVertexBufferUpload.Get(), 0, m_kuramonIndexBufferSize);
+	commadList->CopyBufferRegion(
+		m_kuramonIndexBufferDefault.Get(), 0,
+		m_kuramonIndexBufferUpload.Get(), 0, 
+		m_kuramonIndexBufferSize);
 
 	// 5. 상태변환
 	D3D12_RESOURCE_BARRIER ibBarrier = {};
@@ -356,16 +362,15 @@ void Kuramon::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& c
 }
 
 void Kuramon::DirextXVertexToKuramonVertex()
-{
-	Vertex vetex;
-	for(const auto& v: m_kuramonMeshData->vertices)
+{	
+	for (const auto& v : m_kuramonMeshData->vertices)
 	{
-		vetex.position.x = v.position[0];
-		vetex.position.y = v.position[1];
-		vetex.position.z = v.position[2];
-
+		Vertex vetex; // 루프 안에서 선언하는 것이 더 안전합니다.
+		vetex.position = { v.position[0], v.position[1], v.position[2] };
+			
 		vertexArray.push_back(vetex);
 	}
+		
 	for(const auto& i : m_kuramonMeshData->indices)
 	{
 		indexArray.push_back(i);

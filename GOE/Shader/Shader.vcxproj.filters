@@ -12,9 +12,5 @@
     <FxCompile Include="shader_vs.hlsl">
       <Filter>hlsl</Filter>
     </FxCompile>
-    <FxCompile Include="shaders.hlsl">
-      <Filter>hlsl</Filter>
-    </FxCompile>
-    <FxCompile Include="testSHadier.hlsl" />
   </ItemGroup>
 </Project>

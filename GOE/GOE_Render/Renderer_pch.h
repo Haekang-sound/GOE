@@ -24,7 +24,7 @@ struct MVP
 struct Vertex  
 {
 	XMFLOAT3 position;  
-	XMFLOAT4 color = {1,0,1,1};
+	XMFLOAT4 color = {0,0,0,1};
 };
 
 struct UIInitInfo

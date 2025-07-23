@@ -1,7 +1,12 @@
 #include "Renderer_pch.h"
 #include "Cube.h"
 
-Cube::Cube(){}
+#include "../GOE_Core/Commons.h"
+#include "../GOE_Editor/DebugManager.h"
+#include "../Imgui/imgui.h"
+
+
+Cube::Cube() {}
 
 Cube::Cube(ComPtr<ID3D12Device> device, float aspectRatio)
 	: m_device(device), m_aspectRatio(aspectRatio)
@@ -30,21 +35,27 @@ void Cube::LoadCube()
 
 void Cube::OnUpdate()
 {
-	m_angle += 1.0f;
-	if (m_angle > 360.0f)
-	{
-		m_angle -= 360.0f;
-	}
+	/*DebugManager::GetInstance().PushDebugData(
+		[this]()
+		{
+			static float f = 0.0f;
+			static int counter = 0;
+			ImGui::Begin("cube!");
+			ImGui::Text("조작법 : ←↑↓→");
+			ImGui::Text("UpdateCheck : %.1f", m_angle);
+			ImGui::Text("위치: X:%.2f, Y:%.2f, Z:%.2f", m_position.x, m_position.y, m_position.z);
+			ImGui::Text("회전: X:%.2f, Y:%.2f, Z:%.2f", m_rotation.x, m_rotation.y, m_rotation.z);
+			ImGui::Text("크기: X:%.2f, Y:%.2f, Z:%.2f", m_scale.x, m_scale.y, m_scale.z);
+
+			ImGui::Text("local_TM", m_local._11, m_local._12, m_local._13, m_local._14);
+			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._11, m_local._12, m_local._13, m_local._14);
+			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._21, m_local._22, m_local._23, m_local._24);
+			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._31, m_local._32, m_local._33, m_local._34);
+			ImGui::Text("%.2f, %.2f, %.2f, %.2f\n", m_local._41, m_local._42, m_local._43, m_local._44);
 
 
-	// 월드 행렬 = 회전 적용
-	XMMATRIX world = XMMatrixRotationY(XMConvertToRadians(m_angle));
-	XMMATRIX world2 = XMMatrixRotationX(XMConvertToRadians(-m_angle));
-	XMMATRIX world3 = XMMatrixRotationZ(XMConvertToRadians(m_angle));
-
-	XMMATRIX mvp = world * world2 * world3;// *proj;
-
-
+			ImGui::End();
+		});*/
 }
 
 void Cube::OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList)
@@ -205,8 +216,6 @@ void Cube::SetVertexBufferView()
 	m_vertexBufferUpload->Unmap(0, nullptr);
 
 
-
-
 	// D3D12_VERTEX_BUFFER_VIEW
 	// : 정점 버퍼 뷰를 정의하는 구조체입니다.
 	// 이후 DrawCall 시 이 정보를 넘김
@@ -339,15 +348,8 @@ void Cube::CreateConstantBuffer()
 	m_device->CreateConstantBufferView(&m_cbvDesc, m_cbvHandle);
 
 	DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
-	DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(
-		DirectX::XMVectorSet(0, 0, -2, 1),    // eye
-		DirectX::XMVectorSet(0, 0, 0, 1),     // at
-		DirectX::XMVectorSet(0, 1, 0, 0)      // up
-	);
-	DirectX::XMMATRIX proj = DirectX::XMMatrixPerspectiveFovLH(
-		DirectX::XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f
-	);
-	DirectX::XMMATRIX mvp = world * view * proj;
+
+	DirectX::XMMATRIX mvp = world;
 
 	MVP cbData = {};
 	DirectX::XMStoreFloat4x4(&cbData.mvp, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
@@ -376,7 +378,10 @@ void Cube::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& comm
 	commadList->ResourceBarrier(1, &vsBarrier);
 
 	// 인덱스 버퍼도 동일한 방식으로 복사합니다.
-	commadList->CopyBufferRegion(m_indexBufferDefault.Get(), 0, m_indexBufferUpload.Get(), 0, m_indexBufferSize);
+	commadList->CopyBufferRegion(
+		m_indexBufferDefault.Get(), 0,
+		m_indexBufferUpload.Get(), 0,
+		m_indexBufferSize);
 
 	// 5. 상태변환
 	D3D12_RESOURCE_BARRIER ibBarrier = {};
@@ -388,12 +393,3 @@ void Cube::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& comm
 	commadList->ResourceBarrier(1, &ibBarrier);
 
 }
-
-//void Cube::SetDrawCube(const ComPtr<ID3D12GraphicsCommandList>& commadList)
-//{
-//	// 6. 그리기 전 세팅
-//	commadList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-//	commadList->IASetVertexBuffers(0, 1, &m_vertexBufferView);
-//	commadList->IASetIndexBuffer(&m_indexBufferView);
-//	commadList->SetGraphicsRootConstantBufferView(0, m_constantBuffer->GetGPUVirtualAddress());
-//}

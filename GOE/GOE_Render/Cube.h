@@ -30,8 +30,6 @@ public:
 
 	void CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& commadList);
 
-	//void SetDrawCube(const ComPtr<ID3D12GraphicsCommandList>& commadList);
-
 public: 
 	inline XMMATRIX GetLocalTransForm() { return XMLoadFloat4x4(&m_local); }
 
@@ -41,10 +39,10 @@ public:
 	float m_aspectRatio = 0.f;
 	// 월드 매트릭스
 	XMFLOAT4X4 m_local = {};
-
-	XMFLOAT3 m_position;
-	XMFLOAT3 m_rotation;
-	XMFLOAT3 m_scale;
+	float m_moveSpeed = 0.25f;
+	XMFLOAT3 m_position = { 0,0,0 };
+	XMFLOAT3 m_rotation = { 0,0,0 };
+	XMFLOAT3 m_scale = { 1,1,1 };
 
 	float m_angle = 0.f;
 
@@ -71,55 +69,5 @@ public:
 	ComPtr<ID3D12Resource> m_indexBufferDefault = nullptr;
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
 
-
-public:
-	XMFLOAT4 m_faceColors[6] =
-	{
-		{1, 0, 0, 1}, // 앞면
-		{0, 1, 0, 1}, // 뒷면
-		{0, 0, 1, 1}, // 오른쪽
-		{1, 1, 0, 1}, // 왼쪽
-		{0, 1, 1, 1}, // 윗면
-		{1, 0, 1, 1}  // 아랫면
-	};
-
-	Vertex m_vertexArray[24] =
-	{
-		// 앞면 (z = +0.25f)
-		{ {-0.25f,  0.25f ,  0.25f},	{ m_faceColors[0].x, m_faceColors[0].y, m_faceColors[0].z, m_faceColors[0].w } }, // 0
-		{ {0.25f,  0.25f ,  0.25f},		{ m_faceColors[0].x, m_faceColors[0].y, m_faceColors[0].z, m_faceColors[0].w } }, // 1
-		{ {0.25f, -0.25f ,  0.25f},		{ m_faceColors[0].x, m_faceColors[0].y, m_faceColors[0].z, m_faceColors[0].w } }, // 2
-		{ {-0.25f, -0.25f ,  0.25f},	{ m_faceColors[0].x, m_faceColors[0].y, m_faceColors[0].z, m_faceColors[0].w } }, // 3
-
-		// 뒷면 (z = -0.25f)
-		{ {-0.25f,  0.25f , -0.25f},	{ m_faceColors[1].x, m_faceColors[1].y, m_faceColors[1].z, m_faceColors[1].w } }, // 4
-		{ {0.25f,  0.25f , -0.25f},		{ m_faceColors[1].x, m_faceColors[1].y, m_faceColors[1].z, m_faceColors[1].w } }, // 5
-		{ {0.25f, -0.25f , -0.25f},		{ m_faceColors[1].x, m_faceColors[1].y, m_faceColors[1].z, m_faceColors[1].w } }, // 6
-		{ {-0.25f, -0.25f , -0.25f},	{ m_faceColors[1].x, m_faceColors[1].y, m_faceColors[1].z, m_faceColors[1].w } }, // 7
-
-		// 오른쪽면 (x = +0.25f)
-		{ {0.25f,  0.25f ,  0.25f},		{ m_faceColors[2].x, m_faceColors[2].y, m_faceColors[2].z, m_faceColors[2].w} }, // 8
-		{ {0.25f,  0.25f , -0.25f},		{ m_faceColors[2].x, m_faceColors[2].y, m_faceColors[2].z, m_faceColors[2].w} }, // 9
-		{ {0.25f, -0.25f , -0.25f},		{ m_faceColors[2].x, m_faceColors[2].y, m_faceColors[2].z, m_faceColors[2].w} }, // 10
-		{ {0.25f, -0.25f ,  0.25f},		{ m_faceColors[2].x, m_faceColors[2].y, m_faceColors[2].z, m_faceColors[2].w} }, // 11
-
-		// 왼쪽면 (x = -0.25f)
-		{ {-0.25f,  0.25f , -0.25f},	{ m_faceColors[3].x, m_faceColors[3].y, m_faceColors[3].z, m_faceColors[3].w } }, // 12
-		{ {-0.25f,  0.25f ,  0.25f},	{ m_faceColors[3].x, m_faceColors[3].y, m_faceColors[3].z, m_faceColors[3].w } }, // 13
-		{ {-0.25f, -0.25f ,  0.25f},	{ m_faceColors[3].x, m_faceColors[3].y, m_faceColors[3].z, m_faceColors[3].w } }, // 14
-		{ {-0.25f, -0.25f , -0.25f},	{ m_faceColors[3].x, m_faceColors[3].y, m_faceColors[3].z, m_faceColors[3].w } }, // 15
-
-		// 윗면 (y = +0.25f )
-		{ {-0.25f,  0.25f , -0.25f},	{ m_faceColors[4].x, m_faceColors[4].y, m_faceColors[4].z, m_faceColors[4].w } }, // 16
-		{ {0.25f,  0.25f , -0.25f},		{ m_faceColors[4].x, m_faceColors[4].y, m_faceColors[4].z, m_faceColors[4].w } }, // 17
-		{ {0.25f,  0.25f ,  0.25f},		{ m_faceColors[4].x, m_faceColors[4].y, m_faceColors[4].z, m_faceColors[4].w } }, // 18
-		{ {-0.25f,  0.25f ,  0.25f},	{ m_faceColors[4].x, m_faceColors[4].y, m_faceColors[4].z, m_faceColors[4].w } }, // 19
-
-		// 아랫면 (y = -0.25f )
-		{ {-0.25f, -0.25f ,  0.25f},	{ m_faceColors[5].x, m_faceColors[5].y, m_faceColors[5].z, m_faceColors[5].w } }, // 20
-		{ {0.25f, -0.25f ,  0.25f},		{ m_faceColors[5].x, m_faceColors[5].y, m_faceColors[5].z, m_faceColors[5].w } }, // 21
-		{ {0.25f, -0.25f , -0.25f},		{ m_faceColors[5].x, m_faceColors[5].y, m_faceColors[5].z, m_faceColors[5].w } }, // 22
-		{ {-0.25f, -0.25f , -0.25f},	{ m_faceColors[5].x, m_faceColors[5].y, m_faceColors[5].z, m_faceColors[5].w } }  // 23
-	};
 };
 

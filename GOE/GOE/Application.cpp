@@ -32,8 +32,9 @@ void Application::Initialize()
 	m_renderer->OnInit();
 	
 	// 쿠라몬의 데이터를 받아온다.
-	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx", *m_renderer->GetKuramonMeshData());
+	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\model.fbx", *m_renderer->GetKuramonMeshData());
 	m_renderer->TransVertexKuramon();
+	m_renderer->CopyUploadHeapToDefault();
 
 	m_editor = std::make_unique<EditorCore>(m_winCore->GetHWND());
 	m_editor->Initialize(m_renderer.get()->GetUIInfo());
