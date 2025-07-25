@@ -6,3 +6,8 @@
 /// 
 /// ohk 2025.07.21
 #include <../GOE_Core/Core_pch.h>
+#include <assimp/Importer.hpp>      // C++ importer interface
+#include <assimp/scene.h>           // Output data structure
+#include <assimp/postprocess.h>     // Post processing flags
+#include <assimp/LogStream.hpp>
+#include <assimp/DefaultLogger.hpp>

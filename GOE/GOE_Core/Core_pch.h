@@ -14,6 +14,7 @@
 #include <stdexcept>
 #include <functional>
 #include <vector>
+#include <iostream> 
 
 
 inline void ThrowIfFailed(const HRESULT& hr)

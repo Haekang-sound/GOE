@@ -1,11 +1,10 @@
 #pragma once
-#include "../GOE_Core/Commons.h"
-#include <string>
-#include <iostream>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+struct MeshData;
 
+/// <summary>
+/// 리소스를 로드하는 클래스
+/// 
+/// </summary>
 class AssetLoader
 {
 public: 
@@ -14,7 +13,6 @@ public:
 
 public: 
 	bool LoadModelFromFile(const std::string& filePath, MeshData& outMeshData);
-	void ProcessNode(aiNode* node, const aiScene* scene, const aiMatrix4x4& parentTransform, MeshData& outMeshData);
-	void ProcessMesh(aiMesh* mesh, const aiScene* scene, const aiMatrix4x4& transform, MeshData& outMeshData);
+	void processMesh(aiMesh* mesh, const aiScene* scene, MeshData& outMeshData);
 };
 

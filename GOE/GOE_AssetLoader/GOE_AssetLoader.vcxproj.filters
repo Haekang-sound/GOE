@@ -261,6 +261,12 @@
     <ClInclude Include="AssetLoader_pch.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="AssimpIOStream.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AssimpLoger.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssetCore.cpp">
@@ -271,6 +277,12 @@
     </ClCompile>
     <ClCompile Include="AssetLoader_pch.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="AssimpIOStream.cpp">
+      <Filter>00_Resources</Filter>
+    </ClCompile>
+    <ClCompile Include="AssimpLoger.cpp">
+      <Filter>00_Resources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

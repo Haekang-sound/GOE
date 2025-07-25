@@ -55,10 +55,9 @@ public:
 	/// 
 	/// </summary>
 	std::vector<Vertex> vertexArray;
-	std::vector<UINT16> indexArray;
+	std::vector<UINT32> indexArray;
 	MeshData* m_kuramonMeshData = nullptr;
 
-	//Vertex m_kuramonTriangleVertices[6180] = {};
 	std::vector<Vertex> m_kuramonTriangleVertices; // 얘만 어떻게 하면 될지도? 
 	UINT m_vertexBufferSize = 0;
 	ComPtr<ID3D12Resource> m_kuramonVertexBufferUpload = nullptr;

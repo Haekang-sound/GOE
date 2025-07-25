@@ -160,7 +160,7 @@ void GOERenderer::BeginRender()
 	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 
 	// 5. 렌더 타겟 클리어(색상 초기화)
-	const float clearColor[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+	const float clearColor[] = { .7f, .7f, .5f, 1.0f };
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 
 }
@@ -175,7 +175,6 @@ void GOERenderer::BeginRender()
 /// </summary>
 void GOERenderer::OnRender()
 {
-	//PopulateCommandList();
 	m_cube->OnRender(m_commandList.Get());
 	m_kuramon->OnRender(m_commandList.Get());
 }

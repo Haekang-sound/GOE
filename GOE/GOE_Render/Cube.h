@@ -24,7 +24,6 @@ public:
 	void OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList);
 
 	void CreateVertexBuffer();
-	void SetVertexBufferView();
 	void CreateIndexBuffer();
 	void CreateConstantBuffer();
 

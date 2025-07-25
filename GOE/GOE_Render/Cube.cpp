@@ -28,7 +28,6 @@ void Cube::InitCube()
 void Cube::LoadCube()
 {
 	CreateVertexBuffer();
-	SetVertexBufferView();
 	CreateIndexBuffer();
 	CreateConstantBuffer();
 }
@@ -73,6 +72,10 @@ void Cube::OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 	commadList->DrawIndexedInstanced(36, 1, 0, 0, 0);
 }
 
+/// <summary>
+/// 버택스 버퍼를 생성합니다.
+/// 
+/// </summary>
 void Cube::CreateVertexBuffer()
 {
 	XMFLOAT4 faceColors[6] =
@@ -190,13 +193,14 @@ void Cube::CreateVertexBuffer()
 		D3D12_RESOURCE_STATE_GENERIC_READ, // 리소스 생성 직후의 상태
 		nullptr,				// 최적화된 클리어 값 포인터(텍스처, RTV, DSV 등만 해당) 일반 버퍼는 nullptr
 		IID_PPV_ARGS(&m_vertexBufferUpload))); // 반환될 인터페이스의 ID
-}
 
-void Cube::SetVertexBufferView()
-{
+
 	// 업로드 힙에 정점 데이터를 복사하기 위해
 	// 업로드 힙의 시작 주소를 가져옵니다.
-	UINT8* pVertexDataBegin;
+	void* pVertexDataBegin;
+	/*데이터 덩어리 전체를 단순히 복사할 때는 void* 로 충분합니다.
+	버퍼 내에서 정확한 바이트 오프셋 계산이 필요할 때는 UINT8* 가 가장 좋습니다.
+	버퍼의 구조가 C++ struct와 일치할 때는 해당 struct 포인터로 받는 것이 가장 이상적입니다.*/
 
 	// D3D12_RANGE
 	// : 업로드 힙의 데이터를 CPU가 읽을 수 있도록 매핑할 때 사용하는 구조체입니다.
@@ -209,7 +213,7 @@ void Cube::SetVertexBufferView()
 		→ memcpy로 쓰기만 할 테니 “최소한의 작업”만 해줌*/
 
 		// Map() 메서드는 업로드 힙의 데이터를 CPU가 읽을 수 있도록 매핑합니다.
-	ThrowIfFailed(m_vertexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+	ThrowIfFailed(m_vertexBufferUpload->Map(0, &readRange, &pVertexDataBegin));
 	// memcpy() 함수를 사용하여 정점 데이터를 업로드 힙에 복사합니다.
 	memcpy(pVertexDataBegin, m_triangleVertices, sizeof(m_triangleVertices));
 	// Unmap() 메서드는 업로드 힙의 매핑을 해제합니다.
@@ -221,10 +225,10 @@ void Cube::SetVertexBufferView()
 	// 이후 DrawCall 시 이 정보를 넘김
 	// 이 뷰는 GPU가 정점 데이터를 읽을 때 사용됩니다.
 	m_vertexBufferView.BufferLocation = m_vertexBufferDefault->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
-	m_vertexBufferView.StrideInBytes = sizeof(Vertex);		// 정점버퍼 전체 크기(바이트 단위)
-	m_vertexBufferView.SizeInBytes = m_vertexBufferSize;	// 정점 하나당 크기(바이트 단위)
-
+	m_vertexBufferView.StrideInBytes = sizeof(Vertex);		// 정점 하나당 크기(바이트 단위)
+	m_vertexBufferView.SizeInBytes = m_vertexBufferSize;	// 정점버퍼 전체 크기(바이트 단위)
 }
+
 
 void Cube::CreateIndexBuffer()
 {

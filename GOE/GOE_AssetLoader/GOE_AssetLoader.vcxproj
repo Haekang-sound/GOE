@@ -95,6 +95,7 @@
       <PrecompiledHeaderFile>AssetLoader_pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)GOE_Core;$(SolutionDIr);$(SolutionDir)assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -118,6 +119,7 @@
       <PrecompiledHeaderFile>AssetLoader_pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)GOE_Core;$(SolutionDIr);$(SolutionDir)assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -139,6 +141,7 @@
       <PrecompiledHeaderFile>AssetLoader_pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)GOE_Core;$(SolutionDIr);$(SolutionDir)assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -162,6 +165,7 @@
       <PrecompiledHeaderFile>AssetLoader_pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)GOE_Core;$(SolutionDIr);$(SolutionDir)assimp;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -256,6 +260,8 @@
     <ClInclude Include="AssetCore.h" />
     <ClInclude Include="AssetLoader.h" />
     <ClInclude Include="AssetLoader_pch.h" />
+    <ClInclude Include="AssimpIOStream.h" />
+    <ClInclude Include="AssimpLoger.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssetCore.cpp">
@@ -266,6 +272,8 @@
     </ClCompile>
     <ClCompile Include="AssetLoader.cpp" />
     <ClCompile Include="AssetLoader_pch.cpp" />
+    <ClCompile Include="AssimpIOStream.cpp" />
+    <ClCompile Include="AssimpLoger.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\assimp\.editorconfig" />
