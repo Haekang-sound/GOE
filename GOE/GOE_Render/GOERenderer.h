@@ -31,6 +31,17 @@ public:
 	GOERenderer(const HWND& hWnd);
 	~GOERenderer();
 
+	// 복사생성자
+	GOERenderer(const GOERenderer&) = delete;
+	// 복사 대입 연산자
+	GOERenderer& operator=(const GOERenderer&) = delete;
+	// 이동생성자
+	GOERenderer(GOERenderer&&) = delete;
+	// 이동 대입 연산자
+	GOERenderer& operator=(GOERenderer&&) = delete;
+
+
+public:
 	void OnInit() override;
 	void OnUpdate() override;
 

@@ -32,30 +32,7 @@ void Cube::LoadCube()
 	CreateConstantBuffer();
 }
 
-void Cube::OnUpdate()
-{
-	/*DebugManager::GetInstance().PushDebugData(
-		[this]()
-		{
-			static float f = 0.0f;
-			static int counter = 0;
-			ImGui::Begin("cube!");
-			ImGui::Text("조작법 : ←↑↓→");
-			ImGui::Text("UpdateCheck : %.1f", m_angle);
-			ImGui::Text("위치: X:%.2f, Y:%.2f, Z:%.2f", m_position.x, m_position.y, m_position.z);
-			ImGui::Text("회전: X:%.2f, Y:%.2f, Z:%.2f", m_rotation.x, m_rotation.y, m_rotation.z);
-			ImGui::Text("크기: X:%.2f, Y:%.2f, Z:%.2f", m_scale.x, m_scale.y, m_scale.z);
-
-			ImGui::Text("local_TM", m_local._11, m_local._12, m_local._13, m_local._14);
-			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._11, m_local._12, m_local._13, m_local._14);
-			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._21, m_local._22, m_local._23, m_local._24);
-			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._31, m_local._32, m_local._33, m_local._34);
-			ImGui::Text("%.2f, %.2f, %.2f, %.2f\n", m_local._41, m_local._42, m_local._43, m_local._44);
-
-
-			ImGui::End();
-		});*/
-}
+void Cube::OnUpdate(){}
 
 void Cube::OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 {

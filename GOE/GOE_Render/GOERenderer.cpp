@@ -139,16 +139,11 @@ void GOERenderer::BeginRender()
 		GPU 파이프라인의 단계마다 리소스가 “올바른 상태”에 있어야만 GPU가 올바르게 처리함
 		베리어는 “지금부터 이 리소스 상태를 바꾼다”를 GPU에 알려주는 명령어*/
 
-	// D3D12_RESOURCE_BARRIER
-	// : 리소스의 상태 전환을 정의하는 구조체입니다.
-	D3D12_RESOURCE_BARRIER barrier = {};
-	barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;	// 리소스 상태 전환을 정의합니다.
-	barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;		// 베리어 플래그, 일반적으로 D3D12_RESOURCE_BARRIER_FLAG_NONE 사용
-	barrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();			// 상태를 변경할 리소스(렌더 타겟) 지정
-	barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;	// 리소스의 모든 서브리소스에 대해 상태 전환을 적용합니다.
-	barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;		// 상태 전환 이전의 리소스 상태를 지정합니다.
-	barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;	// 상태 전환 이후의 리소스 상태를 지정합니다.
-
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		m_renderTargets[m_frameIndex].Get(),    // pResource
+		D3D12_RESOURCE_STATE_PRESENT,           // StateBefore
+		D3D12_RESOURCE_STATE_RENDER_TARGET      // StateAfter
+	);
 	//3. 리소스 배리어(상태 변경) – “Present → RenderTarget”
 		// 현재 그릴 렌더타겟(BackBuffer)의 상태를 “화면에 표시(PRESENT)” → “렌더링(RTT)” 상태로 전환
 	m_commandList->ResourceBarrier(1, &barrier);
@@ -257,7 +252,7 @@ void GOERenderer::SetViewport()
 
 	m_aspectRatio = static_cast<float>(m_width) / static_cast<float>(m_height);
 
-	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), m_aspectRatio, 0.1f, 100.0f);
+	XMMATRIX proj = XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), m_aspectRatio, 0.01f, 10000.0f);
 	XMStoreFloat4x4(&m_proj, proj);
 
 	m_viewport = {
@@ -519,7 +514,9 @@ void GOERenderer::CreateSwapChain()
 	swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
 	swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+
 	swapChainDesc.SampleDesc.Count = 1;
+	swapChainDesc.SampleDesc.Quality = 0;
 
 	ComPtr<IDXGISwapChain1> swapChain;
 

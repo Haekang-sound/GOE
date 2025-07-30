@@ -209,7 +209,7 @@ void Kuramon::SetVertexBufferView()
 void Kuramon::CreateIndexBuffer()
 {
 	// 인덱스 배열도 마찬가지로 얻어와야한다.
-	m_kuramonIndexBufferSize = sizeof(UINT16)* indexArray.size();
+	m_kuramonIndexBufferSize = sizeof(UINT32)* indexArray.size();
 
 	// 1. Default Heap (GPU)
 	D3D12_HEAP_PROPERTIES heapProps = {};
@@ -251,16 +251,13 @@ void Kuramon::CreateIndexBuffer()
 	UINT8* pIndexDataBegin;
 	D3D12_RANGE readRange = { 0, 0 };
 	ThrowIfFailed(m_kuramonIndexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
+
 	// Kuramon.cpp L331
-// &indexArray -> indexArray.data() 로 수정
 	memcpy(pIndexDataBegin, indexArray.data(), m_kuramonIndexBufferSize);
-	//memcpy(pIndexDataBegin, &indexArray, m_kuramonIndexBufferSize);
 	m_kuramonIndexBufferUpload->Unmap(0, nullptr);
 
 	// 6. 인덱스버퍼 뷰 생성
 	m_kuramonIndexBufferView.BufferLocation = m_kuramonIndexBufferDefault->GetGPUVirtualAddress();
-	// CreateIndexBuffer() 함수 내부 수정
-	// Kuramon.cpp L335
 	m_kuramonIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
 	m_kuramonIndexBufferView.SizeInBytes = m_kuramonIndexBufferSize;
 }
@@ -336,14 +333,11 @@ void Kuramon::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& c
 		m_vertexBufferSize				// Size
 	);
 	// (3) 상태변환: 복사에서 VertexBuffer로 전환
-	D3D12_RESOURCE_BARRIER vsBarrier = {};
-	vsBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	vsBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	vsBarrier.Transition.pResource = m_kuramonVertexBufferDefault.Get();
-	vsBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-	vsBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
-	vsBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	commadList->ResourceBarrier(1, &vsBarrier);
+	auto vsBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		m_kuramonVertexBufferDefault.Get(),	// pResource
+		D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
+		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER // StateAfter
+	);
 
 	// 인덱스 버퍼도 동일한 방식으로 복사합니다.
 	commadList->CopyBufferRegion(
@@ -365,7 +359,7 @@ void Kuramon::DirextXVertexToKuramonVertex()
 {	
 	for (const auto& v : m_kuramonMeshData->vertices)
 	{
-		Vertex vetex; // 루프 안에서 선언하는 것이 더 안전합니다.
+		Vertex vetex; 
 		vetex.position = { v.position[0], v.position[1], v.position[2] };
 			
 		vertexArray.push_back(vetex);

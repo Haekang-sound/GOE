@@ -46,12 +46,11 @@ public:
 
 	float m_moveSpeed = 0.25f; // 이동 속도
 	float m_angle = 0.f; // 회전 각도
-	/// <summary>
-	/// 이 구간은 너무나 다르다!
-	/// </summary>
+	
 public:
 	/// <summary>
 	/// 오류를 잡기위해 임시로 만들어둔 변수2개
+	/// 사용하고 있지만 변경되어야함
 	/// 
 	/// </summary>
 	std::vector<Vertex> vertexArray;

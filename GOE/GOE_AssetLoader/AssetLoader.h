@@ -13,6 +13,8 @@ public:
 
 public: 
 	bool LoadModelFromFile(const std::string& filePath, MeshData& outMeshData);
-	void processMesh(aiMesh* mesh, const aiScene* scene, MeshData& outMeshData);
-};
 
+private: 
+	void ProcessNode(aiNode* node, const aiScene* scene, MeshData& outMeshData);
+	void ProcessMesh(aiMesh* mesh, const aiScene* scene, MeshData& outMeshData);
+};

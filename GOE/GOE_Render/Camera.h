@@ -25,6 +25,7 @@ public:
 	XMFLOAT3 m_scale = {1,1,1};
 
 	float m_moveSpeed = 0.25f;
+	bool isAccelerate = false;
 	float cam_x = 0.f;
 	float cam_y = 0.f;
 	float cam_z = -2.f;

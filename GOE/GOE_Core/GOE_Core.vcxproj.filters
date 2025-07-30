@@ -24,6 +24,12 @@
     <ClInclude Include="Core_pch.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
@@ -31,6 +37,12 @@
     </ClCompile>
     <ClCompile Include="Core_pch.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>00_Sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

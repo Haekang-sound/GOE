@@ -57,14 +57,29 @@ void Camera::OnUpdate(POINT center)
 	}
 	m_prevMouse = m_currentMouse;
 
+	
+	if (GetAsyncKeyState(VK_LSHIFT) & 0x8000)
+	{
+		isAccelerate = true;
+	}
+	else
+	{
+		isAccelerate = false;
+	}
+
 	// 카메라 이동
 	XMVECTOR pos = XMLoadFloat3(&m_position);
-	if (GetAsyncKeyState('W') & 0x8000)	pos += forward * m_moveSpeed;
-	if (GetAsyncKeyState('A') & 0x8000)	pos -= right * m_moveSpeed;
-	if (GetAsyncKeyState('S') & 0x8000)	pos -= forward * m_moveSpeed;
-	if (GetAsyncKeyState('D') & 0x8000)	pos += right * m_moveSpeed;
-	if (GetAsyncKeyState('Q') & 0x8000)	pos -= up * m_moveSpeed;
-	if (GetAsyncKeyState('E') & 0x8000)	pos += up * m_moveSpeed;
+	if (GetAsyncKeyState('W') & 0x8000)	pos += forward * (m_moveSpeed + (m_moveSpeed * isAccelerate*0.7f));
+	if (GetAsyncKeyState('A') & 0x8000)	pos -= right * (m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
+	if (GetAsyncKeyState('S') & 0x8000)	pos -= forward * (m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
+	if (GetAsyncKeyState('D') & 0x8000)	pos += right * (m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
+	if (GetAsyncKeyState('Q') & 0x8000)	pos -= up * (m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
+	if (GetAsyncKeyState('E') & 0x8000)	pos += up * (m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
+
+
+	if (GetAsyncKeyState('O') & 0x8000)	m_moveSpeed -= 0.01f;
+	if (GetAsyncKeyState('P') & 0x8000)	m_moveSpeed += 0.01f;
+
 
 	// (1) 각 변환을 XMMATRIX로 생성
 	XMMATRIX S = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z);
@@ -83,11 +98,12 @@ void Camera::OnUpdate(POINT center)
 		{
 			static float f = 0.0f;
 			static int counter = 0;
-			ImGui::Begin("Camera Debuger");                 
-			ImGui::Text(" 카메라의 디버깅을 위한 디버깅 윈도우 ");
-			// position을 x, y, z 멤버를 가진 구조체라고 가정
+			ImGui::Begin("Camera Debuger");       
+			ImGui::Text("이동 : W,A,S,D, L-Shift");
+			ImGui::Text("이동속도 : O,P");			
 			ImGui::Text("위치: X:%.2f, Y:%.2f, Z:%.2f", m_position.x, m_position.y, m_position.z);
 			ImGui::Text("회전: X:%.2f, Y:%.2f, Z:%.2f", m_rotation.x, m_rotation.y, m_rotation.z);
+			ImGui::Text("카메라 이동속도 : %.2f", m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
 
 			ImGui::End();
 		});
