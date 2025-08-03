@@ -16,6 +16,10 @@
 #include <vector>
 #include <iostream> 
 
+#include "CoreMath.h"
+
+using Microsoft::WRL::ComPtr;
+using namespace Microsoft::WRL;
 
 inline void ThrowIfFailed(const HRESULT& hr)
 {
@@ -25,5 +29,3 @@ inline void ThrowIfFailed(const HRESULT& hr)
 	}
 }
 
-using Microsoft::WRL::ComPtr;
-using namespace Microsoft::WRL;

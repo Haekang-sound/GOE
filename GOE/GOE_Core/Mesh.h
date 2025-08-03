@@ -1,5 +1,5 @@
 #pragma once
-#include <vector>
+
 
 struct MeshData;
 
@@ -16,6 +16,6 @@ class Mesh
 
 private:
 	std::string m_name; // 매쉬 이름
-	MeshData* m_meshData = nullptr; // 매쉬 데이터
+	GOE::MeshData* m_meshData;// = nullptr; // 매쉬 데이터
 };
 

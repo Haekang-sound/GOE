@@ -43,7 +43,7 @@ void GOERenderer::OnInit()
 
 	LoadPipeline();
 
-	m_camera = new Camera();
+	m_camera = new Camera(m_hWnd);
 	m_cube = new Cube(m_device, m_aspectRatio);
 	m_cube->m_aspectRatio = m_aspectRatio;
 	m_cube->InitCube();
@@ -53,8 +53,6 @@ void GOERenderer::OnInit()
 	m_kuramon->InitKuramon();
 
 	LoadAssets();
-
-	//CopyUploadHeapToDefault();
 	CreateImguiDescriptorHeap();
 }
 
@@ -64,17 +62,7 @@ void GOERenderer::OnInit()
 /// </summary>
 void GOERenderer::OnUpdate()
 {
-	RECT rect;
-	GetClientRect(m_hWnd, &rect);
-
-	int centerX = (rect.right - rect.left) / 2;
-	int centerY = (rect.bottom - rect.top) / 2;
-
-	POINT centerPt = { centerX, centerY };
-	ClientToScreen(m_hWnd, &centerPt);
-
-
-	m_camera->OnUpdate(centerPt);
+	m_camera->OnUpdate();
 	m_cube->OnUpdate();
 	m_kuramon->OnUpdate();
 
@@ -83,14 +71,14 @@ void GOERenderer::OnUpdate()
 			m_cube->GetLocalTransForm()
 			* m_camera->GetViewTransform()
 			* XMLoadFloat4x4(&m_proj);
-		MVP cbData = {};
+		Graphics::MVP cbData = {};
 		XMStoreFloat4x4(&cbData.mvp, XMMatrixTranspose(mvp));
 
 		// CUBE의 CBV에 업로드
 		void* pData = nullptr;
 		D3D12_RANGE readRange = { 0, 0 };
 		ThrowIfFailed(m_cube->m_constantBuffer->Map(0, &readRange, &pData));
-		memcpy(pData, &cbData, sizeof(MVP));
+		memcpy(pData, &cbData, sizeof(Graphics::MVP));
 		m_cube->m_constantBuffer->Unmap(0, nullptr);
 	}
 	{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트(kuramon)
@@ -98,14 +86,14 @@ void GOERenderer::OnUpdate()
 			m_kuramon->GetLocalTransForm()
 			* m_camera->GetViewTransform()
 			* XMLoadFloat4x4(&m_proj);
-		MVP cbData = {};
+		Graphics::MVP cbData = {};
 		XMStoreFloat4x4(&cbData.mvp, XMMatrixTranspose(mvp));
 
 		// CUBE의 CBV에 업로드
 		void* pData = nullptr;
 		D3D12_RANGE readRange = { 0, 0 };
 		ThrowIfFailed(m_kuramon->m_kuramonConstantBuffer->Map(0, &readRange, &pData));
-		memcpy(pData, &cbData, sizeof(MVP));
+		memcpy(pData, &cbData, sizeof(Graphics::MVP));
 		m_kuramon->m_kuramonConstantBuffer->Unmap(0, nullptr);
 	}
 }
@@ -954,13 +942,16 @@ void GOERenderer::CreateImguiDescriptorHeap()
 	ThrowIfFailed(m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_imguiDescriptorHeap)));
 }
 
-MeshData* GOERenderer::GetKuramonMeshData()
+GOE::MeshData* GOERenderer::GetKuramonMeshData()
 {
 	return m_kuramon->m_kuramonMeshData;
 }
 
-// 쿠라몬데이터를 변환하고 초기화한다.
-void GOERenderer::TransVertexKuramon()
+/// <summary>
+/// 버텍스버퍼와 인덱스버퍼를 생성하는 일은 
+/// 버텍스정보와 인덱스정보를 갖고나서부터 할 수 있는것
+/// </summary>
+void GOERenderer::TransVertexuramon()
 {
 	m_kuramon->DirextXVertexToKuramonVertex();
 	m_kuramon->CreateVertexBuffer();

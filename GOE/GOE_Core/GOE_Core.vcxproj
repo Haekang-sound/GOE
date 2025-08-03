@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Commons.h" />
+    <ClInclude Include="CoreMath.h" />
     <ClInclude Include="Core_pch.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />

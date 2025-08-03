@@ -6,12 +6,14 @@ using namespace DirectX;
 class Camera
 {
 public:
+	Camera(HWND hWnd);
 	Camera();
 	~Camera();
 
-	void OnUpdate(POINT center);
+	void OnUpdate();
 
-public: 
+private:
+	HWND m_hWnd = nullptr;
 	XMFLOAT4X4 m_local = {};
 	// 스케일, 회전(라디안), 위치
 	XMVECTOR m_quat = XMQuaternionIdentity();
@@ -41,8 +43,5 @@ public:
 	{
 		return XMLoadFloat4x4(&m_local);
 	}
-
-
-
 };
 

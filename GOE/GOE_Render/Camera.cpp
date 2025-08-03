@@ -6,6 +6,12 @@
 // 나중에는 반드시 분리되어야함
 #include "../Imgui/imgui.h"
 
+Camera::Camera(HWND hWnd)
+	: m_hWnd(hWnd)
+{
+	XMStoreFloat4x4(&m_local, XMMatrixIdentity());
+}
+
 Camera::Camera()
 {
 	XMStoreFloat4x4(&m_local, XMMatrixIdentity());
@@ -15,7 +21,7 @@ Camera::~Camera()
 {
 }
 
-void Camera::OnUpdate(POINT center)
+void Camera::OnUpdate()
 {
 	// 기저벡터
 	XMVECTOR right = XMVector3Normalize(XMVectorSet(m_local._11, m_local._21, m_local._31, 0.0f));
@@ -37,6 +43,14 @@ void Camera::OnUpdate(POINT center)
 		m_keydown = false;
 	}
 
+	RECT rect;
+	GetClientRect(m_hWnd, &rect);
+
+	int centerX = (rect.right - rect.left) / 2;
+	int centerY = (rect.bottom - rect.top) / 2;
+
+	POINT center = { centerX, centerY };
+	ClientToScreen(m_hWnd, &center);
 
 	XMMATRIX R = {};
 	if (true)

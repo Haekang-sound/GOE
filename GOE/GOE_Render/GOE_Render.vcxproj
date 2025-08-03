@@ -22,6 +22,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cube.h" />
+    <ClInclude Include="D3DMath.h" />
     <ClInclude Include="GOERenderer.h" />
     <ClInclude Include="Renderer_pch.h" />
     <ClInclude Include="ID3DRenderer.h" />

@@ -3,7 +3,7 @@
 #include "../GOE_Core/Commons.h"
 
 // 메인 로드 함수
-bool AssetLoader::LoadModelFromFile(const std::string& filePath, MeshData& outMeshData)
+bool AssetLoader::LoadModelFromFile(const std::string& filePath, GOE::MeshData& outMeshData)
 {
 	// Create an instance of the Importer class
 	Assimp::Importer importer;
@@ -47,7 +47,7 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath, MeshData& outMe
 	return true;
 }
 
-void AssetLoader::ProcessNode(aiNode* node, const aiScene* scene, MeshData& outMeshData)
+void AssetLoader::ProcessNode(aiNode* node, const aiScene* scene, GOE::MeshData& outMeshData)
 {
 	static int nodeCount = 0;
 
@@ -73,12 +73,12 @@ void AssetLoader::ProcessNode(aiNode* node, const aiScene* scene, MeshData& outM
 	}
 }
 
-void AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, MeshData& outMeshData)
+void AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, GOE::MeshData& outMeshData)
 {
 	// 정점(Vertex) 데이터 추출
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
-		VertexK vertex;
+		GOE::Vertex vertex;
 		// 위치 (Position)
 		// Assimp의 aiVector3D는 3D 벡터를 나타내는 구조체입니다.
 		// aiVector3D는 Assimp에서 제공하는 벡터 타입으로, x, y, z 좌표를 포함합니다.

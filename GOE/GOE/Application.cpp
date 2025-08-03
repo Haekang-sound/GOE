@@ -24,7 +24,7 @@ void Application::Initialize()
 {
 	m_assetCore = std::make_unique<AssetCore>();
 	m_assetCore.get()->CreateAssetLoader();
-	
+	 
 	m_winCore->InitInstance();
 	m_winCore->SetExternalMsgHandler(&ImGui_ImplWin32_WndProcHandler);
 
@@ -32,14 +32,13 @@ void Application::Initialize()
 	m_renderer->OnInit();
 	
 	// 쿠라몬의 데이터를 받아온다.
-	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\untitled.fbx", *m_renderer->GetKuramonMeshData());
-	m_renderer->TransVertexKuramon();
+	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\Ch03_nonPBR.fbx", *m_renderer->GetKuramonMeshData());
+	m_renderer->TransVertexuramon();
+
 	m_renderer->CopyUploadHeapToDefault();
 
 	m_editor = std::make_unique<EditorCore>(m_winCore->GetHWND());
-	m_editor->Initialize(m_renderer.get()->GetUIInfo());
-
-	
+	m_editor->Initialize(m_renderer.get()->GetUIInfo());	
 }
 
 int Application::Run()

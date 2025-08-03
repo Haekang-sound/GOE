@@ -1,22 +1,21 @@
 #include "Renderer_pch.h"
 #include "Kuramon.h"
-#include "../GOE_Core/Commons.h"
 #include "../GOE_Editor/DebugManager.h"
-
-// 디버거를 위해 추가하는 헤더이지만
-// 나중에는 반드시 분리되어야함
 #include "../Imgui/imgui.h"
+
+
 
 Kuramon::Kuramon(){}
 
 Kuramon::Kuramon(ComPtr<ID3D12Device> device, float aspectRatio)
 	: m_device(device), m_aspectRatio(aspectRatio)
 {
-	m_kuramonMeshData = new MeshData();
+	m_kuramonMeshData = new GOE::MeshData();
 }
 
 Kuramon::~Kuramon()
 {
+	delete m_kuramonMeshData;
 }
 
 void Kuramon::InitKuramon()
@@ -61,7 +60,6 @@ void Kuramon::OnUpdate()
 
 	XMStoreFloat4x4(&m_local, world);
 	XMStoreFloat3(&m_position, pos);
-
 	DebugManager::GetInstance().PushDebugData(
 		[this]()
 		{
@@ -85,7 +83,6 @@ void Kuramon::OnUpdate()
 			
 			ImGui::End();
 		});
-
 }
 
 
@@ -109,7 +106,7 @@ void Kuramon::CreateVertexBuffer()
 		m_kuramonTriangleVertices.push_back(v);
 	}
 	// 버텍스버퍼의 크기를 계산합니다.
-	m_vertexBufferSize = sizeof(Vertex) * m_kuramonTriangleVertices.size();
+	m_vertexBufferSize = sizeof(Graphics::Vertex) * m_kuramonTriangleVertices.size();
 	
 	// 1. 디폴트 힙 리소스 생성
 	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
@@ -202,7 +199,7 @@ void Kuramon::SetVertexBufferView()
 	// 이후 DrawCall 시 이 정보를 넘김
 	// 이 뷰는 GPU가 정점 데이터를 읽을 때 사용됩니다.
 	m_kuramonVertexBufferView.BufferLocation = m_kuramonVertexBufferDefault->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
-	m_kuramonVertexBufferView.StrideInBytes = sizeof(Vertex);		// 정점버퍼 전체 크기(바이트 단위)
+	m_kuramonVertexBufferView.StrideInBytes = sizeof(Graphics::Vertex);		// 정점버퍼 전체 크기(바이트 단위)
 	m_kuramonVertexBufferView.SizeInBytes = m_vertexBufferSize;	// 정점 하나당 크기(바이트 단위)
 
 }
@@ -307,7 +304,7 @@ void Kuramon::CreateConstantBuffer()
 
 	// CBV 디스크립터 생성
 	m_kuramonCBVDesc.BufferLocation = m_kuramonConstantBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
-	m_kuramonCBVDesc.SizeInBytes = (sizeof(MVP) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
+	m_kuramonCBVDesc.SizeInBytes = (sizeof(Graphics::MVP) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
 
 	m_kuramonCBVHandle = m_kuramonCBVHeap->GetCPUDescriptorHandleForHeapStart();
 	m_device->CreateConstantBufferView(&m_kuramonCBVDesc, m_kuramonCBVHandle);
@@ -317,13 +314,13 @@ void Kuramon::CreateConstantBuffer()
 	DirectX::XMMATRIX mvp = world;
 
 
-	MVP cbData = {};
+	Graphics::MVP cbData = {};
 	DirectX::XMStoreFloat4x4(&cbData.mvp, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
 
 	void* pData = nullptr;
 	D3D12_RANGE readRange = { 0, 0 };
 	ThrowIfFailed(m_kuramonConstantBuffer->Map(0, &readRange, &pData));
-	memcpy(pData, &cbData, sizeof(MVP));
+	memcpy(pData, &cbData, sizeof(Graphics::MVP));
 }
 void Kuramon::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 {
@@ -359,10 +356,7 @@ void Kuramon::DirextXVertexToKuramonVertex()
 {	
 	for (const auto& v : m_kuramonMeshData->vertices)
 	{
-		Vertex vetex; 
-		vetex.position = { v.position[0], v.position[1], v.position[2] };
-			
-		vertexArray.push_back(vetex);
+		vertexArray.emplace_back(v);
 	}
 		
 	for(const auto& i : m_kuramonMeshData->indices)

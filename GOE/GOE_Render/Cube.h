@@ -50,7 +50,7 @@ public:
 	/// </summary>
 public:
 	// VS
-	Vertex m_triangleVertices[24] = {};
+	Graphics::Vertex m_triangleVertices[24] = {};
 	UINT m_vertexBufferSize = 0;
 	ComPtr<ID3D12Resource> m_vertexBufferUpload = nullptr;
 	ComPtr<ID3D12Resource> m_vertexBufferDefault = nullptr;

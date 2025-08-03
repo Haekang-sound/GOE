@@ -3,7 +3,10 @@
 #include <windows.h>
 #include <wrl.h>
 
-class MeshData;
+namespace GOE
+{
+	struct MeshData;
+}
 
 using Microsoft::WRL::ComPtr;
 using namespace DirectX;
@@ -14,6 +17,16 @@ public:
 	Kuramon();
 	Kuramon(ComPtr<ID3D12Device> device, float aspectRatio);
 	~Kuramon();
+
+	// 복사생성자
+	Kuramon(const Kuramon&) = delete;
+	// 복사 대입 연산자
+	Kuramon& operator=(const Kuramon&) = delete;
+	// 이동생성자
+	Kuramon(Kuramon&&) = delete;
+	// 이동 대입 연산자
+	Kuramon& operator=(Kuramon&&) = delete;
+
 
 	void InitKuramon();
 	void LoadKuramon();
@@ -53,11 +66,11 @@ public:
 	/// 사용하고 있지만 변경되어야함
 	/// 
 	/// </summary>
-	std::vector<Vertex> vertexArray;
+	std::vector<Graphics::Vertex> vertexArray;
 	std::vector<UINT32> indexArray;
-	MeshData* m_kuramonMeshData = nullptr;
+	GOE::MeshData* m_kuramonMeshData = nullptr;
 
-	std::vector<Vertex> m_kuramonTriangleVertices; // 얘만 어떻게 하면 될지도? 
+	std::vector<Graphics::Vertex> m_kuramonTriangleVertices; // 얘만 어떻게 하면 될지도? 
 	UINT m_vertexBufferSize = 0;
 	ComPtr<ID3D12Resource> m_kuramonVertexBufferUpload = nullptr;
 	ComPtr<ID3D12Resource> m_kuramonVertexBufferDefault = nullptr;

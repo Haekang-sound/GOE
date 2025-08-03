@@ -10,6 +10,11 @@
 #include <wrl.h>
 #include <windows.h>
 
+namespace GOE
+{
+	struct MeshData;
+}
+
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
 
@@ -18,7 +23,7 @@ class Kuramon;
 class Camera;
 class UIInitInfo;
 class UILoopInfo;
-struct MeshData;
+
 
 /// <summary>
 /// 인터페이스를 상속받아 구현된 랜더러
@@ -101,8 +106,8 @@ private:
 ///  얼른 오브젝트를 제대로 만들어서 없애야 하는부분
 /// </summary>
 public:
-	MeshData* GetKuramonMeshData();
-	void TransVertexKuramon();
+	GOE::MeshData* GetKuramonMeshData();
+	void TransVertexuramon();
 
 	// 임시로 둔것
 public: 

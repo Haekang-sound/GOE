@@ -1,8 +1,13 @@
 #include <memory> 
 #include <string>
-#include "../GOE_Core/Commons.h"
+
+namespace GOE
+{
+	struct MeshData;
+}
 
 class AssetLoader;
+
 
 /// <summary>
 /// 에셋을 불러오기위한 전초기지
@@ -17,7 +22,7 @@ public:
 
 public:
 	void CreateAssetLoader();
-	void LoadModel(const std::string& filePath, MeshData& outMeshData);
+	void LoadModel(const std::string& filePath, GOE::MeshData& outMeshData);
 
 public:
 	std::unique_ptr<AssetLoader> m_assetLoader = nullptr;

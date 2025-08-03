@@ -1,7 +1,6 @@
 #include "Renderer_pch.h"
 #include "Cube.h"
 
-#include "../GOE_Core/Commons.h"
 #include "../GOE_Editor/DebugManager.h"
 #include "../Imgui/imgui.h"
 
@@ -65,7 +64,7 @@ void Cube::CreateVertexBuffer()
 		{1, 0, 1, 1}  // 아랫면
 	};
 
-	Vertex vertexArray[24] =
+	Graphics::Vertex vertexArray[24] =
 	{
 		// 앞면 (z = +0.25f)
 		{ {-0.25f,  0.25f ,  0.25f},	{ faceColors[0].x, faceColors[0].y, faceColors[0].z, faceColors[0].w } }, // 0
@@ -202,7 +201,7 @@ void Cube::CreateVertexBuffer()
 	// 이후 DrawCall 시 이 정보를 넘김
 	// 이 뷰는 GPU가 정점 데이터를 읽을 때 사용됩니다.
 	m_vertexBufferView.BufferLocation = m_vertexBufferDefault->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
-	m_vertexBufferView.StrideInBytes = sizeof(Vertex);		// 정점 하나당 크기(바이트 단위)
+	m_vertexBufferView.StrideInBytes = sizeof(Graphics::Vertex);		// 정점 하나당 크기(바이트 단위)
 	m_vertexBufferView.SizeInBytes = m_vertexBufferSize;	// 정점버퍼 전체 크기(바이트 단위)
 }
 
@@ -323,7 +322,7 @@ void Cube::CreateConstantBuffer()
 
 	// CBV 디스크립터 생성
 	m_cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
-	m_cbvDesc.SizeInBytes = (sizeof(MVP) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
+	m_cbvDesc.SizeInBytes = (sizeof(Graphics::MVP) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
 
 	m_cbvHandle = m_cbvHeap->GetCPUDescriptorHandleForHeapStart();
 	m_device->CreateConstantBufferView(&m_cbvDesc, m_cbvHandle);
@@ -332,13 +331,13 @@ void Cube::CreateConstantBuffer()
 
 	DirectX::XMMATRIX mvp = world;
 
-	MVP cbData = {};
+	Graphics::MVP cbData = {};
 	DirectX::XMStoreFloat4x4(&cbData.mvp, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
 
 	void* pData = nullptr;
 	D3D12_RANGE readRange = { 0, 0 };
 	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, &pData));
-	memcpy(pData, &cbData, sizeof(MVP));
+	memcpy(pData, &cbData, sizeof(Graphics::MVP));
 }
 
 void Cube::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& commadList)

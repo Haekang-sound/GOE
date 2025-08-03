@@ -30,6 +30,9 @@
     <ClInclude Include="Model.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
+    <ClInclude Include="CoreMath.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
