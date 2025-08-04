@@ -27,14 +27,12 @@ public:
 	// 이동 대입 연산자
 	Kuramon& operator=(Kuramon&&) = delete;
 
-
 	void InitKuramon();
 	void LoadKuramon();
 	void OnUpdate();
 	void OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList);
 
 	void CreateVertexBuffer();
-	void SetVertexBufferView();
 	void CreateIndexBuffer();
 	void CreateConstantBuffer();
 
@@ -70,7 +68,7 @@ public:
 	std::vector<UINT32> indexArray;
 	GOE::MeshData* m_kuramonMeshData = nullptr;
 
-	std::vector<Graphics::Vertex> m_kuramonTriangleVertices; // 얘만 어떻게 하면 될지도? 
+	std::vector<Graphics::Vertex> m_kuramonTriangleVertices; 
 	UINT m_vertexBufferSize = 0;
 	ComPtr<ID3D12Resource> m_kuramonVertexBufferUpload = nullptr;
 	ComPtr<ID3D12Resource> m_kuramonVertexBufferDefault = nullptr;

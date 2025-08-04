@@ -26,5 +26,4 @@ public:
 
 public:
 	std::unique_ptr<AssetLoader> m_assetLoader = nullptr;
-
 };

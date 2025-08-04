@@ -33,6 +33,7 @@
     <ClInclude Include="CoreMath.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="Node.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
@@ -47,5 +48,6 @@
     <ClCompile Include="Model.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
+    <ClCompile Include="Node.cpp" />
   </ItemGroup>
 </Project>

@@ -955,7 +955,6 @@ void GOERenderer::TransVertexuramon()
 {
 	m_kuramon->DirextXVertexToKuramonVertex();
 	m_kuramon->CreateVertexBuffer();
-	m_kuramon->SetVertexBufferView();
 	m_kuramon->CreateIndexBuffer();
 	m_kuramon->CreateConstantBuffer();
 }

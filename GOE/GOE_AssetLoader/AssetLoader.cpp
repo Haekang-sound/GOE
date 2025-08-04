@@ -1,12 +1,21 @@
 #include "AssetLoader_pch.h"
 #include "AssetLoader.h"
 #include "../GOE_Core/Commons.h"
+#include "../GOE_Core/Model.h"
+#include "../GOE_Core/Node.h"
+#include "../GOE_Core/Mesh.h"
 
 // 메인 로드 함수
-bool AssetLoader::LoadModelFromFile(const std::string& filePath, GOE::MeshData& outMeshData)
+bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 {
+	// hasher 객체를 함수처럼 호출하여 filePath의 해시 값을 계산합니다.
+	size_t pathHash = hasher(filePath);
+
+	m_models[pathHash] = Model(pathHash); // 모델을 해시맵에 추가
+
 	// Create an instance of the Importer class
 	Assimp::Importer importer;
+
 	// DirectX 호환을 위한 플래그 설정
 	const unsigned int dxFlags =		// dx설정
 		aiProcess_MakeLeftHanded |		// 1. 왼손 좌표계로 변환
@@ -40,53 +49,55 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath, GOE::MeshData& 
 	// 노드를 처리한다.
 	if (scene->HasMeshes())
 	{
-		ProcessNode(scene->mRootNode, scene, outMeshData);
+		aiNode* rootNode = scene->mRootNode;
+		rootNode->mName.C_Str(); // 노드 이름을 가져옵니다.
+		m_models[pathHash].AddRootNode(ProcessNode(rootNode));
+
+		for (int i = 0; i < scene->mNumMeshes; i++)
+		{
+			// 현재 메쉬를 가져옵니다.
+			aiMesh* mesh = scene->mMeshes[i];
+			// 메쉬 데이터를 처리합니다.
+			m_models[pathHash].AddMesh(ProcessMesh(mesh, scene));
+		}
 	}
 
-	// We're done. Everything will be cleaned up by the importer destructor
 	return true;
 }
 
-void AssetLoader::ProcessNode(aiNode* node, const aiScene* scene, GOE::MeshData& outMeshData)
+Node AssetLoader::ProcessNode(aiNode* node)
 {
-	static int nodeCount = 0;
-
+	/// 노드이름을 해쉬로 저장중-> 이걸로 충분한지는 의문
+	Node currentNode = Node(node->mName.C_Str(), hasher(node->mName.C_Str()));
 	// 노드의 자식 노드를 재귀적으로 처리합니다.
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
+		// 메쉬인덱스
+		unsigned int meshIndex = node->mMeshes[i];
+		currentNode.AddMeshIndex(meshIndex); // 현재 노드가 참조하는 메쉬 인덱스를 추가합니다.
 		// 현재 노드의 자식 노드를 가져옵니다.
 		aiNode* childNode = node->mChildren[i];
 		// 자식 노드를 재귀적으로 처리합니다.
-		ProcessNode(childNode, scene, outMeshData);
+		currentNode.AddChild(ProcessNode(childNode));
 	}
-	// 현재 노드에 메쉬가 있는 경우, 메쉬를 처리합니다.
-	if (node->mNumMeshes > 0) 
-	{
-		for (unsigned int i = 0; i < node->mNumMeshes; i++)
-		{
-			unsigned int meshIndex = node->mMeshes[i];
-			// 현재 메쉬를 가져옵니다.
-			aiMesh* mesh = scene->mMeshes[meshIndex];
-			// 메쉬 데이터를 처리합니다.
-			ProcessMesh(mesh, scene, outMeshData);
-		}
-	}
+
+	return currentNode; // 현재 노드에 대한 처리가 끝났으므로 빈 노드를 반환합니다.
 }
 
-void AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, GOE::MeshData& outMeshData)
+Mesh AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
+	Mesh currentMesh(mesh->mName.C_Str(), hasher(mesh->mName.C_Str()));
+
 	// 정점(Vertex) 데이터 추출
+	GOE::MeshData meshData;
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
 		GOE::Vertex vertex;
-		// 위치 (Position)
-		// Assimp의 aiVector3D는 3D 벡터를 나타내는 구조체입니다.
-		// aiVector3D는 Assimp에서 제공하는 벡터 타입으로, x, y, z 좌표를 포함합니다.
 		aiVector3D position = mesh->mVertices[i];
 		vertex.position[0] = mesh->mVertices[i].x;
 		vertex.position[1] = mesh->mVertices[i].y;
 		vertex.position[2] = mesh->mVertices[i].z;
-		outMeshData.vertices.push_back(vertex);
+		meshData.vertices.push_back(vertex);
 	}
 
 	for (size_t i = 0; i < mesh->mNumFaces; i++)
@@ -94,8 +105,11 @@ void AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene, GOE::MeshData&
 		aiFace face = mesh->mFaces[i];
 		for (size_t j = 0; j < face.mNumIndices; j++)
 		{
-			outMeshData.indices.push_back(face.mIndices[j]);
+			meshData.indices.push_back(face.mIndices[j]);
 		}
 	}
-	
+
+	currentMesh.SetMeshData(std::move(meshData));
+
+	return currentMesh;
 }

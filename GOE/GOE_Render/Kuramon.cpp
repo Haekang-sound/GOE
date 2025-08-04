@@ -5,7 +5,7 @@
 
 
 
-Kuramon::Kuramon(){}
+Kuramon::Kuramon() {}
 
 Kuramon::Kuramon(ComPtr<ID3D12Device> device, float aspectRatio)
 	: m_device(device), m_aspectRatio(aspectRatio)
@@ -35,12 +35,12 @@ void Kuramon::LoadKuramon()
 }
 
 void Kuramon::OnUpdate()
-{	
+{
 	// 기저벡터
 	XMVECTOR right = XMVector3Normalize(XMVectorSet(m_local._11, m_local._21, m_local._31, 0.0f));
 	XMVECTOR up = XMVector3Normalize(XMVectorSet(m_local._12, m_local._22, m_local._32, 0.0f));
 	XMVECTOR forward = XMVector3Normalize(XMVectorSet(m_local._13, m_local._23, m_local._33, 0.0f));
-		
+
 
 	// 카메라 이동
 	XMVECTOR pos = XMLoadFloat3(&m_position);
@@ -48,7 +48,7 @@ void Kuramon::OnUpdate()
 	if (GetAsyncKeyState(VK_LEFT) & 0x8000)	pos -= right * m_moveSpeed;
 	if (GetAsyncKeyState(VK_DOWN) & 0x8000)	pos -= forward * m_moveSpeed;
 	if (GetAsyncKeyState(VK_RIGHT) & 0x8000)	pos += right * m_moveSpeed;
-	
+
 
 	// (1) 각 변환을 XMMATRIX로 생성
 	XMMATRIX S = XMMatrixScaling(m_scale.x, m_scale.y, m_scale.z);
@@ -70,7 +70,7 @@ void Kuramon::OnUpdate()
 			ImGui::Text("위치: X:%.2f, Y:%.2f, Z:%.2f", m_position.x, m_position.y, m_position.z);
 			ImGui::Text("회전: X:%.2f, Y:%.2f, Z:%.2f", m_rotation.x, m_rotation.y, m_rotation.z);
 			ImGui::Text("크기: X:%.2f, Y:%.2f, Z:%.2f", m_scale.x, m_scale.y, m_scale.z);
-			
+
 			ImGui::Text("local_TM", m_local._11, m_local._12, m_local._13, m_local._14);
 			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._11, m_local._12, m_local._13, m_local._14);
 			ImGui::Text("%.2f, %.2f, %.2f, %.2f", m_local._21, m_local._22, m_local._23, m_local._24);
@@ -80,7 +80,7 @@ void Kuramon::OnUpdate()
 			ImGui::Text("버텍스 갯수: %d", vertexArray.size());
 			ImGui::Text("인덱스 갯수: %d", indexArray.size());
 			ImGui::Text("삼각형어쩌고 갯수: %d", m_kuramonTriangleVertices.size());
-			
+
 			ImGui::End();
 		});
 }
@@ -101,13 +101,13 @@ void Kuramon::OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 
 void Kuramon::CreateVertexBuffer()
 {
-	for(const auto& v : vertexArray)
+	for (const auto& v : vertexArray)
 	{
 		m_kuramonTriangleVertices.push_back(v);
 	}
 	// 버텍스버퍼의 크기를 계산합니다.
 	m_vertexBufferSize = sizeof(Graphics::Vertex) * m_kuramonTriangleVertices.size();
-	
+
 	// 1. 디폴트 힙 리소스 생성
 	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
 	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
@@ -165,11 +165,9 @@ void Kuramon::CreateVertexBuffer()
 		D3D12_RESOURCE_STATE_GENERIC_READ, // 리소스 생성 직후의 상태
 		nullptr,				// 최적화된 클리어 값 포인터(텍스처, RTV, DSV 등만 해당) 일반 버퍼는 nullptr
 		IID_PPV_ARGS(&m_kuramonVertexBufferUpload))); // 반환될 인터페이스의 ID
-}
-void Kuramon::SetVertexBufferView()
-{
+
 	// 업로드 힙에 정점 데이터를 복사하기 위해
-// 업로드 힙의 시작 주소를 가져옵니다.
+	// 업로드 힙의 시작 주소를 가져옵니다.
 	UINT8* pVertexDataBegin;
 
 	// D3D12_RANGE
@@ -201,17 +199,17 @@ void Kuramon::SetVertexBufferView()
 	m_kuramonVertexBufferView.BufferLocation = m_kuramonVertexBufferDefault->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
 	m_kuramonVertexBufferView.StrideInBytes = sizeof(Graphics::Vertex);		// 정점버퍼 전체 크기(바이트 단위)
 	m_kuramonVertexBufferView.SizeInBytes = m_vertexBufferSize;	// 정점 하나당 크기(바이트 단위)
-
 }
+
 void Kuramon::CreateIndexBuffer()
 {
 	// 인덱스 배열도 마찬가지로 얻어와야한다.
-	m_kuramonIndexBufferSize = sizeof(UINT32)* indexArray.size();
+	m_kuramonIndexBufferSize = sizeof(UINT32) * indexArray.size();
 
 	// 1. Default Heap (GPU)
 	D3D12_HEAP_PROPERTIES heapProps = {};
 	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-	
+
 	D3D12_RESOURCE_DESC bufferDesc = {};
 	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
 	bufferDesc.Width = m_kuramonIndexBufferSize;
@@ -310,7 +308,7 @@ void Kuramon::CreateConstantBuffer()
 	m_device->CreateConstantBufferView(&m_kuramonCBVDesc, m_kuramonCBVHandle);
 
 	DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
-	
+
 	DirectX::XMMATRIX mvp = world;
 
 
@@ -339,7 +337,7 @@ void Kuramon::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& c
 	// 인덱스 버퍼도 동일한 방식으로 복사합니다.
 	commadList->CopyBufferRegion(
 		m_kuramonIndexBufferDefault.Get(), 0,
-		m_kuramonIndexBufferUpload.Get(), 0, 
+		m_kuramonIndexBufferUpload.Get(), 0,
 		m_kuramonIndexBufferSize);
 
 	// 5. 상태변환
@@ -353,13 +351,13 @@ void Kuramon::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& c
 }
 
 void Kuramon::DirextXVertexToKuramonVertex()
-{	
+{
 	for (const auto& v : m_kuramonMeshData->vertices)
 	{
 		vertexArray.emplace_back(v);
 	}
-		
-	for(const auto& i : m_kuramonMeshData->indices)
+
+	for (const auto& i : m_kuramonMeshData->indices)
 	{
 		indexArray.push_back(i);
 	}

@@ -13,5 +13,5 @@ void AssetCore::CreateAssetLoader()
 }
 void AssetCore::LoadModel(const std::string& filePath, GOE::MeshData& outMeshData)
 {
-	m_assetLoader.get()->LoadModelFromFile(filePath, outMeshData);
+	m_assetLoader.get()->LoadModelFromFile(filePath);
 }
