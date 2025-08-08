@@ -82,21 +82,42 @@ void GOERenderer::OnUpdate()
 		memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
 		m_cube->m_constantBuffer->Unmap(0, nullptr);
 	}
-	{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트(kuramon)
-		XMMATRIX mvp =
-			m_kuramon->GetLocalTransForm()
-			* m_camera->GetViewTransform()
-			* XMLoadFloat4x4(&m_proj);
-		Graphics::Matrix4x4 cbData = {};
-		XMStoreFloat4x4(&cbData.matrix, XMMatrixTranspose(mvp));
+	for (const auto& modelResource : m_modelResources)
+	{
+		// 모델 리소스의 메쉬 리소스를 순회하며 업로드 힙에서 디폴트 힙으로 복사합니다.
+		for (const auto& meshResource : modelResource.second->GetMeshResources())
+		{
+			XMMATRIX mvp =
+				m_cube->GetLocalTransForm()
+				* m_camera->GetViewTransform()
+				* XMLoadFloat4x4(&m_proj);
+			Graphics::Matrix4x4 cbData = {};
+			XMStoreFloat4x4(&cbData.matrix, XMMatrixTranspose(mvp));
 
-		// CUBE의 CBV에 업로드
-		void* pData = nullptr;
-		D3D12_RANGE readRange = { 0, 0 };
-		ThrowIfFailed(m_kuramon->m_kuramonConstantBuffer->Map(0, &readRange, &pData));
-		memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
-		m_kuramon->m_kuramonConstantBuffer->Unmap(0, nullptr);
+			// CUBE의 CBV에 업로드
+			void* pData = nullptr;
+			D3D12_RANGE readRange = { 0, 0 };
+			ThrowIfFailed(meshResource.get()->GetCB()->Map(0, &readRange, &pData));
+			memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
+			meshResource.get()->GetCB()->Unmap(0, nullptr);
+		}
 	}
+
+	//{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트(kuramon)
+	//	XMMATRIX mvp =
+	//		m_kuramon->GetLocalTransForm()
+	//		* m_camera->GetViewTransform()
+	//		* XMLoadFloat4x4(&m_proj);
+	//	Graphics::Matrix4x4 cbData = {};
+	//	XMStoreFloat4x4(&cbData.matrix, XMMatrixTranspose(mvp));
+
+	//	// CUBE의 CBV에 업로드
+	//	void* pData = nullptr;
+	//	D3D12_RANGE readRange = { 0, 0 };
+	//	ThrowIfFailed(m_kuramon->m_kuramonConstantBuffer->Map(0, &readRange, &pData));
+	//	memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
+	//	m_kuramon->m_kuramonConstantBuffer->Unmap(0, nullptr);
+	//}
 }
 
 /// <summary>
@@ -159,8 +180,24 @@ void GOERenderer::BeginRender()
 /// </summary>
 void GOERenderer::OnRender()
 {
+	/// 지금은 모든 모델을 그리지만 나중에는 선택적으로 그려야한다.
+	for (const auto& modelResource : m_modelResources)
+	{
+		// 모델 리소스의 메쉬 리소스를 순회하며 업로드 힙에서 디폴트 힙으로 복사합니다.
+		for (const auto& meshResource : modelResource.second->GetMeshResources())
+		{
+			m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			m_commandList->IASetVertexBuffers(0, 1, &meshResource.get()->GetVBView());
+			m_commandList->IASetIndexBuffer(&meshResource.get()->GetIBView());
+			m_commandList->SetGraphicsRootConstantBufferView(0, meshResource.get()->GetCB()->GetGPUVirtualAddress());
+
+			// 7. 그리기 명령
+			UINT64 indexCount = meshResource.get()->GetIndexCount();
+			m_commandList->DrawIndexedInstanced(meshResource.get()->GetIndexCount(), 1, 0, 0, 0);
+		}
+	}
+	// 6. 그리기 전 세팅
 	m_cube->OnRender(m_commandList.Get());
-	m_kuramon->OnRender(m_commandList.Get());
 }
 
 /// <summary>
@@ -859,8 +896,11 @@ void GOERenderer::CopyUploadHeapToDefault()
 	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
 	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
 
-	for(const auto& modelResource : m_modelResources)
+	for (const auto& modelResource : m_modelResources)
 	{
+		// 큐브는 모델을 로드해서 그리는게 아니야
+		m_cube->CopyUploadHeapToDefault(m_commandList);
+
 		// 모델 리소스의 메쉬 리소스를 순회하며 업로드 힙에서 디폴트 힙으로 복사합니다.
 		for (const auto& meshResource : modelResource.second->GetMeshResources())
 		{
@@ -875,6 +915,7 @@ void GOERenderer::CopyUploadHeapToDefault()
 				D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
 				D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER // StateAfter
 			);
+			m_commandList->ResourceBarrier(1, &vsBarrier);
 
 			// 인덱스 버퍼도 동일한 방식으로 복사합니다.
 			m_commandList->CopyBufferRegion(
@@ -1127,7 +1168,7 @@ void GOERenderer::CreateVBResource(MeshResource* mesh_resource, const Graphics::
 
 void GOERenderer::CreateIBResource(MeshResource* mesh_resource, const Graphics::MeshData& mesh_data, const D3D12_RESOURCE_STATES& state)
 {
-	size_t indexBufferSize = sizeof(UINT32) * mesh_data.indices.size();
+	UINT64 indexBufferSize = sizeof(UINT32) * mesh_data.indices.size();
 	ComPtr<ID3D12Resource> indexBufferDefault = nullptr;
 	ComPtr<ID3D12Resource> indexBufferUpload = nullptr;
 	D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
@@ -1182,6 +1223,7 @@ void GOERenderer::CreateIBResource(MeshResource* mesh_resource, const Graphics::
 	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 	indexBufferView.SizeInBytes = indexBufferSize;
 
+	mesh_resource->Setm_IndexCount(mesh_data.indices.size());
 	mesh_resource->SetIBSize(indexBufferSize); // 인덱스 버퍼 크기 설정
 	mesh_resource->SetIBDefault(indexBufferDefault.Get()); // 디폴트 힙 리소스 설정
 	mesh_resource->SetIBUpload(indexBufferUpload.Get()); // 업로드 힙 리소스 설정
@@ -1234,7 +1276,7 @@ void GOERenderer::CreateCBResource(MeshResource* mesh_resource, const Graphics::
 	heapDescCBV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // 셰이더에서 접근 가능하도록 설정
 	heapDescCBV.NodeMask = 0; // 멀티 GPU 시스템에서 사용할 노드 마스크, 단일 GPU 시스템에서는 1로 설정
 	m_device->CreateDescriptorHeap(&heapDescCBV, IID_PPV_ARGS(&CBVHeap));
-	
+
 	D3D12_CONSTANT_BUFFER_VIEW_DESC CBVDesc = {};
 	// CBV 디스크립터 생성
 	CBVDesc.BufferLocation = constantBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
@@ -1254,7 +1296,7 @@ void GOERenderer::CreateCBResource(MeshResource* mesh_resource, const Graphics::
 	void* pData = nullptr;
 	D3D12_RANGE readRange = { 0, 0 };
 	ThrowIfFailed(constantBuffer->Map(0, &readRange, &pData));
-	memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));	
+	memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
 	constantBuffer->Unmap(0, nullptr);
 
 	mesh_resource->SetCB(constantBuffer.Get()); // 업로드 힙 리소스 설정

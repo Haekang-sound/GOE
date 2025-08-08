@@ -22,19 +22,25 @@ Application::~Application(){}
 
 void Application::Initialize()
 {
+	// 윈도우 초기화
 	m_winCore->InitInstance();
 	m_winCore->SetExternalMsgHandler(&ImGui_ImplWin32_WndProcHandler);
 
+	// 에셋코어 초기화, 모델로드
 	m_assetCore = std::make_unique<AssetCore>();
 	m_assetCore.get()->CreateAssetLoader();
 	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\Ch03_nonPBR.fbx");
+	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\model.fbx");
+	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\UVSphere.fbx");
+	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
 	
+	// 렌더러 초기화
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND()); 
 	m_renderer->OnInit();
 	m_renderer->CreateAllModelResource(m_assetCore.get()->GetModels());
 	m_renderer->CopyUploadHeapToDefault();
 	
-	//m_renderer->TransVertexuramon();
+	// 에디터 초기화
 	m_editor = std::make_unique<EditorCore>(m_winCore->GetHWND());
 	m_editor->Initialize(m_renderer.get()->GetUIInfo());	
 }

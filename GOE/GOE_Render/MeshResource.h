@@ -15,6 +15,7 @@ public:
 	inline ID3D12Resource* GetVBDefault() const { return m_vertexBufferDefault.Get(); }
 	inline const D3D12_VERTEX_BUFFER_VIEW& GetVBView() const { return m_vertexBufferView; }
 
+	inline const UINT64& GetIndexCount() const { return m_IndexCount; }
 	inline const UINT64& GetIBSize() const { return m_IBSize; }
 	inline ID3D12Resource* GetIBUpload() const { return m_indexBufferUpload.Get(); }
 	inline ID3D12Resource* GetIBDefault() const { return m_indexBufferDefault.Get(); }
@@ -32,6 +33,7 @@ public:
 	inline void SetVBView(const D3D12_VERTEX_BUFFER_VIEW& view) { m_vertexBufferView = view; }
 
 	inline void SetIBSize(UINT64 size) { m_IBSize = size; }
+	inline void Setm_IndexCount(UINT64 num) { m_IndexCount = num; }
 	inline void SetIBUpload(ComPtr<ID3D12Resource>&& uploadBuffer) { m_indexBufferUpload = std::move(uploadBuffer); }
 	inline void SetIBDefault(ComPtr<ID3D12Resource>&& defaultBuffer) { m_indexBufferDefault = std::move(defaultBuffer); }
 	inline void SetIBView(const D3D12_INDEX_BUFFER_VIEW& view) { m_indexBufferView = view; }
@@ -52,6 +54,7 @@ private:
 	D3D12_VERTEX_BUFFER_VIEW m_vertexBufferView = {};
 
 	UINT64 m_IBSize = 0;
+	UINT64 m_IndexCount = 0;
 	ComPtr<ID3D12Resource> m_indexBufferUpload = nullptr;
 	ComPtr<ID3D12Resource> m_indexBufferDefault = nullptr;
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};

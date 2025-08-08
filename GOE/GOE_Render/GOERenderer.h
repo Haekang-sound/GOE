@@ -49,9 +49,9 @@ public:
 	// 이동 대입 연산자
 	GOERenderer& operator=(GOERenderer&&) = delete;
 
-
 public:
 	void OnInit() override;
+
 	void OnUpdate() override;
 
 	void BeginRender() override;
