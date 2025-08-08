@@ -22,8 +22,9 @@ public:
 
 public:
 	void CreateAssetLoader();
-	void LoadModel(const std::string& filePath, GOE::MeshData& outMeshData);
-
+	void LoadModel(const std::string& filePath);
+	const std::unordered_map<std::size_t, std::unique_ptr<Model>>& GetModels() const;
+	
 public:
 	std::unique_ptr<AssetLoader> m_assetLoader = nullptr;
 };

@@ -18,6 +18,11 @@
 
 #include "CoreMath.h"
 
+// ¸ðµ¨Á¤º¸
+#include "Model.h"
+#include "Mesh.h"
+#include "Node.h"
+
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
 

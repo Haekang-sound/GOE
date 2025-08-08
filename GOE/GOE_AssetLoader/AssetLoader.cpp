@@ -1,9 +1,7 @@
 #include "AssetLoader_pch.h"
 #include "AssetLoader.h"
-#include "../GOE_Core/Commons.h"
-#include "../GOE_Core/Model.h"
-#include "../GOE_Core/Node.h"
-#include "../GOE_Core/Mesh.h"
+
+AssetLoader::~AssetLoader() = default; // 소멸자 구현
 
 // 메인 로드 함수
 bool AssetLoader::LoadModelFromFile(const std::string& filePath)
@@ -11,7 +9,7 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 	// hasher 객체를 함수처럼 호출하여 filePath의 해시 값을 계산합니다.
 	size_t pathHash = hasher(filePath);
 
-	m_models[pathHash] = Model(pathHash); // 모델을 해시맵에 추가
+	m_models[pathHash] = std::make_unique<Model>(pathHash); // 모델을 해시맵에 추가
 
 	// Create an instance of the Importer class
 	Assimp::Importer importer;
@@ -51,53 +49,51 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 	{
 		aiNode* rootNode = scene->mRootNode;
 		rootNode->mName.C_Str(); // 노드 이름을 가져옵니다.
-		m_models[pathHash].AddRootNode(ProcessNode(rootNode));
+		m_models[pathHash].get()->AddRootNode(ProcessNode(rootNode));
 
 		for (int i = 0; i < scene->mNumMeshes; i++)
 		{
 			// 현재 메쉬를 가져옵니다.
 			aiMesh* mesh = scene->mMeshes[i];
 			// 메쉬 데이터를 처리합니다.
-			m_models[pathHash].AddMesh(ProcessMesh(mesh, scene));
+			m_models[pathHash].get()->AddMesh(ProcessMesh(mesh, scene));
 		}
 	}
 
 	return true;
 }
 
-Node AssetLoader::ProcessNode(aiNode* node)
+std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node)
 {
 	/// 노드이름을 해쉬로 저장중-> 이걸로 충분한지는 의문
-	Node currentNode = Node(node->mName.C_Str(), hasher(node->mName.C_Str()));
+	std::unique_ptr<Node> currentNode = std::make_unique<Node>(node->mName.C_Str(), hasher(node->mName.C_Str()));
 	// 노드의 자식 노드를 재귀적으로 처리합니다.
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
 		// 메쉬인덱스
 		unsigned int meshIndex = node->mMeshes[i];
-		currentNode.AddMeshIndex(meshIndex); // 현재 노드가 참조하는 메쉬 인덱스를 추가합니다.
+		currentNode.get()->AddMeshIndex(meshIndex); // 현재 노드가 참조하는 메쉬 인덱스를 추가합니다.
 		// 현재 노드의 자식 노드를 가져옵니다.
 		aiNode* childNode = node->mChildren[i];
 		// 자식 노드를 재귀적으로 처리합니다.
-		currentNode.AddChild(ProcessNode(childNode));
+		currentNode.get()->AddChild(ProcessNode(childNode));
 	}
 
 	return currentNode; // 현재 노드에 대한 처리가 끝났으므로 빈 노드를 반환합니다.
 }
 
-Mesh AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
+std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
-	Mesh currentMesh(mesh->mName.C_Str(), hasher(mesh->mName.C_Str()));
+	std::unique_ptr<Mesh> currentMesh = std::make_unique<Mesh>(mesh->mName.C_Str(), hasher(mesh->mName.C_Str()));
 
 	// 정점(Vertex) 데이터 추출
-	GOE::MeshData meshData;
+	std::unique_ptr<GOE::MeshData> meshData = std::make_unique<GOE::MeshData>();
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
-		GOE::Vertex vertex;
-		aiVector3D position = mesh->mVertices[i];
-		vertex.position[0] = mesh->mVertices[i].x;
-		vertex.position[1] = mesh->mVertices[i].y;
-		vertex.position[2] = mesh->mVertices[i].z;
-		meshData.vertices.push_back(vertex);
+		meshData.get()->vertices.emplace_back();
+		meshData.get()->vertices.back().position[0] = mesh->mVertices[i].x;
+		meshData.get()->vertices.back().position[1] = mesh->mVertices[i].y;
+		meshData.get()->vertices.back().position[2] = mesh->mVertices[i].z;
 	}
 
 	for (size_t i = 0; i < mesh->mNumFaces; i++)
@@ -105,11 +101,11 @@ Mesh AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 		aiFace face = mesh->mFaces[i];
 		for (size_t j = 0; j < face.mNumIndices; j++)
 		{
-			meshData.indices.push_back(face.mIndices[j]);
+			meshData.get()->indices.emplace_back(face.mIndices[j]);
 		}
 	}
 
-	currentMesh.SetMeshData(std::move(meshData));
+	currentMesh.get()->SetMeshData(std::move(meshData));
 
 	return currentMesh;
 }

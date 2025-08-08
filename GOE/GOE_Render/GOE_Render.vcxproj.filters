@@ -15,9 +15,6 @@
     <ClInclude Include="GOERenderer.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="ID3DRenderer.h">
-      <Filter>00_Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Camera.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
@@ -32,6 +29,15 @@
     </ClInclude>
     <ClInclude Include="D3DMath.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ModelResource.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ID3DRenderer.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshResource.h">
+      <Filter>00_Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -49,6 +55,12 @@
     </ClCompile>
     <ClCompile Include="Renderer_pch.cpp">
       <Filter>Common</Filter>
+    </ClCompile>
+    <ClCompile Include="ModelResource.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshResource.cpp">
+      <Filter>00_Sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -4,12 +4,14 @@ using namespace DirectX;
 
 namespace Graphics
 {
-	struct MVP
+	struct Matrix4x4
 	{
-		XMFLOAT4X4 mvp; // 64바이트(행렬)
+		XMFLOAT4X4 matrix; // 64바이트(행렬)
 	};
 
-	/// <summary>
+	
+
+	/// <summary>z
 	/// 버텍스 구조체
 	/// </summary>
 	struct Vertex
@@ -53,5 +55,50 @@ namespace Graphics
 			return *this;
 		}
 
+	};
+
+	/// <summary>
+	/// 버텍스와 인덱스 정보를 갖고 있는 
+	/// 메쉬 구조체
+	/// 
+	/// </summary>
+	struct MeshData
+	{
+	public:
+		MeshData() = default;
+		MeshData(const GOE::MeshData& other)
+		{
+			*this = other;
+			vertices.clear();
+			indices.clear();
+			for (const auto& vertex : other.vertices)
+			{
+				vertices.emplace_back(vertex);
+			}
+			for (const auto& index : other.indices)
+			{
+				indices.push_back(index);
+			}
+		}
+
+	public:
+		std::vector<Vertex> vertices; // 버텍스 정보
+		std::vector<UINT32> indices; // 인덱스 정보
+
+	public:
+		MeshData& operator=(const GOE::MeshData& other)
+		{
+			vertices.clear();
+			indices.clear();
+			for (const auto& vertex : other.vertices)
+			{
+				vertices.emplace_back(vertex);
+			}
+			for (const auto& index : other.indices)
+			{
+				indices.push_back(index);
+			}
+			return *this;
+		}
 	};
 }

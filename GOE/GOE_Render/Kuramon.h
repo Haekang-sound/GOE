@@ -59,6 +59,9 @@ public:
 	float m_angle = 0.f; // 회전 각도
 	
 public:
+	size_t modelID = 0; // 모델 ID
+
+public:
 	/// <summary>
 	/// 오류를 잡기위해 임시로 만들어둔 변수2개
 	/// 사용하고 있지만 변경되어야함

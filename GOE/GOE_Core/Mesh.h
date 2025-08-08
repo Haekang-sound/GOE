@@ -13,25 +13,22 @@ namespace GOE
 class Mesh
 {
 	public:
-	Mesh() = default;
-	Mesh(const std::string& name, size_t id)
+	Mesh(const std::string name, size_t id)
 		: m_name(name), m_id(id){}
 
-	~Mesh() = default;
+	~Mesh();
 
 public:
-	inline void SetName(const std::string& name) { m_name = name; }
 	inline const std::string& GetName() const { return m_name; }
-
-	inline void SetID(size_t id) { m_id = id; }
 	inline const size_t GetID() const { return m_id; }
 
-	inline void SetMeshData(GOE::MeshData&& meshData) { m_meshData = std::move(meshData); }
-	inline const GOE::MeshData GetMeshData() const { return m_meshData; }
+	inline void SetMeshData(std::unique_ptr<GOE::MeshData>&& meshData) { m_meshData = std::move(meshData); }
+	const GOE::MeshData& GetMeshData();// { return *m_meshData.get(); }
 
 private:
-	std::string m_name; // 매쉬 이름
-	size_t m_id; // 매쉬 ID
-	GOE::MeshData m_meshData;// = nullptr; // 매쉬 데이터
+	const std::string m_name; // 매쉬 이름
+	const size_t m_id; // 매쉬 ID
+
+	std::unique_ptr<GOE::MeshData> m_meshData; // 매쉬 데이터 포인터
 };
 

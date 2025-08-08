@@ -7,6 +7,9 @@
 #include "Cube.h"
 #include "Kuramon.h"
 
+#include "ModelResource.h"
+#include "MeshResource.h"
+
 /// <summary>
 /// GOERenderer의 생성자
 /// 
@@ -19,8 +22,6 @@ GOERenderer::GOERenderer(const HWND& hWnd)
 {
 	m_UIInitInfo = std::make_unique<UIInitInfo>();
 	m_UILoopInfo = std::make_unique <UILoopInfo>();
-
-
 }
 
 /// <summary>
@@ -71,14 +72,14 @@ void GOERenderer::OnUpdate()
 			m_cube->GetLocalTransForm()
 			* m_camera->GetViewTransform()
 			* XMLoadFloat4x4(&m_proj);
-		Graphics::MVP cbData = {};
-		XMStoreFloat4x4(&cbData.mvp, XMMatrixTranspose(mvp));
+		Graphics::Matrix4x4 cbData = {};
+		XMStoreFloat4x4(&cbData.matrix, XMMatrixTranspose(mvp));
 
 		// CUBE의 CBV에 업로드
 		void* pData = nullptr;
 		D3D12_RANGE readRange = { 0, 0 };
 		ThrowIfFailed(m_cube->m_constantBuffer->Map(0, &readRange, &pData));
-		memcpy(pData, &cbData, sizeof(Graphics::MVP));
+		memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
 		m_cube->m_constantBuffer->Unmap(0, nullptr);
 	}
 	{ // 오브젝트마다 실행해줘야하는 콘스탄트 버퍼의 업데이트(kuramon)
@@ -86,14 +87,14 @@ void GOERenderer::OnUpdate()
 			m_kuramon->GetLocalTransForm()
 			* m_camera->GetViewTransform()
 			* XMLoadFloat4x4(&m_proj);
-		Graphics::MVP cbData = {};
-		XMStoreFloat4x4(&cbData.mvp, XMMatrixTranspose(mvp));
+		Graphics::Matrix4x4 cbData = {};
+		XMStoreFloat4x4(&cbData.matrix, XMMatrixTranspose(mvp));
 
 		// CUBE의 CBV에 업로드
 		void* pData = nullptr;
 		D3D12_RANGE readRange = { 0, 0 };
 		ThrowIfFailed(m_kuramon->m_kuramonConstantBuffer->Map(0, &readRange, &pData));
-		memcpy(pData, &cbData, sizeof(Graphics::MVP));
+		memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
 		m_kuramon->m_kuramonConstantBuffer->Unmap(0, nullptr);
 	}
 }
@@ -226,6 +227,10 @@ UILoopInfo* GOERenderer::GetUILoopInfo()
 	m_UILoopInfo.get()->imguiDescriptorHeap = m_imguiDescriptorHeap.Get();
 	m_UILoopInfo.get()->rendertarget = m_renderTargets[m_frameIndex].Get();
 	return m_UILoopInfo.get();
+}
+
+void GOERenderer::CreateModelData(size_t id)
+{
 }
 
 /// <summary>
@@ -838,6 +843,7 @@ void GOERenderer::CreateCommandList()
 	ThrowIfFailed(m_commandList->Close());
 }
 
+
 /// <summary>
 /// 업로드 힙의 데이터를 디폴트 힙으로 복사합니다.
 /// 
@@ -853,8 +859,39 @@ void GOERenderer::CopyUploadHeapToDefault()
 	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
 	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
 
-	m_cube->CopyUploadHeapToDefault(m_commandList);
-	m_kuramon->CopyUploadHeapToDefault(m_commandList);
+	for(const auto& modelResource : m_modelResources)
+	{
+		// 모델 리소스의 메쉬 리소스를 순회하며 업로드 힙에서 디폴트 힙으로 복사합니다.
+		for (const auto& meshResource : modelResource.second->GetMeshResources())
+		{
+			m_commandList->CopyBufferRegion(
+				meshResource.get()->GetVBDefault(), 0,	// Dest
+				meshResource.get()->GetVBUpload(), 0,	// Src
+				meshResource.get()->GetVBSize()				// Size
+			);
+			// (3) 상태변환: 복사에서 VertexBuffer로 전환
+			auto vsBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+				meshResource.get()->GetVBDefault(),	// pResource
+				D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
+				D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER // StateAfter
+			);
+
+			// 인덱스 버퍼도 동일한 방식으로 복사합니다.
+			m_commandList->CopyBufferRegion(
+				meshResource.get()->GetIBDefault(), 0,
+				meshResource.get()->GetIBUpload(), 0,
+				meshResource.get()->GetIBSize());
+
+			// 5. 상태변환
+			auto ibBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+				meshResource.get()->GetIBDefault(),	// pResource
+				D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
+				D3D12_RESOURCE_STATE_INDEX_BUFFER	// StateAfter
+			);
+
+			m_commandList->ResourceBarrier(1, &ibBarrier);
+		}
+	}
 
 	m_commandList->Close();
 
@@ -940,6 +977,289 @@ void GOERenderer::CreateImguiDescriptorHeap()
 	desc.NumDescriptors = 64;               // 보통 ImGui는 1~2면 충분
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // 반드시 shader visible!
 	ThrowIfFailed(m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_imguiDescriptorHeap)));
+}
+
+/// <summary>
+/// 에셋로더를 통해 만들어진 모델리소스를
+/// d3d12에서 사용할 수 있도록 변환시켜주는 함수
+/// 
+/// </summary>
+/// <param name="core_models"></param>
+void GOERenderer::CreateAllModelResource(const std::unordered_map<std::size_t, std::unique_ptr<Model>>& core_models)
+{
+	for (const auto& model : core_models)
+	{
+		// 모델리소스객체 생성
+		m_modelResources[model.first] =
+			std::make_unique<ModelResource>(model.second.get()->GetName(), model.first);
+
+		// 메쉬정보를 추출
+		for (int i = 0; i < model.second.get()->GetMeshes().size(); ++i)
+		{
+			// 메쉬리소스를 추가
+			m_modelResources[model.first].get()->AddMeshResource(
+				model.second.get()->GetMeshes()[i].get()->GetName(), model.second.get()->GetMeshes()[i].get()->GetID());
+
+			// 메쉬데이터를 가져옴
+			Graphics::MeshData meshData(model.second.get()->GetMeshes()[i].get()->GetMeshData());
+
+			// 메쉬데이터를 리소스로 변환해서 방금 추가한 메쉬리소스에 추가
+			CreateMeshResource(m_modelResources[model.first].get()->GetMeshResourceBack(), meshData);
+
+		}
+	}
+}
+
+/// <summary>
+/// 메쉬데이터를 메쉬리소스를 채워주는 함수
+/// </summary>
+/// <param name="mesh_resource"></param>
+/// <param name="mesh_data"></param>
+void GOERenderer::CreateMeshResource(MeshResource* mesh_resource, Graphics::MeshData& mesh_data)
+{
+	CreateVBResource(mesh_resource, mesh_data, D3D12_RESOURCE_STATE_GENERIC_READ);
+	CreateIBResource(mesh_resource, mesh_data, D3D12_RESOURCE_STATE_GENERIC_READ);
+	CreateCBResource(mesh_resource, mesh_data, D3D12_RESOURCE_STATE_GENERIC_READ);
+}
+
+void GOERenderer::CreateVBResource(MeshResource* mesh_resource, const Graphics::MeshData& mesh_data, const D3D12_RESOURCE_STATES& state)
+{
+	/// 채워야 할 리소스
+	size_t vertexBufferSize = sizeof(Graphics::Vertex) * mesh_data.vertices.size();
+	ComPtr<ID3D12Resource> vertexBufferDefault = nullptr;
+	ComPtr<ID3D12Resource> vertexBufferUpload = nullptr;
+	D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
+
+	// 1. 디폴트 힙 리소스 생성
+	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
+	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	D3D12_RESOURCE_DESC bufferDesc = {};
+	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	bufferDesc.Width = vertexBufferSize;
+	bufferDesc.Height = 1;
+	bufferDesc.DepthOrArraySize = 1;
+	bufferDesc.MipLevels = 1;
+	bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+	bufferDesc.SampleDesc.Count = 1;
+	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+
+	ThrowIfFailed(m_device->CreateCommittedResource(
+		&defaultHeapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&bufferDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST, // 일단 복사 대상으로 생성
+		nullptr,
+		IID_PPV_ARGS(&vertexBufferDefault)
+	));
+
+	// D3D12_HEAP_PROPERTIES
+	// : 힙의 속성을 정의하는 구조체입니다.
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD; // 리소스를 할당할 힙의 속성을 정의합니다. 
+
+	// D3D12_RESOURCE_DESC
+	// : 리소스의 속성을 정의하는 구조체입니다.
+	D3D12_RESOURCE_DESC resDesc = {};
+	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;// 버퍼 리소스입니다.
+	resDesc.Alignment = 0;								// 정렬은 0으로 설정합니다.(자동설정됨)
+	resDesc.Width = vertexBufferSize;					// 버퍼라면 바이트 크기, 텍스쳐면 x축 픽셀 수
+	resDesc.Height = 1;									// 텍스쳐의 높이, 버퍼일 경우 높이는 1로 설정
+	resDesc.DepthOrArraySize = 1;						// 깊이 또는 배열 크기
+	resDesc.MipLevels = 1;								// 밉맵레벨 수, 버퍼는1 (1이면 밉맵없음)
+	resDesc.Format = DXGI_FORMAT_UNKNOWN;				// 버퍼는 포맷이 필요 없습니다.
+	resDesc.SampleDesc.Count = 1;						// 샘플링은 1로 설정
+	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;	// 버퍼는 반드시 ROW_MAJOR로 설정합니다.
+	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;			// 리소스 플래그는 없습니다.
+
+	// CreateCommittedResource()
+	// : 커밋된 리소스를 생성하는 메서드입니다.
+	// 이 메서드는 힙과 리소스를 동시에 생성합니다.
+	/*“커밋된(Committed)” 리소스란,
+		리소스를 생성할 때 힙(메모리 공간)도 자동으로 같이 만들어서
+		리소스와 힙이 1:1로 매칭되는 가장 단순한 형태.*/
+		//	반대되는 개념 : “Placed Resource”
+
+	ThrowIfFailed(m_device->CreateCommittedResource(
+		&heapProps,				// 힙 속성
+		D3D12_HEAP_FLAG_NONE,	// 힙 플래그, 일반적으로 D3D12_HEAP_FLAG_NONE 사용
+		&resDesc,				// 리소스 설명
+		state, // 리소스 생성 직후의 상태
+		nullptr,				// 최적화된 클리어 값 포인터(텍스처, RTV, DSV 등만 해당) 일반 버퍼는 nullptr
+		IID_PPV_ARGS(&vertexBufferUpload))); // 반환될 인터페이스의 ID
+	mesh_resource->SetVBUpload(vertexBufferUpload.Get()); // 업로드 힙 리소스 설정
+	// 업로드 힙에 정점 데이터를 복사하기 위해
+	// 업로드 힙의 시작 주소를 가져옵니다.
+	UINT8* pVertexDataBegin;
+
+	// D3D12_RANGE
+	// : 업로드 힙의 데이터를 CPU가 읽을 수 있도록 매핑할 때 사용하는 구조체입니다.
+	// Map() 호출 시 : CPU가 실제로 "읽을 범위"를 지정(읽을 게 없다면 {0, 0}로 설정)
+	// Unmap() 호출 시:CPU가 실제로 "썼던 범위"를 지정
+	D3D12_RANGE readRange = { 0,0 }; // 읽을 필요 없는 경우(주로 데이터 쓸 때)
+	/*readRange가{ 0, 0 }이면
+		GPU 드라이버는
+		→ 메모리 캐시에서 버퍼 내용을 "CPU 쪽으로 읽어올 필요 없다"고 판단!
+		→ memcpy로 쓰기만 할 테니 “최소한의 작업”만 해줌*/
+
+		// Map() 메서드는 업로드 힙의 데이터를 CPU가 읽을 수 있도록 매핑합니다.
+	ThrowIfFailed(vertexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
+	// memcpy() 함수를 사용하여 정점 데이터를 업로드 힙에 복사합니다.
+	memcpy(pVertexDataBegin, mesh_data.vertices.data(), vertexBufferSize);
+	// Unmap() 메서드는 업로드 힙의 매핑을 해제합니다.
+	vertexBufferUpload->Unmap(0, nullptr);
+
+	// D3D12_VERTEX_BUFFER_VIEW
+	// : 정점 버퍼 뷰를 정의하는 구조체입니다.
+	// 이후 DrawCall 시 이 정보를 넘김
+	// 이 뷰는 GPU가 정점 데이터를 읽을 때 사용됩니다.
+	vertexBufferView.BufferLocation = vertexBufferDefault->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
+	vertexBufferView.StrideInBytes = sizeof(Graphics::Vertex);		// 정점버퍼 전체 크기(바이트 단위)
+	vertexBufferView.SizeInBytes = vertexBufferSize;	// 정점 하나당 크기(바이트 단위)
+
+	mesh_resource->SetVBSize(vertexBufferSize); // 정점 버퍼 크기 설정
+	mesh_resource->SetVBDefault(vertexBufferDefault.Get()); // 디폴트 힙 리소스 설정
+	mesh_resource->SetVBUpload(vertexBufferUpload.Get()); // 업로드 힙 리소스 설정
+	mesh_resource->SetVBView(vertexBufferView); // 정점 버퍼 뷰 설정
+}
+
+void GOERenderer::CreateIBResource(MeshResource* mesh_resource, const Graphics::MeshData& mesh_data, const D3D12_RESOURCE_STATES& state)
+{
+	size_t indexBufferSize = sizeof(UINT32) * mesh_data.indices.size();
+	ComPtr<ID3D12Resource> indexBufferDefault = nullptr;
+	ComPtr<ID3D12Resource> indexBufferUpload = nullptr;
+	D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
+
+	// 1. Default Heap (GPU)
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+	D3D12_RESOURCE_DESC bufferDesc = {};
+	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	bufferDesc.Width = indexBufferSize;
+	bufferDesc.Height = 1;
+	bufferDesc.DepthOrArraySize = 1;
+	bufferDesc.MipLevels = 1;
+	bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+	bufferDesc.SampleDesc.Count = 1;
+	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	ThrowIfFailed(m_device->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&bufferDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST,
+		nullptr,
+		IID_PPV_ARGS(&indexBufferDefault)
+	));
+
+	// 2. Upload Heap (CPU)
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+	ThrowIfFailed(m_device->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&bufferDesc,
+		state,
+		nullptr,
+		IID_PPV_ARGS(&indexBufferUpload)
+	));
+
+	// 3. 데이터 복사
+	UINT8* pIndexDataBegin;
+	D3D12_RANGE readRange = { 0, 0 };
+	ThrowIfFailed(indexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
+
+	// Kuramon.cpp L331
+	memcpy(pIndexDataBegin, mesh_data.indices.data(), indexBufferSize);
+	indexBufferUpload->Unmap(0, nullptr);
+
+	// 6. 인덱스버퍼 뷰 생성
+	indexBufferView.BufferLocation = indexBufferDefault->GetGPUVirtualAddress();
+	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
+	indexBufferView.SizeInBytes = indexBufferSize;
+
+	mesh_resource->SetIBSize(indexBufferSize); // 인덱스 버퍼 크기 설정
+	mesh_resource->SetIBDefault(indexBufferDefault.Get()); // 디폴트 힙 리소스 설정
+	mesh_resource->SetIBUpload(indexBufferUpload.Get()); // 업로드 힙 리소스 설정
+	mesh_resource->SetIBView(indexBufferView); // 인덱스 버퍼 뷰 설정
+}
+
+void GOERenderer::CreateCBResource(MeshResource* mesh_resource, const Graphics::MeshData& mesh_data, const D3D12_RESOURCE_STATES& state)
+{
+	ComPtr<ID3D12Resource> constantBuffer = {};
+	ComPtr<ID3D12DescriptorHeap> CBVHeap = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE CBVHandle = {};
+
+	// CBV디스크립터힙 heapProps
+	D3D12_HEAP_PROPERTIES heapProps = {};
+	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+	heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	heapProps.CreationNodeMask = 0;
+	heapProps.VisibleNodeMask = 0;
+
+	// 리소스 description
+	D3D12_RESOURCE_DESC cbDesc = {};
+	cbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	cbDesc.Alignment = 0;
+	cbDesc.Width = 256; // 최소 256바이트(행렬 64 + 패딩)
+	cbDesc.Height = 1;
+	cbDesc.DepthOrArraySize = 1;
+	cbDesc.MipLevels = 1;
+	cbDesc.Format = DXGI_FORMAT_UNKNOWN;
+	cbDesc.SampleDesc.Count = 1;
+	cbDesc.SampleDesc.Quality = 0;
+	cbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	cbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	// CB 리소스생성
+	HRESULT hr = m_device->CreateCommittedResource(
+		&heapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&cbDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&constantBuffer)
+	);
+	ThrowIfFailed(hr);
+
+	// CBV 디스크립터 힙 생성
+	D3D12_DESCRIPTOR_HEAP_DESC heapDescCBV = {};
+	heapDescCBV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // Constant Buffer View, Shader Resource View, Unordered Access View
+	heapDescCBV.NumDescriptors = 1; // CBV 하나만 사용
+	heapDescCBV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // 셰이더에서 접근 가능하도록 설정
+	heapDescCBV.NodeMask = 0; // 멀티 GPU 시스템에서 사용할 노드 마스크, 단일 GPU 시스템에서는 1로 설정
+	m_device->CreateDescriptorHeap(&heapDescCBV, IID_PPV_ARGS(&CBVHeap));
+	
+	D3D12_CONSTANT_BUFFER_VIEW_DESC CBVDesc = {};
+	// CBV 디스크립터 생성
+	CBVDesc.BufferLocation = constantBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
+	CBVDesc.SizeInBytes = (sizeof(Graphics::Matrix4x4) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
+
+	CBVHandle = CBVHeap->GetCPUDescriptorHandleForHeapStart();
+	m_device->CreateConstantBufferView(&CBVDesc, CBVHandle);
+
+	DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
+
+	DirectX::XMMATRIX mvp = world;
+
+
+	Graphics::Matrix4x4 cbData = {};
+	DirectX::XMStoreFloat4x4(&cbData.matrix, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
+
+	void* pData = nullptr;
+	D3D12_RANGE readRange = { 0, 0 };
+	ThrowIfFailed(constantBuffer->Map(0, &readRange, &pData));
+	memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));	
+	constantBuffer->Unmap(0, nullptr);
+
+	mesh_resource->SetCB(constantBuffer.Get()); // 업로드 힙 리소스 설정
+	mesh_resource->SetCBVHeap(CBVHeap.Get()); // Constant Buffer View 디스크립터 힙 설정
+	mesh_resource->SetCBVHandle(std::move(CBVHandle)); // Constant Buffer View 디스크립터 핸들 설정
 }
 
 GOE::MeshData* GOERenderer::GetKuramonMeshData()

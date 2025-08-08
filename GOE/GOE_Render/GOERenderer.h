@@ -6,9 +6,11 @@
 #include <DirectXMath.h>
 
 #include <d3dx12/d3dx12.h>
-
 #include <wrl.h>
 #include <windows.h>
+#include <memory>
+#include <unordered_map>
+
 
 namespace GOE
 {
@@ -24,6 +26,8 @@ class Camera;
 class UIInitInfo;
 class UILoopInfo;
 
+class ModelResource;
+class MeshResource;
 
 /// <summary>
 /// 인터페이스를 상속받아 구현된 랜더러
@@ -56,7 +60,7 @@ public:
 
 	void OnDestroy() override;
 
-public: 
+public:
 	inline ID3D12Device* GetDevice() { return m_device.Get(); }
 	inline ID3D12CommandQueue* GetCommandQueue() { return m_commandQueue.Get(); }
 	inline int GetFrameCount() { return m_frameBufferCount; }
@@ -67,7 +71,9 @@ public:
 	UIInitInfo* GetUIInfo();
 	UILoopInfo* GetUILoopInfo();
 
-	
+public:
+	void CreateModelData(size_t id);
+
 private:
 	void SetViewport();
 
@@ -91,6 +97,7 @@ public:
 	void CreatePipelineState();
 	void CreateCommandList();
 
+public:
 	void CreateFence();
 	void CopyUploadHeapToDefault();
 
@@ -98,19 +105,42 @@ private:
 	void SignalFence(const UINT64& fenceValue);
 	void WaitForFence(const UINT64& fenceValue);
 
-private: 
+private:
 	void CreateImguiDescriptorHeap();
 
+	/// <summary>
+	/// core모델 to grpahics
+	/// 모델 변환중
+	/// </summary>
+	/// <param name="core_models"></param>
+public:
+	void CreateAllModelResource(const std::unordered_map <std::size_t, std::unique_ptr<Model>>& core_models);
+	void CreateMeshResource(MeshResource* mesh_resource, Graphics::MeshData& mesh_data);
+	void CreateVBResource(
+		MeshResource* mesh_resource,
+		const Graphics::MeshData& mesh_data,
+		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
+	void CreateIBResource(
+		MeshResource* mesh_resource,
+		const Graphics::MeshData& mesh_data,
+		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
+	void CreateCBResource(
+		MeshResource* mesh_resource,
+		const Graphics::MeshData& mesh_data,
+		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
 
-/// <summary>
-///  얼른 오브젝트를 제대로 만들어서 없애야 하는부분
-/// </summary>
+private:
+	std::unordered_map<size_t, std::unique_ptr<ModelResource>> m_modelResources;
+
+	/// <summary>
+	///  얼른 오브젝트를 제대로 만들어서 없애야 하는부분
+	/// </summary>
 public:
 	GOE::MeshData* GetKuramonMeshData();
 	void TransVertexuramon();
 
 	// 임시로 둔것
-public: 
+public:
 	Camera* m_camera;
 	Cube* m_cube;
 	Kuramon* m_kuramon;
@@ -160,7 +190,7 @@ private:
 	// 프레임마다 동기화를 위한 fece값을 갖는다.
 	UINT64 m_fenceValue = 0;
 
-private: 
+private:
 	ComPtr<ID3D12DescriptorHeap> m_imguiDescriptorHeap = nullptr;
 	std::unique_ptr<UILoopInfo> m_UILoopInfo;
 	std::unique_ptr<UIInitInfo> m_UIInitInfo;

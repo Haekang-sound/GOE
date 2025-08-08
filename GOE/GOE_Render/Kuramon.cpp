@@ -1,5 +1,6 @@
 #include "Renderer_pch.h"
 #include "Kuramon.h"
+
 #include "../GOE_Editor/DebugManager.h"
 #include "../Imgui/imgui.h"
 
@@ -302,7 +303,7 @@ void Kuramon::CreateConstantBuffer()
 
 	// CBV 디스크립터 생성
 	m_kuramonCBVDesc.BufferLocation = m_kuramonConstantBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
-	m_kuramonCBVDesc.SizeInBytes = (sizeof(Graphics::MVP) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
+	m_kuramonCBVDesc.SizeInBytes = (sizeof(Graphics::Matrix4x4) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
 
 	m_kuramonCBVHandle = m_kuramonCBVHeap->GetCPUDescriptorHandleForHeapStart();
 	m_device->CreateConstantBufferView(&m_kuramonCBVDesc, m_kuramonCBVHandle);
@@ -312,13 +313,13 @@ void Kuramon::CreateConstantBuffer()
 	DirectX::XMMATRIX mvp = world;
 
 
-	Graphics::MVP cbData = {};
-	DirectX::XMStoreFloat4x4(&cbData.mvp, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
+	Graphics::Matrix4x4 cbData = {};
+	DirectX::XMStoreFloat4x4(&cbData.matrix, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
 
 	void* pData = nullptr;
 	D3D12_RANGE readRange = { 0, 0 };
 	ThrowIfFailed(m_kuramonConstantBuffer->Map(0, &readRange, &pData));
-	memcpy(pData, &cbData, sizeof(Graphics::MVP));
+	memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
 }
 void Kuramon::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 {
@@ -341,12 +342,12 @@ void Kuramon::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& c
 		m_kuramonIndexBufferSize);
 
 	// 5. 상태변환
-	D3D12_RESOURCE_BARRIER ibBarrier = {};
-	ibBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	ibBarrier.Transition.pResource = m_kuramonIndexBufferDefault.Get();
-	ibBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-	ibBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_INDEX_BUFFER;
-	ibBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	auto ibBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		m_kuramonIndexBufferDefault.Get(),	// pResource
+		D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
+		D3D12_RESOURCE_STATE_INDEX_BUFFER	// StateAfter
+	);
+
 	commadList->ResourceBarrier(1, &ibBarrier);
 }
 

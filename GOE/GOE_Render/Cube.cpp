@@ -322,7 +322,7 @@ void Cube::CreateConstantBuffer()
 
 	// CBV 디스크립터 생성
 	m_cbvDesc.BufferLocation = m_constantBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
-	m_cbvDesc.SizeInBytes = (sizeof(Graphics::MVP) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
+	m_cbvDesc.SizeInBytes = (sizeof(Graphics::Matrix4x4) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
 
 	m_cbvHandle = m_cbvHeap->GetCPUDescriptorHandleForHeapStart();
 	m_device->CreateConstantBufferView(&m_cbvDesc, m_cbvHandle);
@@ -331,13 +331,13 @@ void Cube::CreateConstantBuffer()
 
 	DirectX::XMMATRIX mvp = world;
 
-	Graphics::MVP cbData = {};
-	DirectX::XMStoreFloat4x4(&cbData.mvp, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
+	Graphics::Matrix4x4 cbData = {};
+	DirectX::XMStoreFloat4x4(&cbData.matrix, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
 
 	void* pData = nullptr;
 	D3D12_RANGE readRange = { 0, 0 };
 	ThrowIfFailed(m_constantBuffer->Map(0, &readRange, &pData));
-	memcpy(pData, &cbData, sizeof(Graphics::MVP));
+	memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
 }
 
 void Cube::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& commadList)
