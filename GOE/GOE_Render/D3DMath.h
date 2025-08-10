@@ -7,9 +7,7 @@ namespace Graphics
 	struct Matrix4x4
 	{
 		XMFLOAT4X4 matrix; // 64바이트(행렬)
-	};
-
-	
+	};	
 
 	/// <summary>z
 	/// 버텍스 구조체
