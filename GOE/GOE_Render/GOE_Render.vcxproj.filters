@@ -39,6 +39,9 @@
     <ClInclude Include="MeshResource.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
+    <ClInclude Include="RenderObject.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GOERenderer.cpp">
@@ -60,6 +63,9 @@
       <Filter>00_Sources</Filter>
     </ClCompile>
     <ClCompile Include="MeshResource.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderObject.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
   </ItemGroup>

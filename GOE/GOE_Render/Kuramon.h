@@ -28,21 +28,14 @@ public:
 	Kuramon& operator=(Kuramon&&) = delete;
 
 	void InitKuramon();
-	void LoadKuramon();
 	void OnUpdate();
 	void OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList);
 
-	void CreateVertexBuffer();
-	void CreateIndexBuffer();
 	void CreateConstantBuffer();
-
-	void CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& commadList);
 
 public:
 	inline XMMATRIX GetLocalTransForm() { return XMLoadFloat4x4(&m_local); }
-
-public:
-	void DirextXVertexToKuramonVertex();
+	inline size_t GetModelID() const { return modelID; }
 
 public:
 	// device

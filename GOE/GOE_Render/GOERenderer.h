@@ -28,6 +28,7 @@ class UILoopInfo;
 
 class ModelResource;
 class MeshResource;
+class RenderObject;
 
 /// <summary>
 /// 인터페이스를 상속받아 구현된 랜더러
@@ -124,22 +125,18 @@ public:
 		MeshResource* mesh_resource,
 		const Graphics::MeshData& mesh_data,
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
+
+	/// <summary>
+	/// CB는 공유자원이 아니다 -> 수정 요함
+	/// </summary>
 	void CreateCBResource(
-		MeshResource* mesh_resource,
-		const Graphics::MeshData& mesh_data,
+		RenderObject* render_object,
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
 
 private:
 	std::unordered_map<size_t, std::unique_ptr<ModelResource>> m_modelResources;
+	std::vector < std::unique_ptr<RenderObject>> m_renderObjects;
 
-	/// <summary>
-	///  얼른 오브젝트를 제대로 만들어서 없애야 하는부분
-	/// </summary>
-public:
-	GOE::MeshData* GetKuramonMeshData();
-	void TransVertexuramon();
-
-	// 임시로 둔것
 public:
 	Camera* m_camera;
 	Cube* m_cube;
@@ -190,6 +187,9 @@ private:
 	// 프레임마다 동기화를 위한 fece값을 갖는다.
 	UINT64 m_fenceValue = 0;
 
+	/// <summary>
+	/// imgui를 위한 디스크립터힙
+	/// </summary>
 private:
 	ComPtr<ID3D12DescriptorHeap> m_imguiDescriptorHeap = nullptr;
 	std::unique_ptr<UILoopInfo> m_UILoopInfo;

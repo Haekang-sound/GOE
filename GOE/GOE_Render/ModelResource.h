@@ -15,9 +15,7 @@ class ModelResource
 {
 public:
 	ModelResource(std::string name, size_t id)
-		:m_name(name), m_id(id)
-	{
-	}
+		:m_name(name), m_id(id)	{}
 
 	~ModelResource();
 
@@ -39,7 +37,7 @@ public:
 private:
 	const std::string m_name = ""; // 모델 이름
 	const size_t m_id = 0; // 모델 ID
-	bool isVisible = true; // 모델이 보이는지 여부
+	bool isVisible = false; // 모델이 보이는지 여부
 
 	std::vector<std::unique_ptr<MeshResource>> m_meshResources; // 메쉬 리소스들
 };

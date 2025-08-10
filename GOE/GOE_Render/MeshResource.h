@@ -9,6 +9,7 @@ public:
 public:
 	inline const std::string& GetName() const { return m_name; }
 	inline size_t GetID() const { return m_id; }
+	inline int GetMeshIndex() const { return m_meshIndex; }
 	
 	inline const UINT64& GetVBSize() const { return m_VBSize; }
 	inline ID3D12Resource* GetVBUpload() const { return m_vertexBufferUpload.Get(); }
@@ -21,12 +22,14 @@ public:
 	inline ID3D12Resource* GetIBDefault() const { return m_indexBufferDefault.Get(); }
 	inline const D3D12_INDEX_BUFFER_VIEW& GetIBView() const { return m_indexBufferView; }
 
-	inline ID3D12Resource* GetCB() const { return m_constantBuffer.Get(); }
-	inline ID3D12DescriptorHeap* GetCBVHeap() const { return m_CBVHeap.Get(); }
-	inline const D3D12_CPU_DESCRIPTOR_HANDLE& GetCBVHandle() const { return m_CBVHandle; }
+	//inline ID3D12Resource* GetCB() const { return m_constantBuffer.Get(); }
+	//inline ID3D12DescriptorHeap* GetCBVHeap() const { return m_CBVHeap.Get(); }
+	//inline const D3D12_CPU_DESCRIPTOR_HANDLE& GetCBVHandle() const { return m_CBVHandle; }
 	
 
 public:
+	inline void SetMeshIndex(int index) { m_meshIndex = index; }
+
 	inline void SetVBSize(UINT64 size) { m_VBSize = size; }
 	inline void SetVBUpload(ComPtr<ID3D12Resource>&& uploadBuffer) { m_vertexBufferUpload = std::move(uploadBuffer); }
 	inline void SetVBDefault(ComPtr<ID3D12Resource>&& defaultBuffer) { m_vertexBufferDefault = std::move(defaultBuffer); }
@@ -38,13 +41,14 @@ public:
 	inline void SetIBDefault(ComPtr<ID3D12Resource>&& defaultBuffer) { m_indexBufferDefault = std::move(defaultBuffer); }
 	inline void SetIBView(const D3D12_INDEX_BUFFER_VIEW& view) { m_indexBufferView = view; }
 
-	inline void SetCB(ComPtr<ID3D12Resource>&& uploadBuffer) { m_constantBuffer = std::move(uploadBuffer); }
+	/*inline void SetCB(ComPtr<ID3D12Resource>&& uploadBuffer) { m_constantBuffer = std::move(uploadBuffer); }
 	inline void SetCBVHeap(ComPtr<ID3D12DescriptorHeap>&& heap) { m_CBVHeap = std::move(heap); }
-	inline void SetCBVHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_CBVHandle = std::move(handle); }
+	inline void SetCBVHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_CBVHandle = std::move(handle); }*/
 
 private:
 	std::string m_name; // 모델 이름
 	const size_t m_id = 0; // 모델 ID
+	int m_meshIndex = -1; // 메쉬 인덱스 (추가 필요시 사용)
 
 	// 모델을 그릴때 필요한 리소스들을 갖고있다.
 private:
@@ -59,10 +63,10 @@ private:
 	ComPtr<ID3D12Resource> m_indexBufferDefault = nullptr;
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
 
-	// CB
-	ComPtr<ID3D12Resource> m_constantBuffer = {};
-	ComPtr<ID3D12DescriptorHeap> m_CBVHeap = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE m_CBVHandle = {};
+	//// CB
+	//ComPtr<ID3D12Resource> m_constantBuffer = {};
+	//ComPtr<ID3D12DescriptorHeap> m_CBVHeap = {};
+	//D3D12_CPU_DESCRIPTOR_HANDLE m_CBVHandle = {};
 
 public:
 	void operator=(const Mesh& core_Mesh);

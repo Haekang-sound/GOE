@@ -27,14 +27,6 @@ void Kuramon::InitKuramon()
 	m_local._44 = 1;
 }
 
-void Kuramon::LoadKuramon()
-{
-	/*CreateVertexBuffer();
-	SetVertexBufferView();
-	CreateIndexBuffer();
-	CreateConstantBuffer();*/
-}
-
 void Kuramon::OnUpdate()
 {
 	// 기저벡터
@@ -86,8 +78,6 @@ void Kuramon::OnUpdate()
 		});
 }
 
-
-
 void Kuramon::OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 {
 	// 6. 그리기 전 세팅
@@ -100,163 +90,6 @@ void Kuramon::OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 	commadList->DrawIndexedInstanced(indexArray.size(), 1, 0, 0, 0);
 }
 
-void Kuramon::CreateVertexBuffer()
-{
-	for (const auto& v : vertexArray)
-	{
-		m_kuramonTriangleVertices.push_back(v);
-	}
-	// 버텍스버퍼의 크기를 계산합니다.
-	m_vertexBufferSize = sizeof(Graphics::Vertex) * m_kuramonTriangleVertices.size();
-
-	// 1. 디폴트 힙 리소스 생성
-	D3D12_HEAP_PROPERTIES defaultHeapProps = {};
-	defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-
-	D3D12_RESOURCE_DESC bufferDesc = {};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Width = m_vertexBufferSize;
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	ThrowIfFailed(m_device->CreateCommittedResource(
-		&defaultHeapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&bufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST, // 일단 복사 대상으로 생성
-		nullptr,
-		IID_PPV_ARGS(&m_kuramonVertexBufferDefault)
-	));
-
-	// D3D12_HEAP_PROPERTIES
-	// : 힙의 속성을 정의하는 구조체입니다.
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD; 					// 리소스를 할당할 힙의 속성을 정의합니다. 
-
-	// D3D12_RESOURCE_DESC
-	// : 리소스의 속성을 정의하는 구조체입니다.
-	D3D12_RESOURCE_DESC resDesc = {};
-	resDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;// 버퍼 리소스입니다.
-	resDesc.Alignment = 0;								// 정렬은 0으로 설정합니다.(자동설정됨)
-	resDesc.Width = m_vertexBufferSize;					// 버퍼라면 바이트 크기, 텍스쳐면 x축 픽셀 수
-	resDesc.Height = 1;									// 텍스쳐의 높이, 버퍼일 경우 높이는 1로 설정
-	resDesc.DepthOrArraySize = 1;						// 깊이 또는 배열 크기
-	resDesc.MipLevels = 1;								// 밉맵레벨 수, 버퍼는1 (1이면 밉맵없음)
-	resDesc.Format = DXGI_FORMAT_UNKNOWN;				// 버퍼는 포맷이 필요 없습니다.
-	resDesc.SampleDesc.Count = 1;						// 샘플링은 1로 설정
-	resDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;	// 버퍼는 반드시 ROW_MAJOR로 설정합니다.
-	resDesc.Flags = D3D12_RESOURCE_FLAG_NONE;			// 리소스 플래그는 없습니다.
-
-	// CreateCommittedResource()
-	// : 커밋된 리소스를 생성하는 메서드입니다.
-	// 이 메서드는 힙과 리소스를 동시에 생성합니다.
-	/*“커밋된(Committed)” 리소스란,
-		리소스를 생성할 때 힙(메모리 공간)도 자동으로 같이 만들어서
-		리소스와 힙이 1:1로 매칭되는 가장 단순한 형태.*/
-		//	반대되는 개념 : “Placed Resource”
-	ThrowIfFailed(m_device->CreateCommittedResource(
-		&heapProps,				// 힙 속성
-		D3D12_HEAP_FLAG_NONE,	// 힙 플래그, 일반적으로 D3D12_HEAP_FLAG_NONE 사용
-		&resDesc,				// 리소스 설명
-		D3D12_RESOURCE_STATE_GENERIC_READ, // 리소스 생성 직후의 상태
-		nullptr,				// 최적화된 클리어 값 포인터(텍스처, RTV, DSV 등만 해당) 일반 버퍼는 nullptr
-		IID_PPV_ARGS(&m_kuramonVertexBufferUpload))); // 반환될 인터페이스의 ID
-
-	// 업로드 힙에 정점 데이터를 복사하기 위해
-	// 업로드 힙의 시작 주소를 가져옵니다.
-	UINT8* pVertexDataBegin;
-
-	// D3D12_RANGE
-	// : 업로드 힙의 데이터를 CPU가 읽을 수 있도록 매핑할 때 사용하는 구조체입니다.
-	// Map() 호출 시 : CPU가 실제로 "읽을 범위"를 지정(읽을 게 없다면 {0, 0}로 설정)
-	// Unmap() 호출 시:CPU가 실제로 "썼던 범위"를 지정
-	D3D12_RANGE readRange = { 0,0 }; // 읽을 필요 없는 경우(주로 데이터 쓸 때)
-	/*readRange가{ 0, 0 }이면
-		GPU 드라이버는
-		→ 메모리 캐시에서 버퍼 내용을 "CPU 쪽으로 읽어올 필요 없다"고 판단!
-		→ memcpy로 쓰기만 할 테니 “최소한의 작업”만 해줌*/
-
-		// Map() 메서드는 업로드 힙의 데이터를 CPU가 읽을 수 있도록 매핑합니다.
-	ThrowIfFailed(m_kuramonVertexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pVertexDataBegin)));
-	// memcpy() 함수를 사용하여 정점 데이터를 업로드 힙에 복사합니다.
-	// Kuramon.cpp L288
-// &m_kuramonTriangleVertices -> m_kuramonTriangleVertices.data() 로 수정
-	memcpy(pVertexDataBegin, m_kuramonTriangleVertices.data(), m_vertexBufferSize);
-	// Unmap() 메서드는 업로드 힙의 매핑을 해제합니다.
-	m_kuramonVertexBufferUpload->Unmap(0, nullptr);
-
-
-
-
-	// D3D12_VERTEX_BUFFER_VIEW
-	// : 정점 버퍼 뷰를 정의하는 구조체입니다.
-	// 이후 DrawCall 시 이 정보를 넘김
-	// 이 뷰는 GPU가 정점 데이터를 읽을 때 사용됩니다.
-	m_kuramonVertexBufferView.BufferLocation = m_kuramonVertexBufferDefault->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
-	m_kuramonVertexBufferView.StrideInBytes = sizeof(Graphics::Vertex);		// 정점버퍼 전체 크기(바이트 단위)
-	m_kuramonVertexBufferView.SizeInBytes = m_vertexBufferSize;	// 정점 하나당 크기(바이트 단위)
-}
-
-void Kuramon::CreateIndexBuffer()
-{
-	// 인덱스 배열도 마찬가지로 얻어와야한다.
-	m_kuramonIndexBufferSize = sizeof(UINT32) * indexArray.size();
-
-	// 1. Default Heap (GPU)
-	D3D12_HEAP_PROPERTIES heapProps = {};
-	heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
-
-	D3D12_RESOURCE_DESC bufferDesc = {};
-	bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	bufferDesc.Width = m_kuramonIndexBufferSize;
-	bufferDesc.Height = 1;
-	bufferDesc.DepthOrArraySize = 1;
-	bufferDesc.MipLevels = 1;
-	bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-	bufferDesc.SampleDesc.Count = 1;
-	bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-	bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-
-	ThrowIfFailed(m_device->CreateCommittedResource(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&bufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
-		nullptr,
-		IID_PPV_ARGS(&m_kuramonIndexBufferDefault)
-	));
-
-	// 2. Upload Heap (CPU)
-	heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
-
-	ThrowIfFailed(m_device->CreateCommittedResource(
-		&heapProps,
-		D3D12_HEAP_FLAG_NONE,
-		&bufferDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&m_kuramonIndexBufferUpload)
-	));
-
-	// 3. 데이터 복사
-	UINT8* pIndexDataBegin;
-	D3D12_RANGE readRange = { 0, 0 };
-	ThrowIfFailed(m_kuramonIndexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
-
-	// Kuramon.cpp L331
-	memcpy(pIndexDataBegin, indexArray.data(), m_kuramonIndexBufferSize);
-	m_kuramonIndexBufferUpload->Unmap(0, nullptr);
-
-	// 6. 인덱스버퍼 뷰 생성
-	m_kuramonIndexBufferView.BufferLocation = m_kuramonIndexBufferDefault->GetGPUVirtualAddress();
-	m_kuramonIndexBufferView.Format = DXGI_FORMAT_R32_UINT;
-	m_kuramonIndexBufferView.SizeInBytes = m_kuramonIndexBufferSize;
-}
 void Kuramon::CreateConstantBuffer()
 {
 	// CBV디스크립터힙 heapProps
@@ -321,46 +154,3 @@ void Kuramon::CreateConstantBuffer()
 	ThrowIfFailed(m_kuramonConstantBuffer->Map(0, &readRange, &pData));
 	memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
 }
-void Kuramon::CopyUploadHeapToDefault(const ComPtr<ID3D12GraphicsCommandList>& commadList)
-{
-	commadList->CopyBufferRegion(
-		m_kuramonVertexBufferDefault.Get(), 0,	// Dest
-		m_kuramonVertexBufferUpload.Get(), 0,	// Src
-		m_vertexBufferSize				// Size
-	);
-	// (3) 상태변환: 복사에서 VertexBuffer로 전환
-	auto vsBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		m_kuramonVertexBufferDefault.Get(),	// pResource
-		D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
-		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER // StateAfter
-	);
-
-	// 인덱스 버퍼도 동일한 방식으로 복사합니다.
-	commadList->CopyBufferRegion(
-		m_kuramonIndexBufferDefault.Get(), 0,
-		m_kuramonIndexBufferUpload.Get(), 0,
-		m_kuramonIndexBufferSize);
-
-	// 5. 상태변환
-	auto ibBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-		m_kuramonIndexBufferDefault.Get(),	// pResource
-		D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
-		D3D12_RESOURCE_STATE_INDEX_BUFFER	// StateAfter
-	);
-
-	commadList->ResourceBarrier(1, &ibBarrier);
-}
-
-void Kuramon::DirextXVertexToKuramonVertex()
-{
-	for (const auto& v : m_kuramonMeshData->vertices)
-	{
-		vertexArray.emplace_back(v);
-	}
-
-	for (const auto& i : m_kuramonMeshData->indices)
-	{
-		indexArray.push_back(i);
-	}
-}
-
