@@ -5,7 +5,6 @@
 #include <D3Dcompiler.h>
 #include <DirectXMath.h>
 
-#include <d3dx12/d3dx12.h>
 #include <wrl.h>
 #include <windows.h>
 #include <memory>
@@ -35,7 +34,7 @@ class RenderObject;
 /// 
 /// ohk 2025.06.21
 /// </summary>
-class GOERenderer : public ID3DRenderer
+class GOERenderer : public GOE::ID3DRenderer
 {
 public:
 	GOERenderer(const HWND& hWnd);
@@ -69,8 +68,8 @@ public:
 	inline ID3D12GraphicsCommandList* GetCommandList() { return m_commandList.Get(); }
 	inline ID3D12Resource* GetCurrentRendertarget() { return m_renderTargets[m_frameIndex].Get(); }
 
-	UIInitInfo* GetUIInfo();
-	UILoopInfo* GetUILoopInfo();
+	UIInitInfo* GetUIInfo() override;
+	UILoopInfo* GetUILoopInfo() override;
 
 public:
 	void CreateModelData(size_t id);

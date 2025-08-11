@@ -63,12 +63,5 @@ private:
 	ComPtr<ID3D12Resource> m_indexBufferDefault = nullptr;
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
 
-	//// CB
-	//ComPtr<ID3D12Resource> m_constantBuffer = {};
-	//ComPtr<ID3D12DescriptorHeap> m_CBVHeap = {};
-	//D3D12_CPU_DESCRIPTOR_HANDLE m_CBVHandle = {};
-
-public:
-	void operator=(const Mesh& core_Mesh);
 };
 

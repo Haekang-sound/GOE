@@ -1,12 +1,7 @@
 #include "Application.h"
 
-#include "../GOE_Core/Core_pch.h"
-#include "../GOE_Render/Renderer_pch.h"
-#include "../GOE_Editor/Editor_pch.h"
-#include "../GOE_AssetLoader/AssetLoader_pch.h"
-
 #include "../GOE_Editor/DebugManager.h"
-#include "../GOE_Render/GOERenderer.h"
+#include "../GOE_Render/ID3DRenderer.h"
 #include "../GOE_Editor/EditorCore.h"
 #include "../GOE_Core/Window.h"
 #include "../GOE_AssetLoader/AssetCore.h"
@@ -30,9 +25,6 @@ void Application::Initialize()
 	m_assetCore = std::make_unique<AssetCore>();
 	m_assetCore.get()->CreateAssetLoader();
 	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\Ch03_nonPBR.fbx");
-	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\model.fbx");
-	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\UVSphere.fbx");
-	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
 	
 	// 렌더러 초기화
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND()); 

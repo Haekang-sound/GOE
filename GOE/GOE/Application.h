@@ -2,8 +2,11 @@
 #include <memory>
 #include <Windows.h>
 
+namespace GOE
+{
+	class ID3DRenderer;
+}
 class Window;
-class GOERenderer;
 class EditorCore;
 class AssetCore;
 
@@ -23,7 +26,7 @@ public:
 
 private:
 	std::unique_ptr<Window> m_winCore;
-	std::unique_ptr<GOERenderer> m_renderer;
+	std::unique_ptr<GOE::ID3DRenderer> m_renderer;
 	std::unique_ptr<EditorCore> m_editor;
 	std::unique_ptr<AssetCore> m_assetCore;
 };

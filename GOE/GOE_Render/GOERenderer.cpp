@@ -1,6 +1,7 @@
 ﻿#include "Renderer_pch.h"
 #include "GOERenderer.h"
 #include "../GOE_Core/Commons.h"
+#include <d3dx12/d3dx12.h>
 
 // 야들은 구조적으로 사라지게 될 수 밖에 없는거야
 #include "Camera.h" 
