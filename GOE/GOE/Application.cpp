@@ -1,60 +1,54 @@
 #include "Application.h"
-
-#include "../GOE_Editor/DebugManager.h"
-#include "../GOE_Render/ID3DRenderer.h"
-#include "../GOE_Editor/EditorCore.h"
-#include "../GOE_Core/Window.h"
-#include "../GOE_AssetLoader/AssetCore.h"
-
+#include "../GOE_Engine/IEngine.h"
+#include "../GOE_Engine/Engine.h"
+#include <chrono>
 
 Application::Application(HINSTANCE hInst, int nCmdShow)
-	:m_winCore(nullptr), m_renderer(nullptr), m_editor(nullptr)
+	: m_engine(nullptr)
 {
-	m_winCore = std::make_unique<Window>(L"GOE", 1200, 800, hInst, nCmdShow);
+	m_engine = std::make_unique<GOE::Engine>(hInst, nCmdShow);
 }
 
 Application::~Application(){}
 
 void Application::Initialize()
 {
-	// 윈도우 초기화
-	m_winCore->InitInstance();
-	m_winCore->SetExternalMsgHandler(&ImGui_ImplWin32_WndProcHandler);
-
-	// 에셋코어 초기화, 모델로드
-	m_assetCore = std::make_unique<AssetCore>();
-	m_assetCore.get()->CreateAssetLoader();
-	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\Ch03_nonPBR.fbx");
-	
-	// 렌더러 초기화
-	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND()); 
-	m_renderer->OnInit();
-	m_renderer->CreateAllModelResource(m_assetCore.get()->GetModels());
-	m_renderer->CopyUploadHeapToDefault();
-	
-	// 에디터 초기화
-	m_editor = std::make_unique<EditorCore>(m_winCore->GetHWND());
-	m_editor->Initialize(m_renderer.get()->GetUIInfo());	
+	m_engine.get()->Initialize();
 }
 
 int Application::Run()
 {
-	while (m_winCore->ProcessMessages())
+	MSG msg = {};
+	bool isRunning = true;
+
+	// 시간 측정을 위한 변수
+	auto lastTime = std::chrono::high_resolution_clock::now();
+
+	while (isRunning)
 	{
-		m_editor->OnUpdate();
-		m_renderer->OnUpdate();
-		DebugManager::GetInstance().OnDebugUpdate();
+		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		{
+			if (msg.message == WM_QUIT)
+			{
+				isRunning = false; // 메인 루프를 탈출하도록 플래그 설정
+				break;
+			}
 
-		m_renderer->BeginRender();
-		m_renderer->OnRender(); // 렌더링 호출
-		m_editor->OnRender(m_renderer.get()->GetUILoopInfo());
-		m_renderer->EndRender();
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
 
-		if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) DestroyWindow(m_winCore->GetHWND());
+		// 델타 타임 계산
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+
+		// 게임 로직 실행
+		m_engine->OnUpdate(deltaTime.count()); // 실제 경과 시간을 전달
+
+		m_engine->BeginRender();
+		m_engine->OnRender();
+		m_engine->EndRender();
 	}
-
 	return 0;
 }
-
-
-

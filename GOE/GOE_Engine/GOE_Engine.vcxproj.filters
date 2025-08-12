@@ -18,6 +18,9 @@
     <ClInclude Include="Engine.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
+    <ClInclude Include="IEngine.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">

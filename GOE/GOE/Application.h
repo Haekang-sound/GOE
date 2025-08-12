@@ -4,11 +4,8 @@
 
 namespace GOE
 {
-	class ID3DRenderer;
+	class IEngine;
 }
-class Window;
-class EditorCore;
-class AssetCore;
 
 /// <summary>
 /// 프로그램의 최전방 Application
@@ -25,8 +22,5 @@ public:
 	int Run();
 
 private:
-	std::unique_ptr<Window> m_winCore;
-	std::unique_ptr<GOE::ID3DRenderer> m_renderer;
-	std::unique_ptr<EditorCore> m_editor;
-	std::unique_ptr<AssetCore> m_assetCore;
+	std::unique_ptr<GOE::IEngine> m_engine;
 };

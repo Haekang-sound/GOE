@@ -1,5 +1,4 @@
 ﻿#pragma once
-///imgui 테스트중
 #include "Editor_pch.h"
 #include "../Imgui/imgui.h"
 #include "../Imgui/imgui_impl_dx12.h"
@@ -9,7 +8,7 @@
 struct UIInitInfo;
 struct UILoopInfo;
 
-// Simple free list based allocator
+/// 예제에 존재하는 힙 할당자
 struct ExampleDescriptorHeapAllocator
 {
 	ID3D12DescriptorHeap* Heap = nullptr;
@@ -54,13 +53,10 @@ struct ExampleDescriptorHeapAllocator
 	}
 };
 
-
-
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 class EditorCore
 {
-/// </summary>
 public:
 	EditorCore(HWND hwnd);
 	EditorCore();
@@ -71,11 +67,11 @@ public:
 	void OnUpdate();
 	void OnRender(UILoopInfo* uiInfo);
 
-
-	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> GetImguiWndHandler()
+	inline std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> GetImguiWndHandler()
 	{
 		return ImGui_ImplWin32_WndProcHandler;
 	}
+
 public: 
 	// Our state
 	bool show_demo_window = true;

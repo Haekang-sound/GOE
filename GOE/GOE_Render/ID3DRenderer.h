@@ -13,7 +13,7 @@ namespace GOE
 	class ID3DRenderer
 	{
 	public:
-		virtual ~ID3DRenderer() {}
+		virtual ~ID3DRenderer() = default;
 
 		virtual void OnInit() = 0;
 		virtual void OnUpdate() = 0;
