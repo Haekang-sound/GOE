@@ -21,3 +21,13 @@ const std::unordered_map<std::size_t, std::unique_ptr<Model>>& AssetCore::GetMod
 {
 	return m_assetLoader.get()->GetModels();
 }
+
+const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& AssetCore::GetMeshes() const
+{
+	return m_assetLoader.get()->GetMeshes();
+}
+
+const Mesh* AssetCore::GetMesh(size_t id)
+{
+	return m_assetLoader.get()->GetMesh(id);
+}

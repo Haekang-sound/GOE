@@ -6,7 +6,33 @@ namespace Graphics
 {
 	struct Matrix4x4
 	{
+	public: 
 		XMFLOAT4X4 matrix; // 64바이트(행렬)
+	public: 
+		Matrix4x4() = default;
+		Matrix4x4(GOE::Matrix4x4 core_matrix)
+		{
+			for(int i = 0 ; i < 4; ++i)
+			{
+				for(int j = 0; j < 4; ++j)
+				{
+					matrix.m[i][j] = core_matrix.m[i][j];
+				}
+			}
+		}
+
+	public:
+		Matrix4x4& operator=(const GOE::Matrix4x4& other)
+		{
+			for (int i = 0; i < 4; ++i)
+			{
+				for (int j = 0; j < 4; ++j)
+				{
+					matrix.m[i][j] = other.m[i][j];
+				}
+			}
+			return *this;
+		}
 	};	
 
 	/// <summary>z
@@ -14,12 +40,11 @@ namespace Graphics
 	/// </summary>
 	struct Vertex
 	{
-		XMFLOAT3 position;
+		XMFLOAT3 position = {};
 		XMFLOAT4 color = { 0,0,0,1 };
 
 	public:
 		Vertex() = default;
-
 		Vertex(XMFLOAT3 pos, XMFLOAT4 col)
 		{
 			position = pos;

@@ -3,8 +3,6 @@
 
 #include "../GOE_Core/Window.h"
 #include "../GOE_Editor/EditorCore.h"
-#include "../GOE_Render/ID3DRenderer.h"
-#include "../GOE_AssetLoader/AssetCore.h"
 #include "../GOE_Editor/DebugManager.h"
 
 #include "SceneManager.h"
@@ -34,7 +32,10 @@ void GOE::Engine::Initialize()
 	// 렌더러 초기화
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND());
 	m_renderer->OnInit();
-	m_renderer->CreateAllModelResource(m_assetCore.get()->GetModels());
+	//m_renderer->CreateAllModelResource(m_assetCore.get()->GetModels());
+	//m_renderer->CreateAllMeshResources(m_assetCore.get()->GetMeshes());
+	std::hash<std::string> hasher;
+	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(hasher("Ch03"))); // 첫번째 메쉬를 가져와서 리소스 생성
 	m_renderer->CopyUploadHeapToDefault();
 
 	//// 에디터 초기화
@@ -42,8 +43,10 @@ void GOE::Engine::Initialize()
 	m_editor->Initialize(m_renderer.get()->GetUIInfo());	
 
 	m_context = std::make_unique<GOE::EngineContext>();
-	// 엔진 컨텍스트에 렌더러를 등록
+	
+	// 컨텍스트 등록
 	m_context.get()->renderer = m_renderer.get();
+	m_context.get()->assetCore = m_assetCore.get();
 
 	/// 엔진관련 초기화
 	m_sceneManager.get()->Initialize(m_context.get());

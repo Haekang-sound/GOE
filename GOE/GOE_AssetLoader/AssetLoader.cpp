@@ -55,8 +55,12 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 		{
 			// 현재 메쉬를 가져옵니다.
 			aiMesh* mesh = scene->mMeshes[i];
+			
 			// 메쉬 데이터를 처리합니다.
-			m_models[pathHash].get()->AddMesh(ProcessMesh(mesh, scene));
+			/// 진정 메쉬정보는 메쉬랜더러가 갖는게 맞다. 모델은 메쉬와의 관계를 소유한다.
+			m_meshes[hasher(mesh->mName.C_Str())] = ProcessMesh(mesh, scene);
+			m_meshes[hasher(mesh->mName.C_Str())].get()->SetModelID(pathHash); // 메쉬에 모델 ID 설정
+			m_meshes[hasher(mesh->mName.C_Str())].get()->SetMeshIndex(static_cast<std::size_t>(i)); // 메쉬 인덱스 설정
 		}
 	}
 

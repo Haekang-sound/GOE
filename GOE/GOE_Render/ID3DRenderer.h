@@ -25,7 +25,9 @@ namespace GOE
 		virtual void OnDestroy() = 0;
 
 		// DirectX
-		virtual void CreateAllModelResource(const std::unordered_map <std::size_t, std::unique_ptr<Model>>& core_models) = 0;
+		virtual void CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes) {}
+		virtual void CreateOneMeshResource(const Mesh* core_mesh) {};
+		virtual void CreateAllModelResource(const std::unordered_map <std::size_t, std::unique_ptr<Model>>& core_models) {}
 		virtual void CopyUploadHeapToDefault() = 0;
 		virtual UIInitInfo* GetUIInfo() = 0;
 		virtual UILoopInfo* GetUILoopInfo() = 0;

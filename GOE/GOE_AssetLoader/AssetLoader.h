@@ -40,6 +40,21 @@ public:
 	{
 		return m_models; // 모델 맵 반환
 	}
+
+	const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& GetMeshes() const 
+	{
+		return m_meshes; // 메쉬 맵 반환
+	}
+
+	const Mesh* GetMesh(size_t hash) 
+	{
+		auto it = m_meshes.find(hash);
+		if (it != m_meshes.end())
+		{
+			return it->second.get(); // 찾았으면 메쉬의 raw pointer 반환
+		}
+		return nullptr; // 못 찾았으면 nullptr 반환
+	}
 			
 private: 
 	std::unique_ptr<Node> ProcessNode(aiNode* node);
@@ -47,6 +62,7 @@ private:
 
 private:
 	std::unordered_map <std::size_t, std::unique_ptr<Model>> m_models;
+	std::unordered_map <std::size_t, std::unique_ptr<Mesh>> m_meshes;
 
 private:
 	// std::string 타입을 해시할 수 있는 hasher 객체를 생성합니다.

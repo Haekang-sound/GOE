@@ -4,15 +4,6 @@
 #include "Transform.h"
 #include "MeshRenderer.h"
 
-//struct RenderObjectData
-//{
-//	size_t id;
-//	size_t meshID;
-//	size_t meshIndex;
-//	size_t modelID;
-//	GOE::Matrix4x4 localTM;
-//};
-
 void RenderSystem::Initialize()
 {
 	// 현재 렌더시스템은
@@ -21,18 +12,19 @@ void RenderSystem::Initialize()
 
 	for (int i = 0; i < GetScene()->GetMeshRendererManager()->GetComponents().size(); ++i)
 	{
-		RenderObjectData data;
-		data.id = i;
-		data.meshID = GetScene()->GetMeshRendererManager()->GetComponents()[i].GetMeshID();
-		data.meshIndex = GetScene()->GetMeshRendererManager()->GetComponents()[i].GetMeshIndex();
-		data.modelID = GetScene()->GetMeshRendererManager()->GetComponents()[i].GetModelID();
-		data.localTM = 
+		RenderObjectData* data = new RenderObjectData();
+		data->id = i;
+		data->meshID = GetScene()->GetMeshRendererManager()->GetComponents()[i].GetMeshID();
+		data->meshIndex = GetScene()->GetMeshRendererManager()->GetComponents()[i].GetMeshIndex();
+		data->modelID = GetScene()->GetMeshRendererManager()->GetComponents()[i].GetModelID();
+		data->localTM = 
 			GetScene()->GetTransformManager()->GetComponents()[i].GetLocalTM();
 
 		GetScene()->GetTransformManager()->GetComponents()[i].GetLocalTM();
 		GetScene()->GetMeshRendererManager()->GetComponents()[i].GetMeshID();
 
-		m_context->renderer->AddRenderObejct(data);
+		m_context->renderer->AddRenderObejct(*data);
+		delete data;
 	}
 
 	

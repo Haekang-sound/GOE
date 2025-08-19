@@ -116,7 +116,10 @@ private:
 	/// </summary>
 	/// <param name="core_models"></param>
 public:	
-	void CreateAllModelResource(const std::unordered_map <std::size_t, std::unique_ptr<Model>>& core_models);
+	void CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes) override;
+	void CreateOneMeshResource(const Mesh* core_mesh) override;
+
+	//void CreateAllModelResource(const std::unordered_map <std::size_t, std::unique_ptr<Model>>& core_models) override;
 	void CreateMeshResource(MeshResource* mesh_resource, Graphics::MeshData& mesh_data);
 	void CreateVBResource(
 		MeshResource* mesh_resource,
@@ -136,6 +139,7 @@ public:
 
 private:
 	std::unordered_map<size_t, std::unique_ptr<ModelResource>> m_modelResources;
+	std::unordered_map<size_t, std::unique_ptr<MeshResource>> m_meshResources;
 	std::vector < std::unique_ptr<RenderObject>> m_renderObjects;
 
 public:

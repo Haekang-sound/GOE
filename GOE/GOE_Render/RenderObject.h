@@ -1,6 +1,13 @@
 #pragma once
 #include <string>
 
+namespace Graphics
+{
+	struct Matrix4x4;
+
+}
+struct RenderObjectData;
+
 /// <summary>
 /// 랜더링에 필요한 
 /// 오브젝트의 고유리소스를 담고있는 
@@ -10,10 +17,14 @@
 class RenderObject
 {
 public:
-	RenderObject(size_t id, std::string name, size_t modelID, size_t meshIndex)
-		: m_id(id), m_name(name), m_modelID(modelID), m_meshIndex(meshIndex){}
+	RenderObject(RenderObjectData& data);
+	/*RenderObject(size_t id, std::string name, size_t modelID, size_t meshIndex)
+		: m_id(id), m_name(name), m_modelID(modelID), m_meshIndex(meshIndex)
+	{}
 	RenderObject(size_t id, std::string name)
-		: m_id(id), m_name(name) {}
+		: m_id(id), m_name(name)
+	{
+	}*/
 	~RenderObject();
 
 public:
@@ -21,6 +32,8 @@ public:
 	inline size_t GetMeshID() const { return m_meshID; }
 	inline size_t GetMeshIndex() const { return m_meshIndex; }
 	inline size_t GetModelID() const { return m_modelID; }
+	inline Graphics::Matrix4x4& GetLocalTM() { return m_localTM; }
+
 	inline bool IsVisible() const { return isVisible; }
 	inline const std::string& GetName() const { return m_name; }
 
@@ -43,6 +56,7 @@ private:
 	size_t m_meshID = 0; // 메쉬 ID
 	size_t m_meshIndex = 0; // 메쉬 index (추가 필요시 사용)
 	size_t m_modelID = 0; // 모델 ID (추가 필요시 사용)
+	Graphics::Matrix4x4 m_localTM;
 
 	std::string m_name = ""; // 오브젝트 이름
 	bool isVisible = true; // 오브젝트가 보이는지 여부

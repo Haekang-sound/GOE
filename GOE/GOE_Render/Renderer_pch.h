@@ -19,6 +19,7 @@ using namespace DirectX;
 
 struct RenderObjectData
 {
+	std::string name;
 	size_t id;
 	size_t meshID;
 	size_t meshIndex;

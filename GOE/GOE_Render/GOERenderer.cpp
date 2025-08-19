@@ -66,12 +66,12 @@ void GOERenderer::OnUpdate()
 	//m_kuramon->OnUpdate();
 
 	{ // 큐브는 로딩해서 가져오는게 아니라서 이걸로해야됨
+		XMFLOAT4X4 cbData = {};
 		XMMATRIX mvp =
 			m_cube->GetLocalTransForm()
 			* m_camera->GetViewTransform()
 			* XMLoadFloat4x4(&m_proj);
-		Graphics::Matrix4x4 cbData = {};
-		XMStoreFloat4x4(&cbData.matrix, XMMatrixTranspose(mvp));
+		XMStoreFloat4x4(&cbData, XMMatrixTranspose(mvp));
 
 		// CUBE의 CBV에 업로드
 		void* pData = nullptr;
@@ -85,14 +85,13 @@ void GOERenderer::OnUpdate()
 	// 여긴 콘스탄트 버퍼를 업데이트 하는거임
 	for (const auto& renderObject : m_renderObjects)
 	{
+		XMFLOAT4X4 cbData = {};
 		XMMATRIX mvp =
-			m_cube->GetLocalTransForm()
+			XMLoadFloat4x4(&renderObject.get()->GetLocalTM().matrix)
 			* m_camera->GetViewTransform()
 			* XMLoadFloat4x4(&m_proj);
 
-		Graphics::Matrix4x4 cbData = {};
-
-		XMStoreFloat4x4(&cbData.matrix, XMMatrixTranspose(mvp));
+		XMStoreFloat4x4(&cbData, XMMatrixTranspose(mvp));
 
 		// CUBE의 CBV에 업로드
 		void* pData = nullptr;
@@ -169,14 +168,16 @@ void GOERenderer::OnRender()
 	for (const auto& renderObject : m_renderObjects)
 	{
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		m_commandList->IASetVertexBuffers(0, 1, &m_modelResources[renderObject->GetModelID()].get()->GetMeshResource(renderObject->GetMeshIndex())->GetVBView());
-		m_commandList->IASetIndexBuffer(&m_modelResources[renderObject->GetModelID()].get()->GetMeshResource(renderObject->GetMeshIndex())->GetIBView());
+		//m_commandList->IASetVertexBuffers(0, 1, &m_modelResources[renderObject->GetModelID()].get()->GetMeshResource(renderObject->GetMeshIndex())->GetVBView());
+		m_commandList->IASetVertexBuffers(0, 1, &m_meshResources[renderObject->GetMeshID()].get()->GetVBView());
+		//m_commandList->IASetIndexBuffer(&m_modelResources[renderObject->GetModelID()].get()->GetMeshResource(renderObject->GetMeshIndex())->GetIBView());
+		m_commandList->IASetIndexBuffer(&m_meshResources[renderObject->GetMeshID()].get()->GetIBView());
 
 		/// 콘스탄트 버퍼의 관한 문제는 고유자원을 기준으로 랜더할때 해결될것
 		m_commandList->SetGraphicsRootConstantBufferView(0, renderObject.get()->GetCB()->GetGPUVirtualAddress());
 
 		// 7. 그리기 명령
-		UINT64 indexCount = m_modelResources[renderObject->GetModelID()].get()->GetMeshResource(renderObject->GetMeshID())->GetIndexCount();
+		UINT64 indexCount = m_meshResources[renderObject->GetMeshID()].get()->GetIndexCount();
 		m_commandList->DrawIndexedInstanced(indexCount, 1, 0, 0, 0);
 	}
 	// 6. 그리기 전 세팅
@@ -254,17 +255,12 @@ UILoopInfo* GOERenderer::GetUILoopInfo()
 void GOERenderer::AddRenderObejct(RenderObjectData& data)
 {
 	std::hash<std::string> hasher;
-	size_t modelID = hasher("D:\\project\\GOE\\GOE\\Assets\\models\\Ch03_nonPBR.fbx");
 	/// 임시방편으로 메쉬인덱스추가
 			/// 현재 렌더오브젝트를 순회할때s
 			/// 메쉬로 빠르게 접근하기 위한 임시방편
-	m_modelResources[modelID].get()->GetMeshResourceBack()->SetMeshIndex(data.meshIndex);
+	//m_modelResources[data.modelID].get()->GetMeshResourceBack()->SetMeshIndex(data.meshIndex);
 
-	auto newrendrobj = std::make_unique<RenderObject>(
-		0,
-		m_modelResources[modelID].get()->GetMeshResourceBack()->GetName(),
-		modelID,
-		data.meshIndex);
+	auto newrendrobj = std::make_unique<RenderObject>(data);
 	m_renderObjects.emplace_back(std::move(newrendrobj));
 
 	// 콘스탄트버퍼를 개별적으로 생성해준다.
@@ -900,43 +896,41 @@ void GOERenderer::CopyUploadHeapToDefault()
 	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
 	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
 
-	for (const auto& modelResource : m_modelResources)
+	m_cube->CopyUploadHeapToDefault(m_commandList);
+
+	// 모델 리소스의 메쉬 리소스를 순회하며 업로드 힙에서 디폴트 힙으로 복사합니다.
+	// 큐브는 모델을 로드해서 그리는게 아니야
+	for (const auto& meshResource : m_meshResources)
 	{
-		// 큐브는 모델을 로드해서 그리는게 아니야
-		m_cube->CopyUploadHeapToDefault(m_commandList);
+		m_commandList->CopyBufferRegion(
+			meshResource.second.get()->GetVBDefault(), 0,	// Dest
+			meshResource.second.get()->GetVBUpload(), 0,	// Src
+			meshResource.second.get()->GetVBSize()				// Size
+		);
+		// (3) 상태변환: 복사에서 VertexBuffer로 전환
+		auto vsBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			meshResource.second.get()->GetVBDefault(),	// pResource
+			D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
+			D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER // StateAfter
+		);
+		m_commandList->ResourceBarrier(1, &vsBarrier);
 
-		// 모델 리소스의 메쉬 리소스를 순회하며 업로드 힙에서 디폴트 힙으로 복사합니다.
-		for (const auto& meshResource : modelResource.second->GetMeshResources())
-		{
-			m_commandList->CopyBufferRegion(
-				meshResource.get()->GetVBDefault(), 0,	// Dest
-				meshResource.get()->GetVBUpload(), 0,	// Src
-				meshResource.get()->GetVBSize()				// Size
-			);
-			// (3) 상태변환: 복사에서 VertexBuffer로 전환
-			auto vsBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-				meshResource.get()->GetVBDefault(),	// pResource
-				D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
-				D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER // StateAfter
-			);
-			m_commandList->ResourceBarrier(1, &vsBarrier);
+		// 인덱스 버퍼도 동일한 방식으로 복사합니다.
+		m_commandList->CopyBufferRegion(
+			meshResource.second.get()->GetIBDefault(), 0,
+			meshResource.second.get()->GetIBUpload(), 0,
+			meshResource.second.get()->GetIBSize());
 
-			// 인덱스 버퍼도 동일한 방식으로 복사합니다.
-			m_commandList->CopyBufferRegion(
-				meshResource.get()->GetIBDefault(), 0,
-				meshResource.get()->GetIBUpload(), 0,
-				meshResource.get()->GetIBSize());
+		// 5. 상태변환
+		auto ibBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
+			meshResource.second.get()->GetIBDefault(),	// pResource
+			D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
+			D3D12_RESOURCE_STATE_INDEX_BUFFER	// StateAfter
+		);
 
-			// 5. 상태변환
-			auto ibBarrier = CD3DX12_RESOURCE_BARRIER::Transition(
-				meshResource.get()->GetIBDefault(),	// pResource
-				D3D12_RESOURCE_STATE_COPY_DEST,		// StateBefore
-				D3D12_RESOURCE_STATE_INDEX_BUFFER	// StateAfter
-			);
-
-			m_commandList->ResourceBarrier(1, &ibBarrier);
-		}
+		m_commandList->ResourceBarrier(1, &ibBarrier);
 	}
+
 
 	m_commandList->Close();
 
@@ -1013,39 +1007,78 @@ void GOERenderer::CreateImguiDescriptorHeap()
 	ThrowIfFailed(m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_imguiDescriptorHeap)));
 }
 
+void GOERenderer::CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes)
+{
+	for (const auto& mesh : core_meshes)
+	{
+		// 메쉬리소스생성하고 추가한다.		
+		m_meshResources[mesh.first] = std::make_unique<MeshResource>(mesh.second.get()->GetName(), mesh.first);
+
+		// 메쉬데이터를 가져옴
+		Graphics::MeshData meshData(mesh.second.get()->GetMeshData());
+
+		// 메쉬데이터를 리소스로 변환해서 방금 추가한 메쉬리소스에 추가
+		CreateMeshResource(m_meshResources[mesh.first].get(), meshData);
+
+		// 추가된 메쉬리소스에  modelID와 meshIndex를 설정한다.
+		// 모델 id 도 넣어야 한다.
+		m_meshResources[mesh.first].get()->SetMeshIndex(mesh.second.get()->GetMeshIndex());
+		m_meshResources[mesh.first].get()->SetModelID(mesh.second.get()->GetModelID());
+	}
+}
+
+void GOERenderer::CreateOneMeshResource(const Mesh* core_mesh)
+{
+	// 메쉬리소스생성하고 추가한다.		
+	m_meshResources[core_mesh->GetID()] = std::make_unique<MeshResource>(core_mesh->GetName(), core_mesh->GetID());
+
+	// 메쉬데이터를 가져옴
+	Graphics::MeshData meshData(core_mesh->GetMeshData());
+
+	// 메쉬데이터를 리소스로 변환해서 방금 추가한 메쉬리소스에 추가
+	CreateMeshResource(m_meshResources[core_mesh->GetID()].get(), meshData);
+
+	// 추가된 메쉬리소스에  modelID와 meshIndex를 설정한다.
+	// 모델 id 도 넣어야 한다.
+	m_meshResources[core_mesh->GetID()].get()->SetMeshIndex(core_mesh->GetMeshIndex());
+	m_meshResources[core_mesh->GetID()].get()->SetModelID(core_mesh->GetModelID());
+}
+
 /// <summary>
 /// 에셋로더를 통해 만들어진 모델리소스를
 /// d3d12에서 사용할 수 있도록 변환시켜주는 함수
 /// 
 /// </summary>
 /// <param name="core_models"></param>
-void GOERenderer::CreateAllModelResource(const std::unordered_map<std::size_t, std::unique_ptr<Model>>& core_models)
-{	
-	for (const auto& model : core_models)
-	{
-		// 모델리소스객체 생성
-		m_modelResources[model.first] =
-			std::make_unique<ModelResource>(model.second.get()->GetName(), model.first);
-
-		// 메쉬정보를 추출
-		for (int i = 0; i < model.second.get()->GetMeshes().size(); ++i)
-		{
-			// 메쉬리소스를 추가
-			m_modelResources[model.first].get()->AddMeshResource(
-				model.second.get()->GetMeshes()[i].get()->GetName(), model.second.get()->GetMeshes()[i].get()->GetID());
-			m_modelResources[model.first].get()->GetMeshResourceBack()->SetModelID(model.first);
-			m_modelResources[model.first].get()->GetMeshResourceBack()->SetMeshIndex(i);
-
-
-			// 메쉬데이터를 가져옴
-			Graphics::MeshData meshData(model.second.get()->GetMeshes()[i].get()->GetMeshData());
-
-			// 메쉬데이터를 리소스로 변환해서 방금 추가한 메쉬리소스에 추가
-			CreateMeshResource(m_modelResources[model.first].get()->GetMeshResourceBack(), meshData);
-			
-		}
-	}
-}
+//void GOERenderer::CreateAllModelResource(const std::unordered_map<std::size_t, std::unique_ptr<Model>>& core_models)
+//{
+//	for (const auto& model : core_models)
+//	{
+//		// 모델리소스객체 생성
+//		m_modelResources[model.first] =
+//			std::make_unique<ModelResource>(model.second.get()->GetName(), model.first);
+//
+//		// 메쉬정보를 추출
+//		//for (int i = 0; i < model.second.get()->GetMeshes().size(); ++i)
+//		//{
+//		//	// 메쉬리소스생성하고 추가한다.
+//		//	m_modelResources[model.first].get()->AddMeshResource(
+//		//		model.second.get()->GetMeshes()[i].get()->GetName(),
+//		//		model.second.get()->GetMeshes()[i].get()->GetID());
+//
+//		//	// 메쉬데이터를 가져옴
+//		//	Graphics::MeshData meshData(model.second.get()->GetMeshes()[i].get()->GetMeshData());
+//
+//		//	// 메쉬데이터를 리소스로 변환해서 방금 추가한 메쉬리소스에 추가
+//		//	CreateMeshResource(m_modelResources[model.first].get()->GetMeshResourceBack(), meshData);
+//
+//		//	// 추가된 메쉬리소스에  modelID와 meshIndex를 설정한다.
+//		//	m_modelResources[model.first].get()->GetMeshResourceBack()->SetModelID(model.first);
+//		//	m_modelResources[model.first].get()->GetMeshResourceBack()->SetMeshIndex(i);
+//
+//		}
+//	}
+//}
 
 /// <summary>
 /// 메쉬데이터를 메쉬리소스를 채워주는 함수
@@ -1225,7 +1258,7 @@ void GOERenderer::CreateIBResource(MeshResource* mesh_resource, const Graphics::
 	mesh_resource->SetIBView(indexBufferView); // 인덱스 버퍼 뷰 설정
 }
 
-void GOERenderer::CreateCBResource(	RenderObject* render_object, const D3D12_RESOURCE_STATES& state )
+void GOERenderer::CreateCBResource(RenderObject* render_object, const D3D12_RESOURCE_STATES& state)
 {
 	ComPtr<ID3D12Resource> constantBuffer = {};
 	ComPtr<ID3D12DescriptorHeap> CBVHeap = {};
