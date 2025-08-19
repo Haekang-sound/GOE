@@ -12,9 +12,19 @@
 #include <dxgi1_6.h>
 #include <D3Dcompiler.h>
 
+#include "ID3DRenderer.h"
 #include "D3DMath.h"
 
 using namespace DirectX;
+
+struct RenderObjectData
+{
+	size_t id;
+	size_t meshID;
+	size_t meshIndex;
+	size_t modelID;
+	GOE::Matrix4x4 localTM;
+};
 
 struct UIInitInfo
 {

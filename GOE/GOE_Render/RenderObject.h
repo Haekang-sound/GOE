@@ -9,7 +9,6 @@
 /// </summary>
 class RenderObject
 {
-
 public:
 	RenderObject(size_t id, std::string name, size_t modelID, size_t meshIndex)
 		: m_id(id), m_name(name), m_modelID(modelID), m_meshIndex(meshIndex){}
@@ -37,7 +36,7 @@ public:
 
 	inline void SetCB(ComPtr<ID3D12Resource>&& uploadBuffer) { m_constantBuffer = std::move(uploadBuffer); }
 	inline void SetCBVHeap(ComPtr<ID3D12DescriptorHeap>&& heap) { m_CBVHeap = std::move(heap); }
-	inline void SetCBVHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_CBVHandle = std::move(handle); }
+	inline void SetCBVHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_CBVHandle = handle; }
 
 private:
 	const size_t m_id = 0; // 오브젝트 ID

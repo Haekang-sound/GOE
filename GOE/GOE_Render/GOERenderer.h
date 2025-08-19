@@ -70,6 +70,8 @@ public:
 
 	UIInitInfo* GetUIInfo() override;
 	UILoopInfo* GetUILoopInfo() override;
+public:
+	void AddRenderObejct(RenderObjectData& data) override;
 
 public:
 	void CreateModelData(size_t id);
@@ -113,7 +115,7 @@ private:
 	/// 모델 변환중
 	/// </summary>
 	/// <param name="core_models"></param>
-public:
+public:	
 	void CreateAllModelResource(const std::unordered_map <std::size_t, std::unique_ptr<Model>>& core_models);
 	void CreateMeshResource(MeshResource* mesh_resource, Graphics::MeshData& mesh_data);
 	void CreateVBResource(

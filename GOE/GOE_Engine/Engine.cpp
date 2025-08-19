@@ -7,11 +7,16 @@
 #include "../GOE_AssetLoader/AssetCore.h"
 #include "../GOE_Editor/DebugManager.h"
 
+#include "SceneManager.h"
+
 GOE::Engine::Engine(HINSTANCE hInst, int nCmdShow)
 	: m_hInst(hInst), m_nCmdShow(nCmdShow),
 	m_winCore(nullptr), m_renderer(nullptr),
-	m_editor(nullptr), m_assetCore(nullptr)
-{}
+	m_editor(nullptr), m_assetCore(nullptr),
+	m_sceneManager(nullptr)
+{
+	m_sceneManager = std::make_unique<SceneManager>();
+}
 GOE::Engine::~Engine() = default;
 
 void GOE::Engine::Initialize()
@@ -36,11 +41,20 @@ void GOE::Engine::Initialize()
 	m_editor = std::make_unique<EditorCore>(m_winCore->GetHWND());
 	m_editor->Initialize(m_renderer.get()->GetUIInfo());	
 
+	m_context = std::make_unique<GOE::EngineContext>();
+	// 엔진 컨텍스트에 렌더러를 등록
+	m_context.get()->renderer = m_renderer.get();
+
+	/// 엔진관련 초기화
+	m_sceneManager.get()->Initialize(m_context.get());
+
 }
 
 void GOE::Engine::OnUpdate(double dTime) 
 {
 	InputUpdate();
+
+	m_sceneManager.get()->OnUpdate(dTime);
 
 	m_editor->OnUpdate();
 	m_renderer->OnUpdate();
@@ -63,6 +77,11 @@ void GOE::Engine::EndRender()
 {
 	m_renderer->EndRender();
 }
+
+void GOE::Engine::Release()
+{
+}
+
 
 void GOE::Engine::DebugUpdate()
 {

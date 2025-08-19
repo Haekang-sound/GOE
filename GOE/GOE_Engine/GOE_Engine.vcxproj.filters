@@ -21,6 +21,34 @@
     <ClInclude Include="IEngine.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="IComponent.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="ISystem.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MeshRenderer.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneManager.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="IComponentManager.h">
+      <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="EntityManager.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -29,5 +57,24 @@
     <ClCompile Include="Engine_pch.cpp">
       <Filter>Common</Filter>
     </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Entity.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="MeshRenderer.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManager.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="EntityManager.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSystem.cpp" />
   </ItemGroup>
 </Project>

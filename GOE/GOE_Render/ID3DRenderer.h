@@ -3,6 +3,8 @@
 class Model;
 class UIInitInfo;
 class UILoopInfo;
+class RenderObjectData;
+
 /// <summary>
 /// 사용자가 다루게될 최전방의 인터페이스 
 /// 
@@ -27,6 +29,9 @@ namespace GOE
 		virtual void CopyUploadHeapToDefault() = 0;
 		virtual UIInitInfo* GetUIInfo() = 0;
 		virtual UILoopInfo* GetUILoopInfo() = 0;
+
+	public:
+		virtual void  AddRenderObejct(RenderObjectData& data) {};
 	};
 }
 

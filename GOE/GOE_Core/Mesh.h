@@ -28,6 +28,8 @@ public:
 private:
 	const std::string m_name; // 매쉬 이름
 	const size_t m_id; // 매쉬 ID
+	size_t m_moodelID = 0; // 모델 ID (추가 필요시 사용)
+	size_t m_meshIndex = 0; // 매쉬 인덱스 (추가 필요시 사용)
 
 	std::unique_ptr<GOE::MeshData> m_meshData; // 매쉬 데이터 포인터
 };

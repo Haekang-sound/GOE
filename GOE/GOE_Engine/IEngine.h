@@ -16,6 +16,7 @@ namespace GOE
 		virtual void BeginRender() = 0;
 		virtual void OnRender() = 0;
 		virtual void EndRender() = 0;
-
+		
+		virtual void Release() = 0;
 	};
 }

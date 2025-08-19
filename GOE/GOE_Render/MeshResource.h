@@ -10,7 +10,8 @@ public:
 	inline const std::string& GetName() const { return m_name; }
 	inline size_t GetID() const { return m_id; }
 	inline int GetMeshIndex() const { return m_meshIndex; }
-	
+	inline size_t GetModelID() const { return m_modelID; }
+
 	inline const UINT64& GetVBSize() const { return m_VBSize; }
 	inline ID3D12Resource* GetVBUpload() const { return m_vertexBufferUpload.Get(); }
 	inline ID3D12Resource* GetVBDefault() const { return m_vertexBufferDefault.Get(); }
@@ -29,6 +30,7 @@ public:
 
 public:
 	inline void SetMeshIndex(int index) { m_meshIndex = index; }
+	inline void SetModelID(size_t modelID) { m_modelID = modelID; }
 
 	inline void SetVBSize(UINT64 size) { m_VBSize = size; }
 	inline void SetVBUpload(ComPtr<ID3D12Resource>&& uploadBuffer) { m_vertexBufferUpload = std::move(uploadBuffer); }
@@ -49,6 +51,7 @@ private:
 	std::string m_name; // 모델 이름
 	const size_t m_id = 0; // 모델 ID
 	int m_meshIndex = -1; // 메쉬 인덱스 (추가 필요시 사용)
+	size_t m_modelID = 0; // 모델 ID (추가 필요시 사용)
 
 	// 모델을 그릴때 필요한 리소스들을 갖고있다.
 private:

@@ -20,11 +20,26 @@ namespace GOE
 		};
 	};
 
+	struct FLoatVector3
+	{
+		float x;
+		float y;
+		float z;
+	};
+
+	struct FLoatVector4
+	{
+		float x;
+		float y;
+		float z;
+		float w;
+	};
+
 	// 엔진에서 사용할 정점 데이터 구조체
 	struct Vertex
 	{
 		// 위치, 법선, UV 등 필요한 데이터를 정의합니다.
-		float position[3];
+		float position[3] = {};
 		float color[4] = { 0,0,0,1 }; // 색상 (RGBA)
 	};
 	// 엔진에서 사용할 메시 데이터 구조체
@@ -34,6 +49,6 @@ namespace GOE
 		std::vector<uint32_t> indices;
 	};
 
-	
+
 
 }

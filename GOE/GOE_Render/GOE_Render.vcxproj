@@ -143,6 +143,9 @@
 xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)\$(Platform)\Shader"
 </Command>
     </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -172,6 +175,9 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
 xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)\$(Platform)\Shader"
 </Command>
     </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -190,7 +196,7 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
     </Lib>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -229,6 +235,9 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
 xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)\$(Platform)\Shader"
 </Command>
     </PostBuildEvent>
+    <Lib>
+      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
