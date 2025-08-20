@@ -32,7 +32,6 @@ public:
 	// 모든 엔티티에 대한 빠른 순회 접근
 	const std::vector<std::unique_ptr<Entity>>& GetAllEntities() const { return m_entities; }
 
-
 private:
 	std::vector<std::unique_ptr<Entity>> m_entities;
 	std::unordered_map<EntityID, EntityIndex> m_entityMap;

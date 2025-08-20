@@ -2,13 +2,8 @@
 #include "GOERenderer.h"
 #include "../GOE_Core/Commons.h"
 #include <d3dx12/d3dx12.h>
-
-// 야들은 구조적으로 사라지게 될 수 밖에 없는거야
 #include "Camera.h" 
 #include "Cube.h"
-#include "Kuramon.h"
-
-#include "ModelResource.h"
 #include "MeshResource.h"
 #include "RenderObject.h"
 
@@ -51,10 +46,6 @@ void GOERenderer::OnInit()
 	m_cube->m_aspectRatio = m_aspectRatio;
 	m_cube->InitCube();
 
-	/*m_kuramon = new Kuramon(m_device, m_aspectRatio);
-	m_kuramon->m_aspectRatio = m_aspectRatio;
-	m_kuramon->InitKuramon();*/
-
 	LoadAssets();
 	CreateImguiDescriptorHeap();
 }
@@ -63,7 +54,6 @@ void GOERenderer::OnUpdate()
 {
 	m_camera->OnUpdate();
 	m_cube->OnUpdate();
-	//m_kuramon->OnUpdate();
 
 	{ // 큐브는 로딩해서 가져오는게 아니라서 이걸로해야됨
 		XMFLOAT4X4 cbData = {};
@@ -149,9 +139,7 @@ void GOERenderer::BeginRender()
 	// 5. 렌더 타겟 클리어(색상 초기화)
 	const float clearColor[] = { .7f, .7f, .5f, 1.0f };
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-
 }
-
 
 /// <summary>
 /// 랜더링 루프를 담당합니다.
@@ -168,9 +156,7 @@ void GOERenderer::OnRender()
 	for (const auto& renderObject : m_renderObjects)
 	{
 		m_commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		//m_commandList->IASetVertexBuffers(0, 1, &m_modelResources[renderObject->GetModelID()].get()->GetMeshResource(renderObject->GetMeshIndex())->GetVBView());
 		m_commandList->IASetVertexBuffers(0, 1, &m_meshResources[renderObject->GetMeshID()].get()->GetVBView());
-		//m_commandList->IASetIndexBuffer(&m_modelResources[renderObject->GetModelID()].get()->GetMeshResource(renderObject->GetMeshIndex())->GetIBView());
 		m_commandList->IASetIndexBuffer(&m_meshResources[renderObject->GetMeshID()].get()->GetIBView());
 
 		/// 콘스탄트 버퍼의 관한 문제는 고유자원을 기준으로 랜더할때 해결될것
@@ -249,26 +235,16 @@ UILoopInfo* GOERenderer::GetUILoopInfo()
 	m_UILoopInfo.get()->rendertarget = m_renderTargets[m_frameIndex].Get();
 	return m_UILoopInfo.get();
 }
+
 /// <summary>
 /// 랜더오브젝트를 생성한다.
 /// </summary>
 void GOERenderer::AddRenderObejct(RenderObjectData& data)
 {
-	std::hash<std::string> hasher;
-	/// 임시방편으로 메쉬인덱스추가
-			/// 현재 렌더오브젝트를 순회할때s
-			/// 메쉬로 빠르게 접근하기 위한 임시방편
-	//m_modelResources[data.modelID].get()->GetMeshResourceBack()->SetMeshIndex(data.meshIndex);
-
 	auto newrendrobj = std::make_unique<RenderObject>(data);
 	m_renderObjects.emplace_back(std::move(newrendrobj));
-
 	// 콘스탄트버퍼를 개별적으로 생성해준다.
 	CreateCBResource(m_renderObjects.back().get());
-}
-
-void GOERenderer::CreateModelData(size_t id)
-{
 }
 
 /// <summary>
@@ -931,7 +907,6 @@ void GOERenderer::CopyUploadHeapToDefault()
 		m_commandList->ResourceBarrier(1, &ibBarrier);
 	}
 
-
 	m_commandList->Close();
 
 	ID3D12CommandList* lists[] = { m_commandList.Get() };
@@ -1045,46 +1020,10 @@ void GOERenderer::CreateOneMeshResource(const Mesh* core_mesh)
 }
 
 /// <summary>
-/// 에셋로더를 통해 만들어진 모델리소스를
-/// d3d12에서 사용할 수 있도록 변환시켜주는 함수
-/// 
-/// </summary>
-/// <param name="core_models"></param>
-//void GOERenderer::CreateAllModelResource(const std::unordered_map<std::size_t, std::unique_ptr<Model>>& core_models)
-//{
-//	for (const auto& model : core_models)
-//	{
-//		// 모델리소스객체 생성
-//		m_modelResources[model.first] =
-//			std::make_unique<ModelResource>(model.second.get()->GetName(), model.first);
-//
-//		// 메쉬정보를 추출
-//		//for (int i = 0; i < model.second.get()->GetMeshes().size(); ++i)
-//		//{
-//		//	// 메쉬리소스생성하고 추가한다.
-//		//	m_modelResources[model.first].get()->AddMeshResource(
-//		//		model.second.get()->GetMeshes()[i].get()->GetName(),
-//		//		model.second.get()->GetMeshes()[i].get()->GetID());
-//
-//		//	// 메쉬데이터를 가져옴
-//		//	Graphics::MeshData meshData(model.second.get()->GetMeshes()[i].get()->GetMeshData());
-//
-//		//	// 메쉬데이터를 리소스로 변환해서 방금 추가한 메쉬리소스에 추가
-//		//	CreateMeshResource(m_modelResources[model.first].get()->GetMeshResourceBack(), meshData);
-//
-//		//	// 추가된 메쉬리소스에  modelID와 meshIndex를 설정한다.
-//		//	m_modelResources[model.first].get()->GetMeshResourceBack()->SetModelID(model.first);
-//		//	m_modelResources[model.first].get()->GetMeshResourceBack()->SetMeshIndex(i);
-//
-//		}
-//	}
-//}
-
-/// <summary>
 /// 메쉬데이터를 메쉬리소스를 채워주는 함수
 /// </summary>
-/// <param name="mesh_resource"></param>
-/// <param name="mesh_data"></param>
+/// <param name="mesh_resource">랜더러의 메쉬리소스</param>
+/// <param name="mesh_data">메쉬를 구성하는 메쉬데이터</param>
 void GOERenderer::CreateMeshResource(MeshResource* mesh_resource, Graphics::MeshData& mesh_data)
 {
 	CreateVBResource(mesh_resource, mesh_data, D3D12_RESOURCE_STATE_GENERIC_READ);
@@ -1242,7 +1181,6 @@ void GOERenderer::CreateIBResource(MeshResource* mesh_resource, const Graphics::
 	D3D12_RANGE readRange = { 0, 0 };
 	ThrowIfFailed(indexBufferUpload->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin)));
 
-	// Kuramon.cpp L331
 	memcpy(pIndexDataBegin, mesh_data.indices.data(), indexBufferSize);
 	indexBufferUpload->Unmap(0, nullptr);
 

@@ -48,7 +48,12 @@
     <ClInclude Include="EntityManager.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="RenderSystem.h" />
+    <ClInclude Include="RenderSystem.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementUnit.h" />
+    <ClInclude Include="TransfromSystem.h" />
+    <ClInclude Include="MovementSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -75,6 +80,11 @@
     <ClCompile Include="EntityManager.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
-    <ClCompile Include="RenderSystem.cpp" />
+    <ClCompile Include="RenderSystem.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="MovementUnit.cpp" />
+    <ClCompile Include="TransfromSystem.cpp" />
+    <ClCompile Include="MovementSystem.cpp" />
   </ItemGroup>
 </Project>

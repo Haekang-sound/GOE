@@ -10,7 +10,6 @@
 #include <memory>
 #include <unordered_map>
 
-
 namespace GOE
 {
 	struct MeshData;
@@ -20,11 +19,9 @@ using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
 
 class Cube;
-class Kuramon;
 class Camera;
 class UIInitInfo;
 class UILoopInfo;
-
 class ModelResource;
 class MeshResource;
 class RenderObject;
@@ -39,26 +36,30 @@ class GOERenderer : public GOE::ID3DRenderer
 public:
 	GOERenderer(const HWND& hWnd);
 	~GOERenderer();
-
-	// 복사생성자
 	GOERenderer(const GOERenderer&) = delete;
-	// 복사 대입 연산자
-	GOERenderer& operator=(const GOERenderer&) = delete;
-	// 이동생성자
 	GOERenderer(GOERenderer&&) = delete;
-	// 이동 대입 연산자
+	GOERenderer& operator=(const GOERenderer&) = delete;
 	GOERenderer& operator=(GOERenderer&&) = delete;
 
 public:
 	void OnInit() override;
-
 	void OnUpdate() override;
-
 	void BeginRender() override;
 	void OnRender() override;
 	void EndRender() override;
-
 	void OnDestroy() override;
+
+
+public:
+	void CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes) override;
+	void CreateOneMeshResource(const Mesh* core_mesh) override;
+	void CopyUploadHeapToDefault() override;
+	UIInitInfo* GetUIInfo() override;
+	UILoopInfo* GetUILoopInfo() override;
+	void AddRenderObejct(RenderObjectData& data) override;
+
+public:
+	std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() override { return m_renderObjects; }
 
 public:
 	inline ID3D12Device* GetDevice() { return m_device.Get(); }
@@ -68,23 +69,13 @@ public:
 	inline ID3D12GraphicsCommandList* GetCommandList() { return m_commandList.Get(); }
 	inline ID3D12Resource* GetCurrentRendertarget() { return m_renderTargets[m_frameIndex].Get(); }
 
-	UIInitInfo* GetUIInfo() override;
-	UILoopInfo* GetUILoopInfo() override;
-public:
-	void AddRenderObejct(RenderObjectData& data) override;
-
-public:
-	void CreateModelData(size_t id);
-
+#pragma region Init
 private:
 	void SetViewport();
-
 	void LoadPipeline();
 	void LoadAssets();
 
 public:
-	/// 초기화를 명시적으로 이해하기 위해 
-	/// 함수들을 분리했습니다.
 	void ActiveDebugLayer(const bool& isOn);
 	void CreateDXGIFactory();
 	bool GetHardwareAdapter();
@@ -101,7 +92,7 @@ public:
 
 public:
 	void CreateFence();
-	void CopyUploadHeapToDefault();
+	
 
 private:
 	void SignalFence(const UINT64& fenceValue);
@@ -109,17 +100,9 @@ private:
 
 private:
 	void CreateImguiDescriptorHeap();
+#pragma endregion
 
-	/// <summary>
-	/// core모델 to grpahics
-	/// 모델 변환중
-	/// </summary>
-	/// <param name="core_models"></param>
-public:	
-	void CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes) override;
-	void CreateOneMeshResource(const Mesh* core_mesh) override;
-
-	//void CreateAllModelResource(const std::unordered_map <std::size_t, std::unique_ptr<Model>>& core_models) override;
+public:
 	void CreateMeshResource(MeshResource* mesh_resource, Graphics::MeshData& mesh_data);
 	void CreateVBResource(
 		MeshResource* mesh_resource,
@@ -129,23 +112,22 @@ public:
 		MeshResource* mesh_resource,
 		const Graphics::MeshData& mesh_data,
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
-
-	/// <summary>
-	/// CB는 공유자원이 아니다 -> 수정 요함
-	/// </summary>
 	void CreateCBResource(
 		RenderObject* render_object,
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
 
 private:
-	std::unordered_map<size_t, std::unique_ptr<ModelResource>> m_modelResources;
 	std::unordered_map<size_t, std::unique_ptr<MeshResource>> m_meshResources;
-	std::vector < std::unique_ptr<RenderObject>> m_renderObjects;
+	/// <summary>
+	/// 인스턴싱 단계에서 
+	/// 랜더오브젝트 벡터는 깊은 고민이 필요할것이다.
+	/// 
+	/// </summary>
+	std::vector<std::unique_ptr<RenderObject>> m_renderObjects;
 
 public:
 	Camera* m_camera;
 	Cube* m_cube;
-	Kuramon* m_kuramon;
 
 private:
 	UINT m_width = 0;
@@ -156,7 +138,6 @@ private:
 	D3D12_VIEWPORT m_viewport = {};
 	RECT m_scissorRect = {};
 	float m_aspectRatio;
-
 	// 프로젝션 행렬
 	XMFLOAT4X4 m_proj = {};
 
@@ -166,29 +147,22 @@ private:
 	bool m_useWarpDevice = false;
 	ComPtr<IDXGIAdapter1> m_adpter = nullptr;
 	ComPtr<ID3D12Device> m_device = nullptr;
-
 	static const UINT m_frameBufferCount = 2;
 	UINT m_frameIndex = 0;
 	ComPtr<IDXGISwapChain3> m_swapChain = nullptr;
-
 	ComPtr<ID3D12Resource> m_renderTargets[m_frameBufferCount] = {};
 	ComPtr<ID3D12DescriptorHeap> m_rtvHeap = nullptr;
 	UINT m_rtvDescriptorSize = 0;
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;
 	ComPtr<ID3D12CommandQueue> m_commandQueue = nullptr;
-
 	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
 	ComPtr<ID3DBlob> m_vertexShader = nullptr;
 	ComPtr<ID3DBlob> m_pixelShader = nullptr;
-
 	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[2] = {};
-
 	ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
 	ComPtr<ID3D12GraphicsCommandList> m_commandList = nullptr;
-
 	HANDLE m_fenceEvent = nullptr;
 	ComPtr<ID3D12Fence> m_fence = nullptr;
-
 	// 프레임마다 동기화를 위한 fece값을 갖는다.
 	UINT64 m_fenceValue = 0;
 

@@ -18,13 +18,6 @@ class RenderObject
 {
 public:
 	RenderObject(RenderObjectData& data);
-	/*RenderObject(size_t id, std::string name, size_t modelID, size_t meshIndex)
-		: m_id(id), m_name(name), m_modelID(modelID), m_meshIndex(meshIndex)
-	{}
-	RenderObject(size_t id, std::string name)
-		: m_id(id), m_name(name)
-	{
-	}*/
 	~RenderObject();
 
 public:
@@ -51,6 +44,7 @@ public:
 	inline void SetCBVHeap(ComPtr<ID3D12DescriptorHeap>&& heap) { m_CBVHeap = std::move(heap); }
 	inline void SetCBVHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_CBVHandle = handle; }
 
+	inline void SetLocalTM(const GOE::Matrix4x4& localTM) { m_localTM = localTM; }
 private:
 	const size_t m_id = 0; // 오브젝트 ID
 	size_t m_meshID = 0; // 메쉬 ID

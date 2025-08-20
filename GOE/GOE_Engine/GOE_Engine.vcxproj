@@ -28,10 +28,13 @@
     <ClInclude Include="IEngine.h" />
     <ClInclude Include="ISystem.h" />
     <ClInclude Include="MeshRenderer.h" />
+    <ClInclude Include="MovementSystem.h" />
+    <ClInclude Include="MovementUnit.h" />
     <ClInclude Include="RenderSystem.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SceneManager.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="TransfromSystem.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp" />
@@ -44,10 +47,13 @@
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntityManager.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
+    <ClCompile Include="MovementSystem.cpp" />
+    <ClCompile Include="MovementUnit.cpp" />
     <ClCompile Include="RenderSystem.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SceneManager.cpp" />
     <ClCompile Include="Transform.cpp" />
+    <ClCompile Include="TransfromSystem.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

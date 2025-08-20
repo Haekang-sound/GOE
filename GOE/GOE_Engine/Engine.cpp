@@ -1,10 +1,8 @@
 #include "Engine_pch.h"
 #include "Engine.h"
-
 #include "../GOE_Core/Window.h"
 #include "../GOE_Editor/EditorCore.h"
 #include "../GOE_Editor/DebugManager.h"
-
 #include "SceneManager.h"
 
 GOE::Engine::Engine(HINSTANCE hInst, int nCmdShow)
@@ -15,6 +13,7 @@ GOE::Engine::Engine(HINSTANCE hInst, int nCmdShow)
 {
 	m_sceneManager = std::make_unique<SceneManager>();
 }
+
 GOE::Engine::~Engine() = default;
 
 void GOE::Engine::Initialize()
@@ -25,6 +24,7 @@ void GOE::Engine::Initialize()
 	m_winCore->SetExternalMsgHandler(&ImGui_ImplWin32_WndProcHandler);
 
 	// 에셋코어 초기화, 모델로드
+	// fbx파일을 로드합니다.
 	m_assetCore = std::make_unique<AssetCore>();
 	m_assetCore.get()->CreateAssetLoader();
 	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\Ch03_nonPBR.fbx");
@@ -32,8 +32,9 @@ void GOE::Engine::Initialize()
 	// 렌더러 초기화
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND());
 	m_renderer->OnInit();
-	//m_renderer->CreateAllModelResource(m_assetCore.get()->GetModels());
-	//m_renderer->CreateAllMeshResources(m_assetCore.get()->GetMeshes());
+
+	/// 로드된 매쉬중 원하는 메쉬를 이름으로 골라서
+	/// 그래픽스 리소스를 생성합니다.
 	std::hash<std::string> hasher;
 	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(hasher("Ch03"))); // 첫번째 메쉬를 가져와서 리소스 생성
 	m_renderer->CopyUploadHeapToDefault();
@@ -81,9 +82,11 @@ void GOE::Engine::EndRender()
 	m_renderer->EndRender();
 }
 
-void GOE::Engine::Release()
-{
-}
+/// <summary>
+/// rule of 0를 추구하기때문에
+/// 아직은 괜찮아..
+/// </summary>
+void GOE::Engine::Release(){}
 
 
 void GOE::Engine::DebugUpdate()

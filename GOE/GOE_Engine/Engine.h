@@ -13,8 +13,6 @@ class EditorCore;
 class AssetCore;
 class SceneManager;
 
-
-
 /// <summary>
 /// 기능들이 만들어질 엔진
 /// </summary>

@@ -10,6 +10,10 @@ class MeshResource;
 
 /// <summary>
 /// 렌더러에서 갖고 있을 모델정보 클래스
+/// 
+/// 어심프 구조에서 메쉬의 상위구조라 만들었지만
+/// 현시점에선 필요없는 자료형
+/// 
 /// </summary>
 class ModelResource
 {

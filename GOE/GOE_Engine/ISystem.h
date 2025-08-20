@@ -17,9 +17,10 @@ public:
 	virtual void Update() {};
 
 public:
+	inline Scene* GetScene() { return m_scene; }
 	inline const Scene* GetScene() const { return m_scene; }
 
 protected:
-	const Scene* m_scene;
+	Scene* m_scene;
 	const GOE::EngineContext* m_context = nullptr; // 엔진 컨텍스트
 };

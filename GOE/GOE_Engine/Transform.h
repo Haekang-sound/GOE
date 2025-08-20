@@ -14,13 +14,18 @@ public:
 	Transform(size_t ownerID, size_t id);
 	~Transform();
 
-public: 
+public:
 	inline const GOE::Matrix4x4& GetLocalTM() const { return m_localTM; }
-	inline 	const GOE::Matrix4x4& GetParentTM() const { return m_parentTM; }
+	inline GOE::Matrix4x4& GetLocalTM() { return m_localTM; }
+	inline const GOE::Matrix4x4& GetParentTM() const { return m_parentTM; }
 
 	inline const GOE::FLoatVector3& GetScale() const { return m_scale; }
 	inline const GOE::FLoatVector3& GetRotation() const { return m_rotation; }
 	inline const GOE::FLoatVector3& GetPosition() const { return m_position; }
+
+	GOE::FLoatVector4 GetRightVector();	
+	GOE::FLoatVector4 GetUpVector();
+	GOE::FLoatVector4 GetForwardVector();
 
 public:
 	inline void SetLocalTM(GOE::Matrix4x4 TM) { m_localTM = TM; }
