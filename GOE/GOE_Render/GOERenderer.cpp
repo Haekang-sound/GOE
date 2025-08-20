@@ -176,18 +176,18 @@ void GOERenderer::OnRender()
 /// </summary>
 void GOERenderer::EndRender()
 {
+	//// 8. 리소스 배리어(상태 변경) – “RenderTarget → Present”
+	//	// 렌더링이 끝났으니, 다시 "화면에 표시(PRESENT)" 상태로 전환
+	//	// 이 상태 변경은 GPU가 커맨드 리스트를 실행하는 동안 자동으로 처리됩니다.
+	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+		m_renderTargets[m_frameIndex].Get(),
+		D3D12_RESOURCE_STATE_RENDER_TARGET,      // StateBefore (현재 상태)
+		D3D12_RESOURCE_STATE_PRESENT             // StateAfter (목표 상태)
+	);
 
-	D3D12_RESOURCE_BARRIER b2arrier = {};
-	b2arrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	b2arrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	b2arrier.Transition.pResource = m_renderTargets[m_frameIndex].Get();
-	b2arrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	b2arrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	b2arrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	// 8. 리소스 배리어(상태 변경) – “RenderTarget → Present”
-		// 렌더링이 끝났으니, 다시 "화면에 표시(PRESENT)" 상태로 전환
-		// 이 상태 변경은 GPU가 커맨드 리스트를 실행하는 동안 자동으로 처리됩니다.
-	m_commandList->ResourceBarrier(1, &b2arrier);
+	//3. 리소스 배리어(상태 변경) – “Present → RenderTarget”
+		// 현재 그릴 렌더타겟(BackBuffer)의 상태를 “화면에 표시(PRESENT)” → “렌더링(RTT)” 상태로 전환
+	m_commandList->ResourceBarrier(1, &barrier);
 
 	// 9. 커맨드 리스트 닫기
 		// 커맨드 리스트에 더 이상 명령을 추가하지 않겠다고 선언합니다.

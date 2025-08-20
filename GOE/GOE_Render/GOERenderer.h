@@ -91,8 +91,7 @@ public:
 	void CreateCommandList();
 
 public:
-	void CreateFence();
-	
+	void CreateFence();	
 
 private:
 	void SignalFence(const UINT64& fenceValue);
@@ -165,6 +164,7 @@ private:
 	ComPtr<ID3D12Fence> m_fence = nullptr;
 	// 프레임마다 동기화를 위한 fece값을 갖는다.
 	UINT64 m_fenceValue = 0;
+
 
 	/// <summary>
 	/// imgui를 위한 디스크립터힙

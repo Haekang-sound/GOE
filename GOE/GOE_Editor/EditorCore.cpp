@@ -124,7 +124,7 @@ void EditorCore::OnRender(UILoopInfo* uiInfo)
 	imguiBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 	imguiBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
 	imguiBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	uiInfo->commandlist->ResourceBarrier(1, &imguiBarrier);
+	//uiInfo->commandlist->ResourceBarrier(1, &imguiBarrier);
 
 	ID3D12DescriptorHeap* pHeap = uiInfo->imguiDescriptorHeap;
 
@@ -133,6 +133,6 @@ void EditorCore::OnRender(UILoopInfo* uiInfo)
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), uiInfo->commandlist);
 	imguiBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	imguiBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	uiInfo->commandlist->ResourceBarrier(1, &imguiBarrier);
+	//uiInfo->commandlist->ResourceBarrier(1, &imguiBarrier);
 
 }

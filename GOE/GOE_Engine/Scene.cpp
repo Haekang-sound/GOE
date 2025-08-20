@@ -59,11 +59,7 @@ void Scene::Script()
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 
-		GOE::Matrix4x4 tm = {};
-		tm._11 = 1;
-		tm._22 = 1;
-		tm._33 = 1;
-		tm._44 = 1;
+		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
 
 		m_transformManager.get()->GetCurrentComponent().SetLocalTM(tm);
 
