@@ -71,7 +71,6 @@ void EditorCore::Initialize(UIInitInfo* uiInfo)
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsLight();
 
 	// Setup scaling
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -101,7 +100,6 @@ void EditorCore::Initialize(UIInitInfo* uiInfo)
 			return Editor::g_allocator.Free(cpu_handle, gpu_handle);
 		};
 
-
 	ImGui_ImplDX12_Init(&init_info);
 }
 
@@ -116,23 +114,7 @@ void EditorCore::OnUpdate()
 void EditorCore::OnRender(UILoopInfo* uiInfo)
 {
 	ImGui::Render();
-
-	D3D12_RESOURCE_BARRIER imguiBarrier = {};
-	imguiBarrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-	imguiBarrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
-	imguiBarrier.Transition.pResource = uiInfo->rendertarget;
-	imguiBarrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-	imguiBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-	imguiBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	//uiInfo->commandlist->ResourceBarrier(1, &imguiBarrier);
-
 	ID3D12DescriptorHeap* pHeap = uiInfo->imguiDescriptorHeap;
-
-	// 임시 변수의 주소를 전달합니다.
 	uiInfo->commandlist->SetDescriptorHeaps(1, &pHeap);
 	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), uiInfo->commandlist);
-	imguiBarrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-	imguiBarrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-	//uiInfo->commandlist->ResourceBarrier(1, &imguiBarrier);
-
 }

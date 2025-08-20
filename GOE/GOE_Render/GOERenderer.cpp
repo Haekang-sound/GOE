@@ -113,19 +113,18 @@ void GOERenderer::BeginRender()
 	m_commandList->RSSetViewports(1, &m_viewport);
 	// ScissorRECT 지정. 이 영역 바깥은 렌더링 안 함(클리핑).
 	m_commandList->RSSetScissorRects(1, &m_scissorRect);
-
-
+	
 	/*1. 베리어(Barrier)란 ?
 		GPU 리소스(버퍼, 텍스처 등)의 “상태 전환”을 명시적으로 선언하는 명령
 		D3D12에서 리소스는 “읽기”, “쓰기”, “카피”, “표시(Present)”, “렌더타겟”, “셰이더리소스” 등 다양한 상태를 가짐
 		GPU 파이프라인의 단계마다 리소스가 “올바른 상태”에 있어야만 GPU가 올바르게 처리함
 		베리어는 “지금부터 이 리소스 상태를 바꾼다”를 GPU에 알려주는 명령어*/
-
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 		m_renderTargets[m_frameIndex].Get(),    // pResource
 		D3D12_RESOURCE_STATE_PRESENT,           // StateBefore
 		D3D12_RESOURCE_STATE_RENDER_TARGET      // StateAfter
 	);
+
 	//3. 리소스 배리어(상태 변경) – “Present → RenderTarget”
 		// 현재 그릴 렌더타겟(BackBuffer)의 상태를 “화면에 표시(PRESENT)” → “렌더링(RTT)” 상태로 전환
 	m_commandList->ResourceBarrier(1, &barrier);
