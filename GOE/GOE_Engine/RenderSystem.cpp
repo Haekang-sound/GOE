@@ -1,4 +1,4 @@
-#include "Engine_pch.h"
+ï»¿#include "Engine_pch.h"
 #include "RenderSystem.h"
 #include "Scene.h"
 #include "Transform.h"
@@ -7,27 +7,23 @@
 
 void RenderSystem::Initialize()
 {
-	// ÇöÀç ·»´õ½Ã½ºÅÛÀº
-	// ¸Ş½¬·»´õ·¯°¡ °®°í ÀÖ´Â ¸Ş½¬ÀÇ id¿Í 
-	// Æ®·£½ºÆûÀÌ °®°í ÀÖÀ» Çà·ÄÀ» ÄÜ½ºÅºÆ® ¹öÆÛ·Î¹Ù²ã¼­ ·£´õ·¯ÃøÀÌ »ı¼ºÇÏµµ·Ï ÇÑ´Ù.
-	for (int i = 0; i < GetScene()->GetMeshRendererManager()->GetComponents().size(); ++i)
+	// í˜„ì¬ ë Œë”ì‹œìŠ¤í…œì€
+	// ë©”ì‰¬ë Œë”ëŸ¬ê°€ ê°–ê³  ìˆëŠ” ë©”ì‰¬ì˜ idì™€ 
+	// íŠ¸ëœìŠ¤í¼ì´ ê°–ê³  ìˆì„ í–‰ë ¬ì„ ì½˜ìŠ¤íƒ„íŠ¸ ë²„í¼ë¡œë°”ê¿”ì„œ ëœë”ëŸ¬ì¸¡ì´ ìƒì„±í•˜ë„ë¡ í•œë‹¤.
+	//for (int i = 0; i < GetScene()->GetMeshRendererManager()->GetComponents().size(); ++i)
+	for (auto& meshRenderer: GetScene()->GetMeshRendererManager()->GetComponents())
 	{
 		RenderObjectData* data = new RenderObjectData();
-		data->id = GetScene()->GetMeshRendererManager()->GetComponents()[i].GetID();
-		data->meshID = GetScene()->GetMeshRendererManager()->GetComponents()[i].GetMeshID();
-		data->meshIndex = GetScene()->GetMeshRendererManager()->GetComponents()[i].GetMeshIndex();
-		data->modelID = GetScene()->GetMeshRendererManager()->GetComponents()[i].GetModelID();
-		data->localTM = 
-			GetScene()->GetTransformManager()->GetComponents()[i].GetLocalTM();
-
-		GetScene()->GetTransformManager()->GetComponents()[i].GetLocalTM();
-		GetScene()->GetMeshRendererManager()->GetComponents()[i].GetMeshID();
+		data->id = meshRenderer.GetID();
+		data->meshID = meshRenderer.GetMeshID();
+		data->meshIndex = meshRenderer.GetMeshIndex();
+		data->modelID = meshRenderer.GetModelID();
+		data->localTM =
+			GetScene()->GetTransformManager()->GetComponentByOwner(meshRenderer.GetOwner()).GetLocalTM();
 
 		m_context->renderer->AddRenderObejct(*data);
 		delete data;
-	}
-
-	
+	}	
 }
 
 void RenderSystem::Update()
