@@ -1,9 +1,7 @@
 #include "Renderer_pch.h"
 #include "Camera.h"
-#include "../GOE_Editor/DebugManager.h"
 
-// 디버거를 위해 추가하는 헤더이지만
-// 나중에는 반드시 분리되어야함
+#include "../GOE_Editor/DebugManager.h"
 #include "../Imgui/imgui.h"
 
 Camera::Camera(HWND hWnd)

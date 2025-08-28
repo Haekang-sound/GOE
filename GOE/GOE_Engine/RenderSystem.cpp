@@ -26,7 +26,7 @@ void RenderSystem::Initialize()
 	}	
 }
 
-void RenderSystem::Update()
+void RenderSystem::Update(double dTime)
 {
 	for(const auto& renderobj : m_context->renderer->GetRenderObjects())
 	{

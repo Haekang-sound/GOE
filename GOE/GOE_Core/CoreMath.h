@@ -25,22 +25,7 @@ namespace GOE
 			float m[4][4];
 		};
 
-		// 행렬 곱셈 연산자
-		Matrix4x4 operator* (const Matrix4x4& other) const
-		{
-			Matrix4x4 result;
-			for (int i = 0; i < 4; ++i)
-			{
-				for (int j = 0; j < 4; ++j)
-				{
-					result.m[i][j] = m[i][0] * other.m[0][j] +
-						m[i][1] * other.m[1][j] +
-						m[i][2] * other.m[2][j] +
-						m[i][3] * other.m[3][j];
-				}
-			}
-			return result;
-		}
+	public:
 		// 단위 행렬을 반환합니다.
 		static Matrix4x4 Identity()
 		{
@@ -94,8 +79,7 @@ namespace GOE
 			result._22 = cos(radians);
 			return result;
 		}
-	
-	public: 
+
 		// 크기 조절 행렬을 생성합니다.
 		static Matrix4x4 Scaling(float x, float y, float z)
 		{
@@ -106,6 +90,29 @@ namespace GOE
 			return result;
 		}
 
+	public:
+		// 행렬 곱셈 연산자
+		Matrix4x4 operator* (const Matrix4x4& other) const
+		{
+			Matrix4x4 result;
+			for (int i = 0; i < 4; ++i)
+			{
+				for (int j = 0; j < 4; ++j)
+				{
+					result.m[i][j] = m[i][0] * other.m[0][j] +
+						m[i][1] * other.m[1][j] +
+						m[i][2] * other.m[2][j] +
+						m[i][3] * other.m[3][j];
+				}
+			}
+			return result;
+		}
+		Matrix4x4& operator*= (const Matrix4x4& other)
+		{
+			*this = *this * other;
+			return *this;
+		}
+
 	};
 
 	struct FLoatVector3
@@ -113,6 +120,10 @@ namespace GOE
 		float x;
 		float y;
 		float z;
+	public:
+		FLoatVector3() = default;
+		FLoatVector3(float x, float y, float z)
+			: x(x), y(y), z(z){}
 
 	public:
 		FLoatVector3& operator* (const float& other)
@@ -136,7 +147,7 @@ namespace GOE
 			z += other.z;
 			return *this;
 		}
-	
+
 	};
 
 	struct FLoatVector4
@@ -145,13 +156,13 @@ namespace GOE
 		float y;
 		float z;
 		float w;
-	public: 
+	public:
 		FLoatVector4() = default;
 		FLoatVector4(float x, float y, float z, float w)
 			: x(x), y(y), z(z), w(w)
 		{
 		}
-	public: 
+	public:
 		FLoatVector4& operator* (const float& scalar)
 		{
 			x *= scalar;
@@ -184,6 +195,7 @@ namespace GOE
 		// 위치, 법선, UV 등 필요한 데이터를 정의합니다.
 		float position[3] = {};
 		float color[4] = { 0,0,0,1 }; // 색상 (RGBA)
+		float uv[2] = { 0,0 }; // UV 좌표
 	};
 	// 엔진에서 사용할 메시 데이터 구조체
 	struct MeshData

@@ -7,7 +7,7 @@ void TransfromSystem::Initialize()
 {
 }
 
-void TransfromSystem::Update()
+void TransfromSystem::Update(double dTime)
 {
 	for (const auto& transform : GetScene()->GetTransformManager()->GetComponents())
 	{

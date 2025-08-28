@@ -1,7 +1,8 @@
 ﻿#include "Renderer_pch.h"
 #include "GOERenderer.h"
-#include "../GOE_Core/Commons.h"
+
 #include <d3dx12/d3dx12.h>
+#include "DirectXTex.h"	
 #include "Camera.h" 
 #include "Cube.h"
 #include "MeshResource.h"
@@ -113,7 +114,7 @@ void GOERenderer::BeginRender()
 	m_commandList->RSSetViewports(1, &m_viewport);
 	// ScissorRECT 지정. 이 영역 바깥은 렌더링 안 함(클리핑).
 	m_commandList->RSSetScissorRects(1, &m_scissorRect);
-	
+
 	/*1. 베리어(Barrier)란 ?
 		GPU 리소스(버퍼, 텍스처 등)의 “상태 전환”을 명시적으로 선언하는 명령
 		D3D12에서 리소스는 “읽기”, “쓰기”, “카피”, “표시(Present)”, “렌더타겟”, “셰이더리소스” 등 다양한 상태를 가짐
@@ -657,6 +658,7 @@ void GOERenderer::CreateRootSignature()
 	ComPtr<ID3DBlob> error;
 	D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 	ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
+
 }
 
 /// <summary>
@@ -726,6 +728,10 @@ void GOERenderer::CompileShaders()
 	m_inputElementDescs[0] = iaDesc;
 	iaDesc = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
 	m_inputElementDescs[1] = iaDesc;
+
+	// 텍스처 좌표를 위한 입력 레이아웃 정의
+	iaDesc = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	m_inputElementDescs[2] = iaDesc;
 }
 
 /// <summary>
@@ -979,6 +985,106 @@ void GOERenderer::CreateImguiDescriptorHeap()
 	desc.NumDescriptors = 64;               // 보통 ImGui는 1~2면 충분
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // 반드시 shader visible!
 	ThrowIfFailed(m_device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&m_imguiDescriptorHeap)));
+}
+
+void GOERenderer::LoadTexture(std::string filepath)
+{
+	// 파일경로를 통해 텍스처를 로드합니다.
+	WIC_FLAGS wicFlags = WIC_FLAGS_NONE;
+	TexMetadata metadata = {};
+	ScratchImage data;
+
+	DirectX::LoadFromWICFile(
+		std::wstring(filepath.begin(), filepath.end()).c_str(),
+		wicFlags, &metadata, data, nullptr);
+
+
+	// ScratchImage로부터 얻은 메타데이터로 리소스 속성을 정의합니다.
+	D3D12_RESOURCE_DESC textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+		metadata.format,
+		metadata.width,
+		metadata.height,
+		static_cast<UINT16>(metadata.arraySize),
+		static_cast<UINT16>(metadata.mipLevels));
+
+	// --- 2. 디폴트 힙 생성 ---
+	CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
+	HRESULT hr = m_device->CreateCommittedResource(
+		&defaultHeapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&textureDesc,
+		D3D12_RESOURCE_STATE_COPY_DEST, // 데이터를 복사 받을 상태로 생성
+		nullptr,
+		IID_PPV_ARGS(&textureDefault)); // 멤버 변수 m_texture에 저장
+
+	if (FAILED(hr))
+	{
+		return;
+	}
+
+	// 3. 업로드 힙 생성
+	const UINT64 uploadBufferSize = GetRequiredIntermediateSize(textureDefault.Get(), 0, 1);
+	CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+	CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
+	hr = m_device->CreateCommittedResource(
+		&uploadHeapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&uploadBufferDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&textureUpload)); // 멤버 변수 m_textureUploadHeap에 저장
+
+	if (FAILED(hr))
+	{
+		return;
+	}
+
+	// --- 4. ScratchImage 데이터를 GPU 리소스로 복사하도록 명령 기록 ---
+	D3D12_SUBRESOURCE_DATA subresourceData = {};
+	subresourceData.pData = data.GetPixels();
+	subresourceData.RowPitch = data.GetImage(0, 0, 0)->rowPitch;
+	subresourceData.SlicePitch = data.GetImage(0, 0, 0)->slicePitch;
+
+	// 내부적으로 map과 unmap을 호출합니다.
+	// 커맨드 리스트에 복사 명령을 기록합니다.
+	UpdateSubresources(m_commandList.Get(), textureDefault.Get(), textureUpload.Get(), 0, 0, 1, &subresourceData);
+
+	// --- 5. 텍스처 리소스 상태를 셰이더에서 읽을 수 있도록 변경 ---
+	CD3DX12_RESOURCE_BARRIER barrier =
+		CD3DX12_RESOURCE_BARRIER::Transition(
+			textureDefault.Get(),
+			D3D12_RESOURCE_STATE_COPY_DEST,
+			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+	m_commandList->ResourceBarrier(1, &barrier);
+
+	// 디스크립터 힙 생성
+	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
+	srvHeapDesc.NumDescriptors = 1;
+	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	ThrowIfFailed(m_device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&textureheap)));
+	
+	// --- 6. 셰이더 리소스 뷰(SRV) 생성 ---
+	// SRV를 생성할 디스크립터 힙의 핸들을 가져옵니다 (m_srvHeap은 미리 생성되어 있어야 함).
+	srvHandle = textureheap->GetCPUDescriptorHandleForHeapStart();
+
+	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+	srvDesc.Format = metadata.format;
+	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+
+	m_device->CreateShaderResourceView(textureDefault.Get(), &srvDesc, srvHandle);
+
+	// --- 7. 커맨드 리스트 실행 및 동기화 ---
+	m_commandList->Close();
+	ID3D12CommandList* ppCommandLists[] = { m_commandList.Get() };
+	m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+	// GPU 작업이 완료될 때까지 기다립니다 (Fence 사용).
+	m_fenceValue++;
+	SignalFence(m_fenceValue);
+
 }
 
 void GOERenderer::CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes)

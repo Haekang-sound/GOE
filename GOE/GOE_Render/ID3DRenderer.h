@@ -24,8 +24,9 @@ namespace GOE
 		virtual void OnRender() = 0;
 		virtual void EndRender() = 0;
 		virtual void OnDestroy() = 0;
-
+	public:
 		// DirectX
+		virtual void LoadTexture(std::string filepath) {};
 		virtual void CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes) {}
 		virtual void CreateOneMeshResource(const Mesh* core_mesh) {};
 		virtual void CopyUploadHeapToDefault() = 0;

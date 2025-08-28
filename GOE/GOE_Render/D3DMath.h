@@ -42,6 +42,7 @@ namespace Graphics
 	{
 		XMFLOAT3 position = {};
 		XMFLOAT4 color = { 0,0,0,1 };
+		XMFLOAT2 uv = { 0,0 }; // UV ÁÂÇ¥
 
 	public:
 		Vertex() = default;
@@ -49,6 +50,7 @@ namespace Graphics
 		{
 			position = pos;
 			color = col;
+			uv = { 0, 0 }; // UV ÁÂÇ¥ ÃÊ±âÈ­
 		}
 
 		Vertex(const GOE::Vertex& other)
@@ -61,6 +63,9 @@ namespace Graphics
 			color.y = other.color[1];
 			color.z = other.color[2];
 			color.w = other.color[3];
+
+			uv.x = other.uv[0];
+			uv.y = other.uv[1];
 		}
 
 	public:
@@ -75,6 +80,9 @@ namespace Graphics
 			color.y = other.color[1];
 			color.z = other.color[2];
 			color.w = other.color[3];
+
+			uv.x = other.uv[0];
+			uv.y = other.uv[1];
 			return *this;
 		}
 

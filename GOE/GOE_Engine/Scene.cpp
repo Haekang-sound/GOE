@@ -19,57 +19,63 @@ void Scene::Initialize(GOE::EngineContext* context)
 {
 	m_context = context;
 
-	// ¸Å´ÏÀú »ı¼º
+	// ë§¤ë‹ˆì € ìƒì„±
 	m_entityManager = std::make_unique<EntityManager>();
 	m_transformManager = std::make_unique<ComponentManager<Transform>>();
 	m_meshRendererManager = std::make_unique<ComponentManager<MeshRenderer>>();
 	m_movementUnitManager = std::make_unique<ComponentManager<MovementUnit>>();
-	// ½Ã½ºÅÛ »ı¼º
+	// ì‹œìŠ¤í…œ ìƒì„±
 	m_renderSystem = std::make_unique<RenderSystem>(this, context);
 	m_transfromSystem = std::make_unique<TransfromSystem>(this, context);
 	m_movementSystem = std::make_unique<MovementSystem>(this, context);
 
 	Script();
 
-	// ·£´õ¿ÀºêÁ§Æ®¸¦ ¸¸µå´Â ·£´õ½Ã½ºÅÛ ÃÊ±âÈ­
+	// ëœë”ì˜¤ë¸Œì íŠ¸ë¥¼ ë§Œë“œëŠ” ëœë”ì‹œìŠ¤í…œ ì´ˆê¸°í™”
 	m_renderSystem.get()->Initialize();
 }
 
 void Scene::OnUpdate(double dTime)
 {
-	m_movementSystem.get()->Update();
-	m_transfromSystem.get()->Update();
-	m_renderSystem.get()->Update();
+	m_movementSystem.get()->Update(dTime);
+	m_transfromSystem.get()->Update(dTime);
+	m_renderSystem.get()->Update(dTime);
 }
 
+void Scene::DebugUpdate()
+{
+	m_movementSystem.get()->DebugUpdate(0);
+	m_transfromSystem.get()->DebugUpdate(0);
+	m_renderSystem.get()->DebugUpdate(0);
+}
 
 /// <summary>
-/// ÇöÀç´Â ÇÔ¼ö·Î ±¸ÇöµÆÁö¸¸ 
-/// ³ªÁß¿¡´Â µ¥ÀÌÅÍ°¡ µÉ ½ºÅ©¸³Æ®
+/// í˜„ì¬ëŠ” í•¨ìˆ˜ë¡œ êµ¬í˜„ëì§€ë§Œ 
+/// ë‚˜ì¤‘ì—ëŠ” ë°ì´í„°ê°€ ë  ìŠ¤í¬ë¦½íŠ¸
 /// </summary>
 void Scene::Script()
 {
 	{
-		// ¿£Æ¼Æ¼¸¦ ¸¸µé°í
-		m_entityManager.get()->CreateEntity("¸ğµ¨");
+		// ì—”í‹°í‹°ë¥¼ ë§Œë“¤ê³ 
+		m_entityManager.get()->CreateEntity("ëª¨ë¸");
 
-		// Æ®·£½ºÆûÀº 
-		// ½ÃÀÛÀ§Ä¡, ½ºÄÉÀÏ, È¸ÀüÀ» ³ÖÀ» ¼ö ÀÖ¾î¾ß ÇÔ
+		// íŠ¸ëœìŠ¤í¼ì€ 
+		// ì‹œì‘ìœ„ì¹˜, ìŠ¤ì¼€ì¼, íšŒì „ì„ ë„£ì„ ìˆ˜ ìˆì–´ì•¼ í•¨
 		m_transformManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 
 		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
-
 		m_transformManager.get()->GetCurrentComponent().SetLocalTM(tm);
+		m_transformManager.get()->GetCurrentComponent().SetScaleTM({ 100.f, 100.f, 100.f });
 
 		std::hash<std::string> hasher;
-		// ¸Ş½¬·£´õ·¯´Â ¸Ş½¬id¸¦ Àü´ŞÇÏ´Â ±¸°£ÀÌ ÇÊ¿äÇÏ´Ù.
-		// ÀÏ´Ü ÄÄÆ÷³ÍÆ® ¾ÆÀÌµğ¿Í entity ¾ÆÀÌµğ¸¦ µ¿ÀÏÇÏ°Ô »ç¿ëÇÑ´Ù.
+		// ë©”ì‰¬ëœë”ëŸ¬ëŠ” ë©”ì‰¬idë¥¼ ì „ë‹¬í•˜ëŠ” êµ¬ê°„ì´ í•„ìš”í•˜ë‹¤.
+		// ì¼ë‹¨ ì»´í¬ë„ŒíŠ¸ ì•„ì´ë””ì™€ entity ì•„ì´ë””ë¥¼ ë™ì¼í•˜ê²Œ ì‚¬ìš©í•œë‹¤.
 		m_meshRendererManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		size_t meshPath = hasher("Ch03");
+		size_t meshPath = hasher("chr629_0");
 
 		m_meshRendererManager.get()->GetCurrentComponent().SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
 		m_meshRendererManager.get()->GetCurrentComponent().SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
@@ -82,22 +88,22 @@ void Scene::Script()
 	}
 
 	{
-		// ¿£Æ¼Æ¼¸¦ ¸¸µé°í
-		m_entityManager.get()->CreateEntity("¸ğµ¨2");
+		// ì—”í‹°í‹°ë¥¼ ë§Œë“¤ê³ 
+		m_entityManager.get()->CreateEntity("ëª¨ë¸2");
 
-		// Æ®·£½ºÆûÀº 
-		// ½ÃÀÛÀ§Ä¡, ½ºÄÉÀÏ, È¸ÀüÀ» ³ÖÀ» ¼ö ÀÖ¾î¾ß ÇÔ
+		// íŠ¸ëœìŠ¤í¼ì€ 
+		// ì‹œì‘ìœ„ì¹˜, ìŠ¤ì¼€ì¼, íšŒì „ì„ ë„£ì„ ìˆ˜ ìˆì–´ì•¼ í•¨
 		m_transformManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 
 		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
-		tm._41 = 40.0f; // À§Ä¡¸¦ ¾à°£ ÀÌµ¿½ÃÄÑº¸ÀÚ
+		tm._41 = 40.0f; // ìœ„ì¹˜ë¥¼ ì•½ê°„ ì´ë™ì‹œì¼œë³´ì
 
 		m_transformManager.get()->GetCurrentComponent().SetLocalTM(tm);
 
 		std::hash<std::string> hasher;
-		// ¸Ş½¬·£´õ·¯´Â ¸Ş½¬id¸¦ Àü´ŞÇÏ´Â ±¸°£ÀÌ ÇÊ¿äÇÏ´Ù.
+		// ë©”ì‰¬ëœë”ëŸ¬ëŠ” ë©”ì‰¬idë¥¼ ì „ë‹¬í•˜ëŠ” êµ¬ê°„ì´ í•„ìš”í•˜ë‹¤.
 		m_meshRendererManager.get()->AddComponent(m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 		size_t meshPath = hasher("Ch03");

@@ -12,9 +12,14 @@ void AssetCore::CreateAssetLoader()
 {
 	m_assetLoader = std::make_unique<AssetLoader>();
 }
-void AssetCore::LoadModel(const std::string& filePath)
+
+bool AssetCore::LoadModel(const std::string& filePath)
 {
-	m_assetLoader.get()->LoadModelFromFile(filePath);
+	return m_assetLoader.get()->LoadModelFromFile(filePath);
+}
+bool AssetCore::LoadTextureFromFile(const std::string& filePath)
+{
+	return m_assetLoader.get()->LoadTextureFromFile(filePath);
 }
 
 const std::unordered_map<std::size_t, std::unique_ptr<Model>>& AssetCore::GetModels() const

@@ -28,15 +28,20 @@ void GOE::Engine::Initialize()
 	m_assetCore = std::make_unique<AssetCore>();
 	m_assetCore.get()->CreateAssetLoader();
 	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\Ch03_nonPBR.fbx");
+	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
+	m_assetCore.get()->LoadTextureFromFile("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
 
 	// 렌더러 초기화
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND());
 	m_renderer->OnInit();
+	m_renderer.get()->LoadTexture("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
 
 	/// 로드된 매쉬중 원하는 메쉬를 이름으로 골라서
 	/// 그래픽스 리소스를 생성합니다.
 	std::hash<std::string> hasher;
 	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(hasher("Ch03"))); // 첫번째 메쉬를 가져와서 리소스 생성
+	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(hasher("chr629_0"))); // 첫번째 메쉬를 가져와서 리소스 생성
+	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(hasher("chr629_1"))); // 첫번째 메쉬를 가져와서 리소스 생성
 	m_renderer->CopyUploadHeapToDefault();
 
 	//// 에디터 초기화
@@ -91,6 +96,7 @@ void GOE::Engine::Release(){}
 
 void GOE::Engine::DebugUpdate()
 {
+	m_sceneManager.get()->DebugUpdate();
 	DebugManager::GetInstance().OnDebugUpdate();
 }
 

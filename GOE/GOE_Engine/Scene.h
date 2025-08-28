@@ -43,8 +43,8 @@ public:
 
 	void Release();
 
-	void InputUpdate();
 	void DebugUpdate();
+	void InputUpdate();
 
 public:
 	inline const EntityManager* GetEntityManager() const { return m_entityManager.get(); }

@@ -23,6 +23,7 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="D3DMath.h" />
+    <ClInclude Include="DirectXTex.h" />
     <ClInclude Include="GOERenderer.h" />
     <ClInclude Include="MeshResource.h" />
     <ClInclude Include="ModelResource.h" />
@@ -30,6 +31,7 @@
     <ClInclude Include="ID3DRenderer.h" />
     <ClInclude Include="Kuramon.h" />
     <ClInclude Include="RenderObject.h" />
+    <ClInclude Include="TextureResource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
@@ -45,8 +47,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="RenderObject.cpp" />
+    <ClCompile Include="TextureResource.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="DirectXTex.inl" />
     <None Include="packages.config" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -108,16 +112,16 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SolutionDir)lib</OutDir>
+    <OutDir>$(SolutionDir)lib\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)lib</OutDir>
+    <OutDir>$(SolutionDir)lib\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)lib</OutDir>
+    <OutDir>$(SolutionDir)lib\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SolutionDir)lib</OutDir>
+    <OutDir>$(SolutionDir)lib\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -144,7 +148,8 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
 </Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;DirectXdTex.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -176,7 +181,8 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
 </Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;DirectXTex.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -196,7 +202,8 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;DirectXdTex.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <FxCompile>
       <ShaderModel>5.0</ShaderModel>
@@ -236,7 +243,8 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
 </Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;d3dcompiler.lib</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d12.lib;d3dcompiler.lib;DirectXTex.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

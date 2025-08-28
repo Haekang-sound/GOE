@@ -34,6 +34,7 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Node.h" />
+    <ClInclude Include="Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
@@ -49,5 +50,6 @@
       <Filter>00_Sources</Filter>
     </ClCompile>
     <ClCompile Include="Node.cpp" />
+    <ClCompile Include="Texture.cpp" />
   </ItemGroup>
 </Project>

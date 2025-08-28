@@ -1,39 +1,45 @@
-#include "Engine_pch.h"
+ï»¿#include "Engine_pch.h"
 #include "MovementSystem.h"
 
 #include "Scene.h"
 #include "Transform.h"
 #include "MovementUnit.h"
 
+#include "../GOE_Editor/DebugManager.h"
+#include "../Imgui/imgui.h"
+
 void MovementSystem::Initialize()
 {
 }
 
-void MovementSystem::Update()
+void MovementSystem::Update(double dTime)
 {
 	
-	/// Æ®·£½ºÆûÄÄÆ÷³ÍÆ®¸¦ °¡Á®¿Í¼­ ÀÌÇÏ ¾÷µ¥ÀÌÆ®¸¦ ÁøÇàÇÑ´Ù.
-	// Æ®·£½ºÆû ÄÄÆ÷³ÍÆ®¸¦ ¾î¶»°Ô °¡Á®¿ÀÁö?? 
+	/// íŠ¸ëœìŠ¤í¼ì»´í¬ë„ŒíŠ¸ë¥¼ ê°€ì ¸ì™€ì„œ ì´í•˜ ì—…ë°ì´íŠ¸ë¥¼ ì§„í–‰í•œë‹¤.
+	// íŠ¸ëœìŠ¤í¼ ì»´í¬ë„ŒíŠ¸ë¥¼ ì–´ë–»ê²Œ ê°€ì ¸ì˜¤ì§€?? 
 	for (const auto& movementunit : GetScene()->GetMovementUnitManager()->GetComponents())
-	{				// ÀÌµ¿°¡´ÉÇÑ ÄÄÆ÷³ÍÆ®¸¸ ¾÷µ¥ÀÌÆ®
+	{				// ì´ë™ê°€ëŠ¥í•œ ì»´í¬ë„ŒíŠ¸ë§Œ ì—…ë°ì´íŠ¸
 		if (movementunit.IsMoveable())
 		{
+			if (GetAsyncKeyState('N') & 0x8000)	m_moveSpeed -= 0.1f;
+			if (GetAsyncKeyState('M') & 0x8000)	m_moveSpeed += 0.1f;
+
 			auto& transform = GetScene()->GetTransformManager()->GetComponentByOwner(movementunit.GetOwner());
 
-			/// ±âÀúº¤ÅÍ¸¦ »Ì´Â ±â´ÉÀ» Æ®·£½ºÆû¿¡ ¸¸µéÀÚ
+			/// ê¸°ì €ë²¡í„°ë¥¼ ë½‘ëŠ” ê¸°ëŠ¥ì„ íŠ¸ëœìŠ¤í¼ì— ë§Œë“¤ì
 			GOE::FLoatVector4 right = transform.GetRightVector();
 			GOE::FLoatVector4 up = transform.GetUpVector();
 			GOE::FLoatVector4 forward = transform.GetForwardVector();
 
-			// Ä«¸Ş¶ó ÀÌµ¿
+			// ì¹´ë©”ë¼ ì´ë™
 			GOE::FLoatVector4 pos = { 0,0,0,0 };
-			if (GetAsyncKeyState(VK_UP) & 0x8000)	pos += forward * m_moveSpeed;
-			if (GetAsyncKeyState(VK_LEFT) & 0x8000)	pos -= right * m_moveSpeed;
-			if (GetAsyncKeyState(VK_DOWN) & 0x8000)	pos -= forward * m_moveSpeed;
-			if (GetAsyncKeyState(VK_RIGHT) & 0x8000)pos += right * m_moveSpeed;
+			if (GetAsyncKeyState(VK_UP) & 0x8000)	pos += forward	* m_moveSpeed*dTime;
+			if (GetAsyncKeyState(VK_LEFT) & 0x8000)	pos -= right	* m_moveSpeed*dTime;
+			if (GetAsyncKeyState(VK_DOWN) & 0x8000)	pos -= forward	* m_moveSpeed*dTime;
+			if (GetAsyncKeyState(VK_RIGHT) & 0x8000)pos += right	* m_moveSpeed*dTime;
 
-			/// ÀÌ°Å´Â Æ®·£½ºÆû ¾È¿¡¼­ ÇØµµ µÉµí? 
-			// (1) °¢ º¯È¯À» XMMATRIX·Î »ı¼º
+			/// ì´ê±°ëŠ” íŠ¸ëœìŠ¤í¼ ì•ˆì—ì„œ í•´ë„ ë ë“¯? 
+			// (1) ê° ë³€í™˜ì„ XMMATRIXë¡œ ìƒì„±
 			GOE::Matrix4x4 S ={};
 			GOE::Matrix4x4 R ={};
 			GOE::Matrix4x4 T = {};
@@ -42,11 +48,26 @@ void MovementSystem::Update()
 			 R = GOE::Matrix4x4::Identity();
 			 T = GOE::Matrix4x4::Translation(pos.x, pos.y, pos.z);
 
-			// (2) ÇÕ¼º
+			// (2) í•©ì„±
 			GOE::Matrix4x4 srt = S * R * T;
 
-			/// Æ®·£½ºÆû¿¡ Àû¿ë
+			/// íŠ¸ëœìŠ¤í¼ì— ì ìš©
 			transform.SetLocalTM(transform.GetLocalTM() * srt);
 		}
 	}
+}
+
+void MovementSystem::DebugUpdate(double dTime)
+{
+	DebugManager::GetInstance().PushDebugData(
+		[this]()
+		{
+			ImGui::Begin("ì¿ ë¼ëª¬!");
+			ImGui::Text("ì¡°ì‘ë²• : â†â†‘â†“â†’, [N,M]");
+			
+			ImGui::Text("ì´ë™ì†ë„ : % .2f", m_moveSpeed);
+
+			ImGui::End();
+		});
+
 }

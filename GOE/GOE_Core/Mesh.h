@@ -15,7 +15,6 @@ class Mesh
 	public:
 	Mesh(const std::string name, size_t id)
 		: m_name(name), m_id(id){}
-
 	~Mesh();
 
 public:

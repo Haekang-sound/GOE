@@ -51,5 +51,5 @@ void SceneManager::InputUpdate()
 
 void SceneManager::DebugUpdate()
 {
-
+	currentScene.get()->DebugUpdate();
 }

@@ -31,7 +31,11 @@ public:
 	inline void SetLocalTM(GOE::Matrix4x4 TM) { m_localTM = TM; }
 	inline void SetParentTM(GOE::Matrix4x4 TM) { m_parentTM = TM; }
 
-	inline void SetScaleTM(GOE::FLoatVector3 v) { m_scale = v; }
+	inline void SetScaleTM(GOE::FLoatVector3 v) 
+	{
+		GOE::Matrix4x4 scaleTM = GOE::Matrix4x4::Scaling(v.x, v.y, v.z);
+		m_localTM *= scaleTM;		
+	}
 	inline void SetRotationTM(GOE::FLoatVector3 v) { m_rotation = v; }
 	inline void SetPositionTM(GOE::FLoatVector3 v) { m_position = v; }
 

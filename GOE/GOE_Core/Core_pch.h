@@ -23,6 +23,7 @@
 #include "Model.h"
 #include "Mesh.h"
 #include "Node.h"
+#include "Texture.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;

@@ -49,14 +49,15 @@ public:
 	void EndRender() override;
 	void OnDestroy() override;
 
-
 public:
+	void LoadTexture(std::string filepath) override;
 	void CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes) override;
 	void CreateOneMeshResource(const Mesh* core_mesh) override;
 	void CopyUploadHeapToDefault() override;
 	UIInitInfo* GetUIInfo() override;
 	UILoopInfo* GetUILoopInfo() override;
 	void AddRenderObejct(RenderObjectData& data) override;
+
 
 public:
 	std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() override { return m_renderObjects; }
@@ -115,6 +116,15 @@ public:
 		RenderObject* render_object,
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
 
+/// <summary>
+///  텍스처 관련리소스를 사용하기위한 임시보관소
+/// </summary>
+public:
+	ComPtr<ID3D12Resource> textureDefault = nullptr;
+	ComPtr<ID3D12Resource> textureUpload = nullptr;
+	ComPtr<ID3D12DescriptorHeap> textureheap = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
+
 private:
 	std::unordered_map<size_t, std::unique_ptr<MeshResource>> m_meshResources;
 	/// <summary>
@@ -157,14 +167,13 @@ private:
 	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
 	ComPtr<ID3DBlob> m_vertexShader = nullptr;
 	ComPtr<ID3DBlob> m_pixelShader = nullptr;
-	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[2] = {};
+	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[3] = {};
 	ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
 	ComPtr<ID3D12GraphicsCommandList> m_commandList = nullptr;
 	HANDLE m_fenceEvent = nullptr;
 	ComPtr<ID3D12Fence> m_fence = nullptr;
 	// 프레임마다 동기화를 위한 fece값을 갖는다.
 	UINT64 m_fenceValue = 0;
-
 
 	/// <summary>
 	/// imgui를 위한 디스크립터힙

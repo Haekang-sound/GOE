@@ -8,7 +8,6 @@ namespace GOE
 
 class AssetLoader;
 
-
 /// <summary>
 /// 에셋을 불러오기위한 전초기지
 /// 
@@ -22,7 +21,9 @@ public:
 
 public:
 	void CreateAssetLoader();
-	void LoadModel(const std::string& filePath);
+	bool LoadModel(const std::string& filePath);
+	bool LoadTextureFromFile(const std::string& filePath);
+
 	const std::unordered_map<std::size_t, std::unique_ptr<Model>>& GetModels() const;
 	const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& GetMeshes() const;
 	const Mesh* GetMesh(size_t id);

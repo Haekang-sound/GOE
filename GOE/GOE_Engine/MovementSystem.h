@@ -11,9 +11,10 @@ public:
 
 public:
 	void Initialize() override;
-	void Update() override;
-
+	void Update(double dTime) override;
+	void DebugUpdate(double dTime) override;
+	
 private:
-	float m_moveSpeed = 10; // 이동 속도
+	float m_moveSpeed = 0.5; // 이동 속도
 };
 

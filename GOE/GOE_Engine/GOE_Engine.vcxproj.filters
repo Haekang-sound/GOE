@@ -51,9 +51,15 @@
     <ClInclude Include="RenderSystem.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="MovementUnit.h" />
-    <ClInclude Include="TransfromSystem.h" />
-    <ClInclude Include="MovementSystem.h" />
+    <ClInclude Include="MovementSystem.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementUnit.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TransfromSystem.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -83,8 +89,14 @@
     <ClCompile Include="RenderSystem.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
-    <ClCompile Include="MovementUnit.cpp" />
-    <ClCompile Include="TransfromSystem.cpp" />
-    <ClCompile Include="MovementSystem.cpp" />
+    <ClCompile Include="MovementSystem.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="MovementUnit.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TransfromSystem.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

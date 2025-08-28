@@ -42,6 +42,10 @@
     <ClInclude Include="RenderObject.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
+    <ClInclude Include="TextureResource.h" />
+    <ClInclude Include="DirectXTex.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GOERenderer.cpp">
@@ -68,8 +72,12 @@
     <ClCompile Include="RenderObject.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
+    <ClCompile Include="TextureResource.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="DirectXTex.inl">
+      <Filter>Common</Filter>
+    </None>
   </ItemGroup>
 </Project>
