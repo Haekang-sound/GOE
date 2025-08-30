@@ -1,6 +1,8 @@
 ﻿#include "Renderer_pch.h"
 #include "GOERenderer.h"
-
+#if defined(_DEBUG)
+	#include "PIX.h"
+#endif
 #include <d3dx12/d3dx12.h>
 #include "DirectXTex.h"	
 #include "Camera.h" 
@@ -161,10 +163,16 @@ void GOERenderer::OnRender()
 
 		/// 콘스탄트 버퍼의 관한 문제는 고유자원을 기준으로 랜더할때 해결될것
 		m_commandList->SetGraphicsRootConstantBufferView(0, renderObject.get()->GetCB()->GetGPUVirtualAddress());
+		
+		// 디스크립터 힙 바인딩
+		ID3D12DescriptorHeap* ppHeaps[] = { textureheap.Get() };
+		m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+		CD3DX12_GPU_DESCRIPTOR_HANDLE srvgHandle(textureheap->GetGPUDescriptorHandleForHeapStart());
+		m_commandList->SetGraphicsRootDescriptorTable(1, srvgHandle);
 
 		// 7. 그리기 명령
-		UINT64 indexCount = m_meshResources[renderObject->GetMeshID()].get()->GetIndexCount();
-		m_commandList->DrawIndexedInstanced(indexCount, 1, 0, 0, 0);
+		m_commandList->DrawIndexedInstanced(m_meshResources[renderObject->GetMeshID()].get()->GetIndexCount(), 1, 0, 0, 0);
 	}
 	// 6. 그리기 전 세팅
 	m_cube->OnRender(m_commandList.Get());
@@ -280,6 +288,14 @@ void GOERenderer::SetViewport()
 void GOERenderer::LoadPipeline()
 {
 #if defined(_DEBUG)
+	GetLatestWinPixGpuCapturerPath_Cpp17();
+	// Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
+	// This may happen if the application is launched through the PIX UI. 
+	if (GetModuleHandle(L"WinPixGpuCapturer.dll") == 0)
+	{
+		LoadLibrary(L"C:\\Program Files\\Microsoft PIX\\2505.30\\WinPixGpuCapturer.dll");
+	}
+
 	ActiveDebugLayer(true);
 #endif
 
@@ -639,19 +655,50 @@ void GOERenderer::CreateRootSignature()
 	// pStaticSamplers : 정적 샘플러 배열
 	// Flags : 루트 시그니처의 플래그를 지정합니다.
 
+	D3D12_DESCRIPTOR_RANGE descriptorRanges[1];
+	descriptorRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descriptorRanges[0].NumDescriptors = 1;    // 텍스처 1개
+	descriptorRanges[0].BaseShaderRegister = 0;    // 셰이더의 t0 레지스터에 바인딩
+	descriptorRanges[0].RegisterSpace = 0;
+	descriptorRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+
 	// D3D12_ROOT_PARAMETER
 	// : 루트 시그니처의 파라미터를 정의하는 구조체입니다.
-	D3D12_ROOT_PARAMETER rootParameters[1] = {};
+	D3D12_ROOT_PARAMETER rootParameters[2] = {};
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;	// Constant Buffer View
 	rootParameters[0].Descriptor.ShaderRegister = 0; // b0				// 셰이더 레지스터 번호
 	rootParameters[0].Descriptor.RegisterSpace = 0;						// 레지스터 스페이스 번호
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;	// 셰이더 가시성
 
+	// 텍스처
+	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[1].DescriptorTable.NumDescriptorRanges = 1;				// 디스크립터 레인지 개수
+	rootParameters[1].DescriptorTable.pDescriptorRanges = descriptorRanges;
+	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;	// 셰이더 가시성
+
+	D3D12_STATIC_SAMPLER_DESC sampler = {};
+	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	sampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	sampler.MipLODBias = 0;
+	sampler.MaxAnisotropy = 0;
+	sampler.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
+	sampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+	sampler.MinLOD = 0.0f;
+	sampler.MaxLOD = D3D12_FLOAT32_MAX;
+	sampler.ShaderRegister = 0; // s0
+	sampler.RegisterSpace = 0;
+	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+
+
+
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
-	rootSignatureDesc.NumParameters = 1;
+	rootSignatureDesc.NumParameters = 2;
 	rootSignatureDesc.pParameters = rootParameters;
-	rootSignatureDesc.NumStaticSamplers = 0;
-	rootSignatureDesc.pStaticSamplers = nullptr;
+	rootSignatureDesc.NumStaticSamplers = 1;
+	rootSignatureDesc.pStaticSamplers = &sampler;
 	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
 	ComPtr<ID3DBlob> signature;
@@ -678,7 +725,8 @@ void GOERenderer::CompileShaders()
 
 	// D3DCompileFromFile()
 	// : 파일에서 셰이더를 컴파일합니다.	
-	ThrowIfFailed(D3DCompileFromFile(
+	ComPtr<ID3DBlob> errorBlob = nullptr;
+	HRESULT hr = D3DCompileFromFile(
 		L"..\\Shader\\shader_ps.hlsl",	// pFileName	: 셰이더 파일 경로입니다.
 		nullptr,		// pDefines		: 셰이더 컴파일 시 사용할 #define 매크로 목록
 		nullptr,		// pInclude		: 셰이더 코드 안에서 #include "..." 구문 처리할 때 사용하는 콜백 함수 포인터
@@ -687,10 +735,16 @@ void GOERenderer::CompileShaders()
 		compileFlags,	// pFlags1		: 컴파일 플래그입니다. 예: D3DCOMPILE_DEBUG, D3DCOMPILE_SKIP_OPTIMIZATION 등
 		0,				// pFlags2		: 추가 플래그 (거의 안 씀, 항상 0으로 두면 됨)
 		&m_pixelShader,	// ppCode		: 컴파일된 결과(바이너리 셰이더 코드)를 받을 포인터(ID3DBlob**)
-		nullptr));		// ppErrorMsgs	: 컴파일 에러, 경고 메시지를 받을 포인터(ID3DBlob**)
-
-	ComPtr<ID3DBlob> errorBlob = nullptr;
-	HRESULT hr = D3DCompileFromFile(
+		&errorBlob);		// ppErrorMsgs	: 컴파일 에러, 경고 메시지를 받을 포인터(ID3DBlob**)
+	if (FAILED(hr))
+	{
+		if (errorBlob)
+		{
+			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+		}
+		ThrowIfFailed(hr);
+	}
+	hr = D3DCompileFromFile(
 		L"..\\Shader\\shader_vs.hlsl",
 		nullptr,
 		nullptr,
@@ -722,15 +776,26 @@ void GOERenderer::CompileShaders()
 		0,								// AlignedByteOffset	: 이 데이터가 구조체 내에서 몇 바이트 떨어져 있는지 오프셋
 		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, // InputSlotClass : 정점 데이터냐, 인스턴스 데이터냐 구분
 		0								// InstanceDataStepRate	: 인스턴스 데이터 단계 속도입니다. 인스턴스 데이터의 경우, 몇 번 정점마다 값을 갱신할지.
-
-
 	};
 	m_inputElementDescs[0] = iaDesc;
-	iaDesc = { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	iaDesc = { "COLOR",
+		0,
+		DXGI_FORMAT_R32G32B32A32_FLOAT,
+		0,
+		D3D12_APPEND_ALIGNED_ELEMENT,// 앞에거 바로뒤에 온다는 뜻
+		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+		0 };
 	m_inputElementDescs[1] = iaDesc;
 
 	// 텍스처 좌표를 위한 입력 레이아웃 정의
-	iaDesc = { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 28, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	iaDesc = { 
+		"TEXCOORD",
+		0,
+		DXGI_FORMAT_R32G32_FLOAT,
+		0,
+		D3D12_APPEND_ALIGNED_ELEMENT,
+		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+		0 };
 	m_inputElementDescs[2] = iaDesc;
 }
 
@@ -1044,6 +1109,11 @@ void GOERenderer::LoadTexture(std::string filepath)
 	subresourceData.pData = data.GetPixels();
 	subresourceData.RowPitch = data.GetImage(0, 0, 0)->rowPitch;
 	subresourceData.SlicePitch = data.GetImage(0, 0, 0)->slicePitch;
+
+
+	m_commandAllocator->Reset();
+	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
+	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
 
 	// 내부적으로 map과 unmap을 호출합니다.
 	// 커맨드 리스트에 복사 명령을 기록합니다.

@@ -27,6 +27,7 @@
     <ClInclude Include="GOERenderer.h" />
     <ClInclude Include="MeshResource.h" />
     <ClInclude Include="ModelResource.h" />
+    <ClInclude Include="PIX.h" />
     <ClInclude Include="Renderer_pch.h" />
     <ClInclude Include="ID3DRenderer.h" />
     <ClInclude Include="Kuramon.h" />

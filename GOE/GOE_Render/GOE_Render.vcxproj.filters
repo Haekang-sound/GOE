@@ -46,6 +46,9 @@
     <ClInclude Include="DirectXTex.h">
       <Filter>Common</Filter>
     </ClInclude>
+    <ClInclude Include="PIX.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GOERenderer.cpp">
