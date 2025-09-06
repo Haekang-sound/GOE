@@ -11,6 +11,9 @@
 #include "TextureResource.h"
 #include "RenderObject.h"
 
+#include "dxcapi.h"
+
+
 /// <summary>
 /// GOERenderer의 생성자
 /// 
@@ -410,7 +413,6 @@ void GOERenderer::CreateDXGIFactory()
 	));
 }
 
-
 /// <summary>
 /// 하드웨어	어뎁터를 얻어옵니다.
 /// 
@@ -750,61 +752,115 @@ void GOERenderer::CreateRootSignature()
 }
 
 /// <summary>
+/// DXC를 이용한 셰이더 컴파일 함수
+/// </summary>
+/// <param name="fileName">파일경로</param>
+/// <param name="entryPoint">엔트리포인트 이름</param>
+/// <param name="targetProfile">셰이더 버전</param>
+/// <param name="ppShaderBlob">저장 위치</param>
+/// <returns></returns>
+HRESULT GOERenderer::CompileShaderFromFile(
+	const WCHAR* fileName,
+	const WCHAR* entryPoint,
+	const WCHAR* targetProfile,
+	ID3DBlob** ppShaderBlob)
+{
+	// ComPtr<IDxcUtils> pUtils는 DXC(DirectX Shader Compiler)를 사용할 때 필요한 여러 가지 편의 기능(유틸리티)을 제공하는 헬퍼(Helper) 객체입니다.
+	// 주요 역할은 크게 두 가지입니다 :
+	// 셰이더 파일 로드 : 파일 시스템에서.hlsl 같은 셰이더 파일을 직접 읽어옵니다.
+	// 메모리에서 Blob 객체 생성 : 이미 메모리에 있는 문자열로부터 셰이더 소스 코드 객체(Blob)를 만듭니다.
+	ComPtr<IDxcUtils> pUtils;
+	ComPtr<IDxcCompiler3> pCompiler;
+	DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(pUtils.GetAddressOf()));
+	DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(pCompiler.GetAddressOf()));
+
+	ComPtr<IDxcBlobEncoding> pSource;
+	// 경로를 받아서 해당파일을 읽어서 컴파일러가 읽을 수 있는 자료형으로 변환시켜 줍니다.
+	HRESULT hr = pUtils->LoadFile(fileName, nullptr, pSource.GetAddressOf());
+	if (FAILED(hr))
+	{
+		// 파일 로드 실패 시 디버그 메시지 출력
+		OutputDebugStringW(L"Failed to load shader file: ");
+		OutputDebugStringW(fileName);
+		OutputDebugStringW(L"\n");
+		return hr;
+	}
+
+	// 컴파일 옵션 설정 
+	std::vector<LPCWSTR> arguments;
+	arguments.push_back(L"-E");
+	arguments.push_back(entryPoint);
+	arguments.push_back(L"-T");
+	arguments.push_back(targetProfile);
+
+#if defined(_DEBUG)
+	arguments.push_back(DXC_ARG_DEBUG);
+	arguments.push_back(L"-Od");
+#else
+	arguments.push_back(L"-O3");
+	arguments.push_back(L"-Qstrip_reflect");
+#endif
+
+	arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS);
+
+	DxcBuffer sourceBuffer;
+	sourceBuffer.Ptr = pSource->GetBufferPointer();
+	sourceBuffer.Size = pSource->GetBufferSize();
+	sourceBuffer.Encoding = 0;
+
+	ComPtr<IDxcResult> pResult;
+	hr = pCompiler->Compile(
+		&sourceBuffer,
+		arguments.data(),
+		static_cast<UINT32>(arguments.size()),
+		nullptr,
+		IID_PPV_ARGS(pResult.GetAddressOf())
+	);
+
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	ComPtr<IDxcBlobUtf8> pErrors;
+	pResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
+	if (pErrors != nullptr && pErrors->GetStringLength() > 0)
+	{
+		OutputDebugStringA(pErrors->GetStringPointer());
+	}
+
+	// 컴파일 성공 시 셰이더 바이트코드 반환
+	pResult->GetStatus(&hr);
+	if (SUCCEEDED(hr))
+	{
+		pResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(reinterpret_cast<IDxcBlob**>(ppShaderBlob)), nullptr);
+	}
+
+	return hr;
+}
+
+/// <summary>
 /// 경로를 지정하여 셰이더를 컴파일합니다.
 /// 
 /// </summary>
 /// <returns></returns>
 void GOERenderer::CompileShaders()
 {
-#if defined(_DEBUG)
-	// 	D3DCOMPILE_DEBUG 플래그를 사용하여 디버그 정보를 포함합니다.
-	// 	D3DCOMPILE_SKIP_OPTIMIZATION 플래그를 사용하여 최적화를 건너뜁니다.
-	UINT compileFlags = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#else
-	UINT compileFlags = 0;
-#endif
+	// 픽셀 셰이더 컴파일
+	ThrowIfFailed(CompileShaderFromFile(
+		L"..\\Shader\\shader_ps.hlsl",
+		L"PSMain",
+		L"ps_6_0", // 셰이더 모델 6.0 이상 권장
+		m_pixelShader.GetAddressOf()
+	));
 
-	// D3DCompileFromFile()
-	// : 파일에서 셰이더를 컴파일합니다.	
-	ComPtr<ID3DBlob> errorBlob = nullptr;
-	HRESULT hr = D3DCompileFromFile(
-		L"..\\Shader\\shader_ps.hlsl",	// pFileName	: 셰이더 파일 경로입니다.
-		nullptr,		// pDefines		: 셰이더 컴파일 시 사용할 #define 매크로 목록
-		nullptr,		// pInclude		: 셰이더 코드 안에서 #include "..." 구문 처리할 때 사용하는 콜백 함수 포인터
-		"PSMain",		// pEntrypoint	: HLSL 내에서 실행시킬 메인 함수 이름
-		"ps_5_0",		// pTarget		: 컴파일 대상 셰이더 타입 및 버전 지정 문자열 ex) "vs_5_0" : 버텍스 셰이더 5.0
-		compileFlags,	// pFlags1		: 컴파일 플래그입니다. 예: D3DCOMPILE_DEBUG, D3DCOMPILE_SKIP_OPTIMIZATION 등
-		0,				// pFlags2		: 추가 플래그 (거의 안 씀, 항상 0으로 두면 됨)
-		&m_pixelShader,	// ppCode		: 컴파일된 결과(바이너리 셰이더 코드)를 받을 포인터(ID3DBlob**)
-		&errorBlob);		// ppErrorMsgs	: 컴파일 에러, 경고 메시지를 받을 포인터(ID3DBlob**)
-	if (FAILED(hr))
-	{
-		if (errorBlob)
-		{
-			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-		}
-		ThrowIfFailed(hr);
-	}
-	hr = D3DCompileFromFile(
+	// 버텍스 셰이더 컴파일
+	ThrowIfFailed(CompileShaderFromFile(
 		L"..\\Shader\\shader_vs.hlsl",
-		nullptr,
-		nullptr,
-		"VSMain",
-		"vs_5_0",
-		compileFlags,
-		0,
-		&m_vertexShader,
-		&errorBlob);
-
-	if (FAILED(hr))
-	{
-		if (errorBlob)
-		{
-			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-		}
-		ThrowIfFailed(hr);
-	}
-
+		L"VSMain",
+		L"vs_6_0", // 셰이더 모델 6.0 이상 권장
+		m_vertexShader.GetAddressOf()
+	));
 
 	// D3D12_INPUT_ELEMENT_DESC
 	// : 입력 어셈블러 단계에서 사용되는 입력 레이아웃을 정의합니다.

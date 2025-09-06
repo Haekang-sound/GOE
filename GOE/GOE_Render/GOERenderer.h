@@ -126,6 +126,12 @@ public:
 	ComPtr<ID3D12DescriptorHeap> textureheap = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;*/
 
+	HRESULT CompileShaderFromFile(
+		const WCHAR* fileName,
+		const WCHAR* entryPoint,
+		const WCHAR* targetProfile,
+		ID3DBlob** ppShaderBlob);
+
 
 /// <summary>
 ///  텍스처가 이상하게 나오는 원인이라고 생각되는 뎁스스텐실
