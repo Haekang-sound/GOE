@@ -24,6 +24,7 @@ class UIInitInfo;
 class UILoopInfo;
 class ModelResource;
 class MeshResource;
+class TextureResource;
 class RenderObject;
 
 /// <summary>
@@ -120,13 +121,21 @@ public:
 ///  텍스처 관련리소스를 사용하기위한 임시보관소
 /// </summary>
 public:
-	ComPtr<ID3D12Resource> textureDefault = nullptr;
+	/*ComPtr<ID3D12Resource> textureDefault = nullptr;
 	ComPtr<ID3D12Resource> textureUpload = nullptr;
 	ComPtr<ID3D12DescriptorHeap> textureheap = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;*/
+
+
+/// <summary>
+///  텍스처가 이상하게 나오는 원인이라고 생각되는 뎁스스텐실
+/// </summary>
+	ComPtr<ID3D12Resource> m_depthStencilBuffer;
+	ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
 
 private:
 	std::unordered_map<size_t, std::unique_ptr<MeshResource>> m_meshResources;
+	std::unordered_map<size_t, std::unique_ptr<TextureResource>> m_textureResources;
 	/// <summary>
 	/// 인스턴싱 단계에서 
 	/// 랜더오브젝트 벡터는 깊은 고민이 필요할것이다.

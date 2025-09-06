@@ -15,8 +15,6 @@ float4 PSMain(PSInput input) : SV_TARGET
 {
     // 텍스처와 샘플러를 사용해 uv 좌표에 해당하는 색상을 가져옴
     float4 textureColor = txDiffuse.Sample(samLinear, input.uv);
-    //float4 textureColor = { 1, 1, 1, 1 };
-
-    // 정점 색상과 텍스처 색상을 곱하여 최종 색상 결정 (다양한 조합 가능)
-    return textureColor;// * input.color;
+    
+    return textureColor * input.color;
 }

@@ -27,6 +27,7 @@
     <ClInclude Include="IComponentManager.h" />
     <ClInclude Include="IEngine.h" />
     <ClInclude Include="ISystem.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="MeshRenderer.h" />
     <ClInclude Include="MovementSystem.h" />
     <ClInclude Include="MovementUnit.h" />
@@ -46,6 +47,7 @@
     </ClCompile>
     <ClCompile Include="Entity.cpp" />
     <ClCompile Include="EntityManager.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="MeshRenderer.cpp" />
     <ClCompile Include="MovementSystem.cpp" />
     <ClCompile Include="MovementUnit.cpp" />

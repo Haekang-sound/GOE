@@ -26,6 +26,7 @@ struct RenderObjectData
 	size_t meshID;
 	size_t meshIndex;
 	size_t modelID;
+	size_t textureID;
 	GOE::Matrix4x4 localTM;
 };
 

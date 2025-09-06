@@ -8,6 +8,7 @@
 #include "Camera.h" 
 #include "Cube.h"
 #include "MeshResource.h"
+#include "TextureResource.h"
 #include "RenderObject.h"
 
 /// <summary>
@@ -132,15 +133,20 @@ void GOERenderer::BeginRender()
 		// 현재 그릴 렌더타겟(BackBuffer)의 상태를 “화면에 표시(PRESENT)” → “렌더링(RTT)” 상태로 전환
 	m_commandList->ResourceBarrier(1, &barrier);
 
-	// 4. 렌더 타겟 뷰 바인딩
+	/// 4. 렌더 타겟 뷰 바인딩 + DSV 핸들 추가 
+	/// 드라마틱 한 변화이기 때문에 반드시 정리하자 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
 	rtvHandle.ptr += m_frameIndex * m_rtvDescriptorSize;
+	
+	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
+
 	// Output Merger(최종 출력단)에 "이 렌더타겟에 그려라" 지정.
-	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
+	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle); // DSV 핸들 추가
 
 	// 5. 렌더 타겟 클리어(색상 초기화)
 	const float clearColor[] = { .7f, .7f, .5f, 1.0f };
 	m_commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
+	m_commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr); // 깊이 버퍼 클리어
 }
 
 /// <summary>
@@ -165,10 +171,11 @@ void GOERenderer::OnRender()
 		m_commandList->SetGraphicsRootConstantBufferView(0, renderObject.get()->GetCB()->GetGPUVirtualAddress());
 		
 		// 디스크립터 힙 바인딩
-		ID3D12DescriptorHeap* ppHeaps[] = { textureheap.Get() };
+		std::hash<std::string> hasher;
+		ID3D12DescriptorHeap* ppHeaps[] = { m_textureResources[renderObject.get()->GetTextureID()].get()->GetTextureHeap()};
 		m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvgHandle(textureheap->GetGPUDescriptorHandleForHeapStart());
+		CD3DX12_GPU_DESCRIPTOR_HANDLE srvgHandle(m_textureResources[renderObject.get()->GetTextureID()].get()->GetTextureHeap()->GetGPUDescriptorHandleForHeapStart());
 		m_commandList->SetGraphicsRootDescriptorTable(1, srvgHandle);
 
 		// 7. 그리기 명령
@@ -618,6 +625,40 @@ void GOERenderer::CreateRenderTargets()
 		// 핸들을 이동시켜주지 않으면 같은 주소에 rtv를 덮어쓰게 됩니다.
 		rtvHandle.ptr += m_rtvDescriptorSize;
 	}
+
+	/// 깊이 스텐실 버퍼 생성
+	D3D12_RESOURCE_DESC depthStencilDesc = CD3DX12_RESOURCE_DESC::Tex2D(
+		DXGI_FORMAT_D32_FLOAT,
+		m_width,
+		m_height,
+		1, 0, 1, 0,
+		D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
+	);
+
+	D3D12_CLEAR_VALUE clearValue = {};
+	clearValue.Format = DXGI_FORMAT_D32_FLOAT;
+	clearValue.DepthStencil.Depth = 1.0f;
+	clearValue.DepthStencil.Stencil = 0;
+
+	auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
+	ThrowIfFailed(m_device->CreateCommittedResource(
+		&heapProperties,
+		D3D12_HEAP_FLAG_NONE,
+		&depthStencilDesc,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&clearValue,
+		IID_PPV_ARGS(&m_depthStencilBuffer)
+	));
+
+	// DSV 디스크립터 힙 생성
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+	dsvHeapDesc.NumDescriptors = 1;
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	ThrowIfFailed(m_device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_dsvHeap)));
+
+	// DSV 생성
+	m_device->CreateDepthStencilView(m_depthStencilBuffer.Get(), nullptr, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 /// <summary>
@@ -871,19 +912,28 @@ void GOERenderer::CreatePipelineState()
 	psoDesc.BlendState = blendDesc;					// 블렌드 상태를 설정합니다.<>
 	psoDesc.SampleMask = UINT_MAX;					// 샘플 마스크를 설정합니다. 각 멀티샘플 픽셀(멀티샘플링/MSAA)마다 어떤 샘플에만 쓰기를 허용할지 마스킹, 대부분의 경우 UINT_MAX(모든 샘플에 기록) 사용
 	psoDesc.RasterizerState = rasterizerDesc;		// 래스터라이저 상태를 설정합니다.<>
-	psoDesc.DepthStencilState;						// 뎁스/스텐실 상태 
-	psoDesc.DepthStencilState.DepthEnable = FALSE;
+	//psoDesc.DepthStencilState;						// 뎁스/스텐실 상태 
+	//psoDesc.DepthStencilState.DepthEnable = FALSE;
+	//psoDesc.DepthStencilState.StencilEnable = FALSE;
+	psoDesc.DepthStencilState.DepthEnable = TRUE; // 깊이 테스트 활성화
+	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
+
 	psoDesc.InputLayout = { m_inputElementDescs, _countof(m_inputElementDescs) };	// 입력 레이아웃을 설정합니다. 정점 버퍼에서 셰이더로 보낼 데이터의 포맷/구조(어떤 데이터가 어디에 있는지)
 	psoDesc.IBStripCutValue;														// 인덱스 버퍼 스트립 컷 값, 프리미티브 스트립(예: 삼각형 스트립)에서 "컷"으로 쓸 특별한 인덱스 값(primitive restart)
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;			// 프리미티브 타입(기본 도형 종류)	드로우콜에서 어떤 도형을 그릴지 D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE(삼각형)	D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE(선)
 	psoDesc.NumRenderTargets = 1;						// 동시에 출력할 Render Target 개수
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM; // 렌더 타겟의 포맷을 설정합니다.<>
-	psoDesc.DSVFormat;				// 뎁스 스텐실 버퍼의 포맷을 설정합니다.
+	//psoDesc.DSVFormat;				// 뎁스 스텐실 버퍼의 포맷을 설정합니다.
+	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT; // DSV 포맷 설정
+
 	psoDesc.SampleDesc.Count = 1;	// 샘플링 개수, 멀티샘플링(MSAA) 사용 여부를 결정합니다. 1이면 MSAA 사용 안함, 2 이상이면 MSAA 사용
 	psoDesc.NodeMask;				// 멀티 GPU 시스템에서 파이프라인 상태가 실행될 노드 마스크를 지정합니다. (멀티 GPU 시스템에서만 사용, 단일 GPU 시스템에서는 0)
 	psoDesc.CachedPSO;				// 캐시된 파이프라인 상태 객체(PSO)를 설정합니다. 파이프라인 상태 캐시(빠른 생성, 로딩 지원용)
 	psoDesc.Flags;					// 추가 플래그(특별한 최적화 옵션 등)
+
+	
 
 	/*랜더타겟 포멧 여러번 지정하는 이유
 		텍스처(리소스) 만들 때 포맷 지정
@@ -1059,10 +1109,24 @@ void GOERenderer::LoadTexture(std::string filepath)
 	TexMetadata metadata = {};
 	ScratchImage data;
 
-	DirectX::LoadFromWICFile(
+	HRESULT hr = DirectX::LoadFromWICFile(
 		std::wstring(filepath.begin(), filepath.end()).c_str(),
 		wicFlags, &metadata, data, nullptr);
 
+	ThrowIfFailed(hr);
+
+	/// 해셔와 관련된 내용은 
+	/// 전용 클래스로 대체될 것이기 때문에 
+	/// 굳이 임시변수로 만들어둔다.
+	std::hash<std::string> hasher;
+	std::unique_ptr<TextureResource> textureResource = std::make_unique<TextureResource>(filepath, hasher(filepath));
+
+	ComPtr<ID3D12Resource> textureDefault = nullptr;
+	ComPtr<ID3D12Resource> textureUpload = nullptr;
+	ComPtr<ID3D12DescriptorHeap> textureheap = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
+
+	
 
 	// ScratchImage로부터 얻은 메타데이터로 리소스 속성을 정의합니다.
 	D3D12_RESOURCE_DESC textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(
@@ -1074,7 +1138,7 @@ void GOERenderer::LoadTexture(std::string filepath)
 
 	// --- 2. 디폴트 힙 생성 ---
 	CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-	HRESULT hr = m_device->CreateCommittedResource(
+	hr = m_device->CreateCommittedResource(
 		&defaultHeapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&textureDesc,
@@ -1145,6 +1209,14 @@ void GOERenderer::LoadTexture(std::string filepath)
 	srvDesc.Texture2D.MipLevels = 1;
 
 	m_device->CreateShaderResourceView(textureDefault.Get(), &srvDesc, srvHandle);
+
+	textureResource.get()->SetTextureDefault(std::move(textureDefault));
+	textureResource.get()->SetTextureUpload(std::move(textureUpload));
+	textureResource.get()->SetTextureHeap(std::move(textureheap));
+	textureResource.get()->SetSRVHandle(srvHandle);
+
+	m_textureResources[textureResource.get()->GetID()] = std::move(textureResource);
+
 
 	// --- 7. 커맨드 리스트 실행 및 동기화 ---
 	m_commandList->Close();

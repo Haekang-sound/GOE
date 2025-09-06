@@ -42,12 +42,14 @@
     <ClInclude Include="RenderObject.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="TextureResource.h" />
     <ClInclude Include="DirectXTex.h">
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="PIX.h">
       <Filter>Common</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureResource.h">
+      <Filter>00_Headers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -75,7 +77,9 @@
     <ClCompile Include="RenderObject.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
-    <ClCompile Include="TextureResource.cpp" />
+    <ClCompile Include="TextureResource.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -6,6 +6,7 @@
 
 #include "Transform.h"
 #include "MeshRenderer.h"
+#include "Material.h"
 #include "MovementUnit.h"
 
 #include "RenderSystem.h"
@@ -23,6 +24,7 @@ void Scene::Initialize(GOE::EngineContext* context)
 	m_entityManager = std::make_unique<EntityManager>();
 	m_transformManager = std::make_unique<ComponentManager<Transform>>();
 	m_meshRendererManager = std::make_unique<ComponentManager<MeshRenderer>>();
+	m_materialManager = std::make_unique<ComponentManager<Material>>();
 	m_movementUnitManager = std::make_unique<ComponentManager<MovementUnit>>();
 	// 시스템 생성
 	m_renderSystem = std::make_unique<RenderSystem>(this, context);
@@ -57,7 +59,7 @@ void Scene::Script()
 {
 	{
 		// 엔티티를 만들고
-		m_entityManager.get()->CreateEntity("모델");
+		m_entityManager.get()->CreateEntity("쿠라몬");
 
 		// 트랜스폼은 
 		// 시작위치, 스케일, 회전을 넣을 수 있어야 함
@@ -82,6 +84,13 @@ void Scene::Script()
 		m_meshRendererManager.get()->GetCurrentComponent().SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
 		m_meshRendererManager.get()->GetCurrentComponent().SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
 
+
+		size_t texturePath = hasher("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
+		m_materialManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		m_materialManager.get()->GetCurrentComponent().SetTextureID(texturePath);
+
 		m_movementUnitManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
@@ -89,7 +98,7 @@ void Scene::Script()
 
 	{
 		// 엔티티를 만들고
-		m_entityManager.get()->CreateEntity("모델2");
+		m_entityManager.get()->CreateEntity("믹사모");
 
 		// 트랜스폼은 
 		// 시작위치, 스케일, 회전을 넣을 수 있어야 함
@@ -112,5 +121,11 @@ void Scene::Script()
 		m_meshRendererManager.get()->GetCurrentComponent().SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
 		m_meshRendererManager.get()->GetCurrentComponent().SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
 		m_meshRendererManager.get()->GetCurrentComponent().SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
+
+		size_t texturePath = hasher("D:\\project\\GOE\\GOE\\Assets\\textures\\Ch03_1001_Diffuse.png");
+		m_materialManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		m_materialManager.get()->GetCurrentComponent().SetTextureID(texturePath);
 	}
 }

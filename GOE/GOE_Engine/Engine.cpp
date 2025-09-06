@@ -29,11 +29,12 @@ void GOE::Engine::Initialize()
 	m_assetCore.get()->CreateAssetLoader();
 	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\Ch03_nonPBR.fbx");
 	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
-	m_assetCore.get()->LoadTextureFromFile("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
+	//m_assetCore.get()->LoadTextureFromFile("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
 
 	// 렌더러 초기화
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND());
 	m_renderer->OnInit();
+	m_renderer.get()->LoadTexture("D:\\project\\GOE\\GOE\\Assets\\textures\\Ch03_1001_Diffuse.png");
 	m_renderer.get()->LoadTexture("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
 
 	/// 로드된 매쉬중 원하는 메쉬를 이름으로 골라서

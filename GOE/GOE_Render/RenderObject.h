@@ -25,6 +25,7 @@ public:
 	inline size_t GetMeshID() const { return m_meshID; }
 	inline size_t GetMeshIndex() const { return m_meshIndex; }
 	inline size_t GetModelID() const { return m_modelID; }
+	inline size_t GetTextureID() const { return m_textureID; }
 	inline Graphics::Matrix4x4& GetLocalTM() { return m_localTM; }
 
 	inline bool IsVisible() const { return isVisible; }
@@ -39,6 +40,7 @@ public:
 	inline void SetMeshID(size_t meshID) { m_meshID = meshID; }
 	inline void SetMeshIndex(size_t meshIndex) { m_meshIndex = meshIndex; }
 	inline void SetModelID(size_t modelID) { m_modelID = modelID; }
+	inline void SetTextureID(size_t textureID) { m_textureID = textureID; }
 
 	inline void SetCB(ComPtr<ID3D12Resource>&& uploadBuffer) { m_constantBuffer = std::move(uploadBuffer); }
 	inline void SetCBVHeap(ComPtr<ID3D12DescriptorHeap>&& heap) { m_CBVHeap = std::move(heap); }
@@ -48,8 +50,9 @@ public:
 private:
 	const size_t m_id = 0; // 오브젝트 ID
 	size_t m_meshID = 0; // 메쉬 ID
-	size_t m_meshIndex = 0; // 메쉬 index (추가 필요시 사용)
-	size_t m_modelID = 0; // 모델 ID (추가 필요시 사용)
+	size_t m_meshIndex = 0; // 메쉬 index 
+	size_t m_textureID = 0; // 텍스처 ID 
+	size_t m_modelID = 0; // 모델 ID 
 	Graphics::Matrix4x4 m_localTM;
 
 	std::string m_name = ""; // 오브젝트 이름

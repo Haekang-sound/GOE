@@ -12,6 +12,7 @@ class Entity;
 class EntityManager;
 class Transform;
 class MeshRenderer;
+class Material;
 class MovementUnit;
 
 class RenderSystem;
@@ -53,6 +54,7 @@ public:
 	inline const ComponentManager<MovementUnit>* GetMovementUnitManager() const { return m_movementUnitManager.get(); }
 	inline ComponentManager<Transform>* GetTransformManager() { return m_transformManager.get(); }
 	inline ComponentManager<MeshRenderer>* GetMeshRendererManager() { return m_meshRendererManager.get(); }
+	inline ComponentManager<Material>* GetMaterialManager() { return m_materialManager.get(); }
 	inline ComponentManager<MovementUnit>* GetMovementUnitManager() { return m_movementUnitManager.get(); }
 
 private:
@@ -66,6 +68,7 @@ private:
 	std::unique_ptr<EntityManager> m_entityManager;
 	std::unique_ptr<ComponentManager<Transform>> m_transformManager;
 	std::unique_ptr<ComponentManager<MeshRenderer>> m_meshRendererManager;
+	std::unique_ptr<ComponentManager<Material>> m_materialManager;
 	/// 이동을 한번 만들어볼 예정 이것까지 끝나면 정말 엔진구조는 잠시스탑
 	std::unique_ptr<ComponentManager<MovementUnit>> m_movementUnitManager;
 

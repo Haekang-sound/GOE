@@ -60,6 +60,7 @@
     <ClInclude Include="TransfromSystem.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
+    <ClInclude Include="Material.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -98,5 +99,6 @@
     <ClCompile Include="TransfromSystem.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
+    <ClCompile Include="Material.cpp" />
   </ItemGroup>
 </Project>

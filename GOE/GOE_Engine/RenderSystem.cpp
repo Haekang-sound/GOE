@@ -3,6 +3,7 @@
 #include "Scene.h"
 #include "Transform.h"
 #include "MeshRenderer.h"
+#include "Material.h"
 #include "../GOE_Render/RenderObject.h"
 
 void RenderSystem::Initialize()
@@ -18,6 +19,8 @@ void RenderSystem::Initialize()
 		data->meshID = meshRenderer.GetMeshID();
 		data->meshIndex = meshRenderer.GetMeshIndex();
 		data->modelID = meshRenderer.GetModelID();
+		data->textureID = 
+			GetScene()->GetMaterialManager()->GetComponentByOwner(meshRenderer.GetOwner()).GetTextureID();
 		data->localTM =
 			GetScene()->GetTransformManager()->GetComponentByOwner(meshRenderer.GetOwner()).GetLocalTM();
 
