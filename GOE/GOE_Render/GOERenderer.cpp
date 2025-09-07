@@ -143,7 +143,7 @@ void GOERenderer::BeginRender()
 	
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
 
-	// Output Merger(최종 출력단)에 "이 렌더타겟에 그려라" 지정.
+	// Output Merger(최종 출력단)에 "이 렌더타겟에 그려라" 지정. 
 	m_commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle); // DSV 핸들 추가
 
 	// 5. 렌더 타겟 클리어(색상 초기화)
