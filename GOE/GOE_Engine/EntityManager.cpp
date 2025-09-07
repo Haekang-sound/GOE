@@ -8,7 +8,7 @@ EntityManager::~EntityManager() = default;
 Entity* EntityManager::CreateEntity(std::string name)
 {
 	// 1. 새로운 엔티티를 생성하고 소유권을 unique_ptr로 관리합니다.
-	EntityID newID = m_hasher(name);
+	EntityID newID = GOE::FileManager::GetHash(name);
 	auto pNewEntity = std::make_unique<Entity>(newID, name);
 
 	// 2. 조회용 맵에 ID와 size를 추가합니다.

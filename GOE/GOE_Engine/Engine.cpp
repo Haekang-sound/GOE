@@ -39,10 +39,9 @@ void GOE::Engine::Initialize()
 
 	/// 로드된 매쉬중 원하는 메쉬를 이름으로 골라서
 	/// 그래픽스 리소스를 생성합니다.
-	std::hash<std::string> hasher;
-	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(hasher("Ch03"))); // 첫번째 메쉬를 가져와서 리소스 생성
-	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(hasher("chr629_0"))); // 첫번째 메쉬를 가져와서 리소스 생성
-	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(hasher("chr629_1"))); // 첫번째 메쉬를 가져와서 리소스 생성
+	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("Ch03"))); // 첫번째 메쉬를 가져와서 리소스 생성
+	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_0"))); // 첫번째 메쉬를 가져와서 리소스 생성
+	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_1"))); // 첫번째 메쉬를 가져와서 리소스 생성
 	m_renderer->CopyUploadHeapToDefault();
 
 	//// 에디터 초기화

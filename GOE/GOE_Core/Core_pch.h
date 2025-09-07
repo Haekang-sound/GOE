@@ -18,6 +18,7 @@
 #include <unordered_map>
 
 #include "CoreMath.h"
+#include "FileManager.h"
 
 // ¸ðµ¨Á¤º¸
 #include "Model.h"

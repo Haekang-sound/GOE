@@ -11,7 +11,7 @@ struct PSInput
     float2 uv : TEXCOORD0; // 버텍스 셰이더에서 넘겨준 uv 좌표
 };
 
-float4 PSMain(PSInput input) : SV_TARGET
+float4 Main(PSInput input) : SV_TARGET
 {
     // 텍스처와 샘플러를 사용해 uv 좌표에 해당하는 색상을 가져옴
     float4 textureColor = txDiffuse.Sample(samLinear, input.uv);

@@ -7,7 +7,7 @@ AssetLoader::~AssetLoader() = default; // 소멸자 구현
 bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 {
 	// hasher 객체를 함수처럼 호출하여 filePath의 해시 값을 계산합니다.
-	size_t pathHash = hasher(filePath);
+	size_t pathHash = GOE::FileManager::GetHash(filePath);
 
 	m_models[pathHash] = std::make_unique<Model>(pathHash); // 모델을 해시맵에 추가
 
@@ -58,12 +58,12 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 			
 			// 메쉬 데이터를 처리합니다.
 			/// 진정 메쉬정보는 메쉬랜더러가 갖는게 맞다. 모델은 메쉬와의 관계를 소유한다.
-			m_meshes[hasher(mesh->mName.C_Str())] = ProcessMesh(mesh, scene);
-			m_meshes[hasher(mesh->mName.C_Str())].get()->SetModelID(pathHash); // 메쉬에 모델 ID 설정
-			m_meshes[hasher(mesh->mName.C_Str())].get()->SetMeshIndex(static_cast<std::size_t>(i)); // 메쉬 인덱스 설정
-			m_models[pathHash].get()->AddMeshID(m_meshes[hasher(mesh->mName.C_Str())].get()->GetID());
-			m_models[pathHash].get()->AddMeshToMap(m_meshes[hasher(mesh->mName.C_Str())].get()->GetID(),
-				m_meshes[hasher(mesh->mName.C_Str())].get()->GetMeshIndex());
+			m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())] = ProcessMesh(mesh, scene);
+			m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->SetModelID(pathHash); // 메쉬에 모델 ID 설정
+			m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->SetMeshIndex(static_cast<std::size_t>(i)); // 메쉬 인덱스 설정
+			m_models[pathHash].get()->AddMeshID(m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->GetID());
+			m_models[pathHash].get()->AddMeshToMap(m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->GetID(),
+				m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->GetMeshIndex());
 		}
 	}
 
@@ -73,7 +73,7 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 bool AssetLoader::LoadTextureFromFile(const std::string& filePath)
 {
 	// hasher 객체를 함수처럼 호출하여 filePath의 해시 값을 계산합니다.
-	size_t pathHash = hasher(filePath);
+	size_t pathHash = GOE::FileManager::GetHash(filePath);
 	m_textures[pathHash] = std::make_unique<Texture>(pathHash); // 텍스처를 해시맵에 추가
 	// Assimp를 사용하여 텍스처를 로드합니다.
 	Assimp::Importer importer;
@@ -113,7 +113,7 @@ bool AssetLoader::LoadTextureFromFile(const std::string& filePath)
 					if (material->GetTexture(aiTextureType_DIFFUSE, j, &texturePath) == AI_SUCCESS)
 					{
 						std::string fullPath = filePath + "/" + texturePath.C_Str();
-						m_textures[hasher(fullPath)] = std::make_unique<Texture>(hasher(fullPath));
+						m_textures[GOE::FileManager::GetHash(fullPath)] = std::make_unique<Texture>(GOE::FileManager::GetHash(fullPath));
 					}
 				}
 			}
@@ -129,7 +129,7 @@ bool AssetLoader::LoadTextureFromFile(const std::string& filePath)
 std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node)
 {
 	/// 노드이름을 해쉬로 저장중-> 이걸로 충분한지는 의문
-	std::unique_ptr<Node> currentNode = std::make_unique<Node>(node->mName.C_Str(), hasher(node->mName.C_Str()));
+	std::unique_ptr<Node> currentNode = std::make_unique<Node>(node->mName.C_Str(), GOE::FileManager::GetHash(node->mName.C_Str()));
 	// 노드의 자식 노드를 재귀적으로 처리합니다.
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
@@ -147,7 +147,7 @@ std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node)
 
 std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
-	std::unique_ptr<Mesh> currentMesh = std::make_unique<Mesh>(mesh->mName.C_Str(), hasher(mesh->mName.C_Str()));
+	std::unique_ptr<Mesh> currentMesh = std::make_unique<Mesh>(mesh->mName.C_Str(), GOE::FileManager::GetHash(mesh->mName.C_Str()));
 
 	// 정점(Vertex) 데이터 추출
 	std::unique_ptr<GOE::MeshData> meshData = std::make_unique<GOE::MeshData>();

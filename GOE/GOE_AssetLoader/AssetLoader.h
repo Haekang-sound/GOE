@@ -31,8 +31,8 @@ public:
 public:
 	const Model* GetModel(const std::string hash)
 	{
-		auto it = m_models.find(hasher(hash));
-		if (m_models.find(hasher(hash)) != m_models.end())
+		auto it = m_models.find(GOE::FileManager::GetHash(hash));
+		if (m_models.find(GOE::FileManager::GetHash(hash)) != m_models.end())
 		{
 			return it->second.get(); // 찾았으면 모델의 raw pointer 반환
 		}
@@ -70,8 +70,4 @@ private:
 	///  이제 텍스처를 추가해야한다.
 	/// </summary>
 	std::unordered_map <std::size_t, std::unique_ptr<Texture>> m_textures;
-
-private:
-	// std::string 타입을 해시할 수 있는 hasher 객체를 생성합니다.
-	std::hash<std::string> hasher;
 };

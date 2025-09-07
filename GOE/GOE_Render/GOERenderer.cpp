@@ -174,7 +174,6 @@ void GOERenderer::OnRender()
 		m_commandList->SetGraphicsRootConstantBufferView(0, renderObject.get()->GetCB()->GetGPUVirtualAddress());
 		
 		// 디스크립터 힙 바인딩
-		std::hash<std::string> hasher;
 		ID3D12DescriptorHeap* ppHeaps[] = { m_textureResources[renderObject.get()->GetTextureID()].get()->GetTextureHeap()};
 		m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
@@ -313,8 +312,9 @@ void GOERenderer::LoadPipeline()
 	CreateDevice(GetHardwareAdapter());
 	CreateCommandQueue();
 	CreateSwapChain();
-	CreateDescriptorHeaps();
+	CreateRTVHeap();
 	CreateRenderTargets();
+	CreateDepthStencilBuffer();
 	CreateCommandAllocator();
 }
 
@@ -583,7 +583,7 @@ void GOERenderer::CreateSwapChain()
 /// 
 /// </summary>
 /// <returns></returns>
-void GOERenderer::CreateDescriptorHeaps()
+void GOERenderer::CreateRTVHeap()
 {
 	// D3D12_DESCRIPTOR_HEAP_DESC
 	// : 디스크립터 힙의 속성을 정의하는 구조체입니다.
@@ -628,7 +628,12 @@ void GOERenderer::CreateRenderTargets()
 		rtvHandle.ptr += m_rtvDescriptorSize;
 	}
 
+}
+
+void GOERenderer::CreateDepthStencilBuffer()
+{
 	/// 깊이 스텐실 버퍼 생성
+	// 설명구조체 만들고
 	D3D12_RESOURCE_DESC depthStencilDesc = CD3DX12_RESOURCE_DESC::Tex2D(
 		DXGI_FORMAT_D32_FLOAT,
 		m_width,
@@ -637,6 +642,7 @@ void GOERenderer::CreateRenderTargets()
 		D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
 	);
 
+	// 
 	D3D12_CLEAR_VALUE clearValue = {};
 	clearValue.Format = DXGI_FORMAT_D32_FLOAT;
 	clearValue.DepthStencil.Depth = 1.0f;
@@ -849,7 +855,7 @@ void GOERenderer::CompileShaders()
 	// 픽셀 셰이더 컴파일
 	ThrowIfFailed(CompileShaderFromFile(
 		L"..\\Shader\\shader_ps.hlsl",
-		L"PSMain",
+		L"Main",
 		L"ps_6_0", // 셰이더 모델 6.0 이상 권장
 		m_pixelShader.GetAddressOf()
 	));
@@ -857,7 +863,7 @@ void GOERenderer::CompileShaders()
 	// 버텍스 셰이더 컴파일
 	ThrowIfFailed(CompileShaderFromFile(
 		L"..\\Shader\\shader_vs.hlsl",
-		L"VSMain",
+		L"Main",
 		L"vs_6_0", // 셰이더 모델 6.0 이상 권장
 		m_vertexShader.GetAddressOf()
 	));
@@ -968,12 +974,9 @@ void GOERenderer::CreatePipelineState()
 	psoDesc.BlendState = blendDesc;					// 블렌드 상태를 설정합니다.<>
 	psoDesc.SampleMask = UINT_MAX;					// 샘플 마스크를 설정합니다. 각 멀티샘플 픽셀(멀티샘플링/MSAA)마다 어떤 샘플에만 쓰기를 허용할지 마스킹, 대부분의 경우 UINT_MAX(모든 샘플에 기록) 사용
 	psoDesc.RasterizerState = rasterizerDesc;		// 래스터라이저 상태를 설정합니다.<>
-	//psoDesc.DepthStencilState;						// 뎁스/스텐실 상태 
-	//psoDesc.DepthStencilState.DepthEnable = FALSE;
-	//psoDesc.DepthStencilState.StencilEnable = FALSE;
 	psoDesc.DepthStencilState.DepthEnable = TRUE; // 깊이 테스트 활성화
-	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
+	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL; // 새로 그릴 픽셀이 깊이테스트를 통과하면 그린다.
+	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS; // 카메라와 가까이 있는것을 그린다는 옵션
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
 
 	psoDesc.InputLayout = { m_inputElementDescs, _countof(m_inputElementDescs) };	// 입력 레이아웃을 설정합니다. 정점 버퍼에서 셰이더로 보낼 데이터의 포맷/구조(어떤 데이터가 어디에 있는지)
@@ -1174,8 +1177,9 @@ void GOERenderer::LoadTexture(std::string filepath)
 	/// 해셔와 관련된 내용은 
 	/// 전용 클래스로 대체될 것이기 때문에 
 	/// 굳이 임시변수로 만들어둔다.
-	std::hash<std::string> hasher;
-	std::unique_ptr<TextureResource> textureResource = std::make_unique<TextureResource>(filepath, hasher(filepath));
+	std::unique_ptr<TextureResource> textureResource 
+		= std::make_unique<TextureResource>(filepath,
+			GOE::FileManager::GetHash(filepath));
 
 	ComPtr<ID3D12Resource> textureDefault = nullptr;
 	ComPtr<ID3D12Resource> textureUpload = nullptr;
@@ -1226,9 +1230,9 @@ void GOERenderer::LoadTexture(std::string filepath)
 
 	// --- 4. ScratchImage 데이터를 GPU 리소스로 복사하도록 명령 기록 ---
 	D3D12_SUBRESOURCE_DATA subresourceData = {};
-	subresourceData.pData = data.GetPixels();
-	subresourceData.RowPitch = data.GetImage(0, 0, 0)->rowPitch;
-	subresourceData.SlicePitch = data.GetImage(0, 0, 0)->slicePitch;
+	subresourceData.pData = data.GetPixels();	// ScratchImage의 픽셀 데이터
+	subresourceData.RowPitch = data.GetImage(0, 0, 0)->rowPitch; // 한 줄의 바이트 크기
+	subresourceData.SlicePitch = data.GetImage(0, 0, 0)->slicePitch; // 전체 이미지의 바이트 크기
 
 
 	m_commandAllocator->Reset();
@@ -1282,7 +1286,6 @@ void GOERenderer::LoadTexture(std::string filepath)
 	// GPU 작업이 완료될 때까지 기다립니다 (Fence 사용).
 	m_fenceValue++;
 	SignalFence(m_fenceValue);
-
 }
 
 void GOERenderer::CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes)

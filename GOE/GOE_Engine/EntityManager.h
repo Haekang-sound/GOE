@@ -35,8 +35,6 @@ public:
 private:
 	std::vector<std::unique_ptr<Entity>> m_entities;
 	std::unordered_map<EntityID, EntityIndex> m_entityMap;
-
-	std::hash<std::string> m_hasher;
 };
 
 

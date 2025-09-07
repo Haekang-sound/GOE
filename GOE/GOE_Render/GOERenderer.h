@@ -59,7 +59,6 @@ public:
 	UILoopInfo* GetUILoopInfo() override;
 	void AddRenderObejct(RenderObjectData& data) override;
 
-
 public:
 	std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() override { return m_renderObjects; }
 
@@ -84,8 +83,9 @@ public:
 	void CreateDevice(const bool& hardwareAdapter);
 	void CreateCommandQueue();
 	void CreateSwapChain();
-	void CreateDescriptorHeaps();
+	void CreateRTVHeap();
 	void CreateRenderTargets();
+	void CreateDepthStencilBuffer();
 	void CreateCommandAllocator();
 	void CreateRootSignature();
 	void CompileShaders();
@@ -116,22 +116,7 @@ public:
 	void CreateCBResource(
 		RenderObject* render_object,
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
-
-/// <summary>
-///  텍스처 관련리소스를 사용하기위한 임시보관소
-/// </summary>
-public:
-	/*ComPtr<ID3D12Resource> textureDefault = nullptr;
-	ComPtr<ID3D12Resource> textureUpload = nullptr;
-	ComPtr<ID3D12DescriptorHeap> textureheap = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;*/
-
-	HRESULT CompileShaderFromFile(
-		const WCHAR* fileName,
-		const WCHAR* entryPoint,
-		const WCHAR* targetProfile,
-		ID3DBlob** ppShaderBlob);
-
+	HRESULT CompileShaderFromFile(const WCHAR* fileName, const WCHAR* entryPoint, const WCHAR* targetProfile, ID3DBlob** ppShaderBlob);
 
 /// <summary>
 ///  텍스처가 이상하게 나오는 원인이라고 생각되는 뎁스스텐실
@@ -142,11 +127,6 @@ public:
 private:
 	std::unordered_map<size_t, std::unique_ptr<MeshResource>> m_meshResources;
 	std::unordered_map<size_t, std::unique_ptr<TextureResource>> m_textureResources;
-	/// <summary>
-	/// 인스턴싱 단계에서 
-	/// 랜더오브젝트 벡터는 깊은 고민이 필요할것이다.
-	/// 
-	/// </summary>
 	std::vector<std::unique_ptr<RenderObject>> m_renderObjects;
 
 public:

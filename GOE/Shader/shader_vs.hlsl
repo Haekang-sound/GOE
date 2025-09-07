@@ -13,7 +13,7 @@ struct PSInput
 };
 
 // 정점 데이터에서 uv 좌표(TEXCOORD)를 입력받도록 수정
-PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float2 uv : TEXCOORD)
+PSInput Main(float4 position : POSITION, float4 color : COLOR, float2 uv : TEXCOORD)
 {
     PSInput result;
 
