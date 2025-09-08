@@ -1,4 +1,5 @@
 # GOE
+<img width="1500" height="1024" alt="스크린샷 2025-09-07 151334" src="https://github.com/user-attachments/assets/674fa853-041e-46a9-8ffd-a82e65e68759" />
 
 자체 엔진 포트폴리오: GOE(괴)
 
