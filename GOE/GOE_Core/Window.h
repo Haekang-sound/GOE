@@ -21,8 +21,6 @@ public:
 		m_imguiCallback = handler;
 	};
 
-
-
 private:
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 	std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> m_imguiCallback;

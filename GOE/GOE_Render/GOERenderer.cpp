@@ -868,6 +868,16 @@ void GOERenderer::CompileShaders()
 		m_vertexShader.GetAddressOf()
 	));
 
+}
+
+/// <summary>
+/// 파이프라인상태객체(PSO)를 생성합니다.
+/// 
+/// </summary>
+/// <returns></returns>
+void GOERenderer::CreatePipelineState()
+{
+
 	// D3D12_INPUT_ELEMENT_DESC
 	// : 입력 어셈블러 단계에서 사용되는 입력 레이아웃을 정의합니다.
 	D3D12_INPUT_ELEMENT_DESC iaDesc;
@@ -891,7 +901,7 @@ void GOERenderer::CompileShaders()
 	m_inputElementDescs[1] = iaDesc;
 
 	// 텍스처 좌표를 위한 입력 레이아웃 정의
-	iaDesc = { 
+	iaDesc = {
 		"TEXCOORD",
 		0,
 		DXGI_FORMAT_R32G32_FLOAT,
@@ -900,15 +910,7 @@ void GOERenderer::CompileShaders()
 		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
 		0 };
 	m_inputElementDescs[2] = iaDesc;
-}
 
-/// <summary>
-/// 파이프라인상태객체(PSO)를 생성합니다.
-/// 
-/// </summary>
-/// <returns></returns>
-void GOERenderer::CreatePipelineState()
-{
 	// D3D12_SHADER_BYTECODE
 	// : 셰이더 코드의 바이트코드를 나타내는 구조체입니다.
 	// 이 구조체는 파이프라인 상태 객체(PSO)를 생성할 때 사용됩니다.
@@ -978,13 +980,11 @@ void GOERenderer::CreatePipelineState()
 	psoDesc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL; // 새로 그릴 픽셀이 깊이테스트를 통과하면 그린다.
 	psoDesc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS; // 카메라와 가까이 있는것을 그린다는 옵션
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
-
 	psoDesc.InputLayout = { m_inputElementDescs, _countof(m_inputElementDescs) };	// 입력 레이아웃을 설정합니다. 정점 버퍼에서 셰이더로 보낼 데이터의 포맷/구조(어떤 데이터가 어디에 있는지)
 	psoDesc.IBStripCutValue;														// 인덱스 버퍼 스트립 컷 값, 프리미티브 스트립(예: 삼각형 스트립)에서 "컷"으로 쓸 특별한 인덱스 값(primitive restart)
 	psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;			// 프리미티브 타입(기본 도형 종류)	드로우콜에서 어떤 도형을 그릴지 D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE(삼각형)	D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE(선)
 	psoDesc.NumRenderTargets = 1;						// 동시에 출력할 Render Target 개수
 	psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM; // 렌더 타겟의 포맷을 설정합니다.<>
-	//psoDesc.DSVFormat;				// 뎁스 스텐실 버퍼의 포맷을 설정합니다.
 	psoDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT; // DSV 포맷 설정
 
 	psoDesc.SampleDesc.Count = 1;	// 샘플링 개수, 멀티샘플링(MSAA) 사용 여부를 결정합니다. 1이면 MSAA 사용 안함, 2 이상이면 MSAA 사용
@@ -1184,9 +1184,7 @@ void GOERenderer::LoadTexture(std::string filepath)
 	ComPtr<ID3D12Resource> textureDefault = nullptr;
 	ComPtr<ID3D12Resource> textureUpload = nullptr;
 	ComPtr<ID3D12DescriptorHeap> textureheap = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
-
-	
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;	
 
 	// ScratchImage로부터 얻은 메타데이터로 리소스 속성을 정의합니다.
 	D3D12_RESOURCE_DESC textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(
