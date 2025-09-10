@@ -23,7 +23,7 @@
 * System: RenderSystem, MovementSystem, TransfromSystem 등 특정 컴포넌트들을 처리하여 실제 로직을 수행합니다. 이를 통해 코드의 재사용성과 유연성을 극대화했습니다.
 * Manager: EntityManager, ComponentManager<T>를 통해 엔티티와 컴포넌트를 효율적으로 생성, 조회 및 관리합니다.
 
-```
+```c
 // Scene.cpp의 Script 함수 예시: ECS 패턴을 활용한 엔티티 생성
 void Scene::Script()
 {
