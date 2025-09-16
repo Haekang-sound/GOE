@@ -162,7 +162,7 @@ private:
 	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
 	ComPtr<ID3DBlob> m_vertexShader = nullptr;
 	ComPtr<ID3DBlob> m_pixelShader = nullptr;
-	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[3] = {};
+	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[4] = {};
 	ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
 	ComPtr<ID3D12GraphicsCommandList> m_commandList = nullptr;
 	HANDLE m_fenceEvent = nullptr;

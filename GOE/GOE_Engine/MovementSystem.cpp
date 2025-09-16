@@ -31,12 +31,15 @@ void MovementSystem::Update(double dTime)
 			GOE::FLoatVector4 up = transform.GetUpVector();
 			GOE::FLoatVector4 forward = transform.GetForwardVector();
 
-			// 카메라 이동
 			GOE::FLoatVector4 pos = { 0,0,0,0 };
 			if (GetAsyncKeyState(VK_UP) & 0x8000)	pos += forward	* m_moveSpeed*dTime;
 			if (GetAsyncKeyState(VK_LEFT) & 0x8000)	pos -= right	* m_moveSpeed*dTime;
 			if (GetAsyncKeyState(VK_DOWN) & 0x8000)	pos -= forward	* m_moveSpeed*dTime;
 			if (GetAsyncKeyState(VK_RIGHT) & 0x8000)pos += right	* m_moveSpeed*dTime;
+
+			GOE::FLoatVector4 rot = { 0,0,0,0 };
+			if (GetAsyncKeyState('K') & 0x8000) rot.y -= 1.0f * dTime;
+			if (GetAsyncKeyState('L') & 0x8000) rot.y += 1.0f * dTime;
 
 			/// 이거는 트랜스폼 안에서 해도 될듯? 
 			// (1) 각 변환을 XMMATRIX로 생성
@@ -45,7 +48,7 @@ void MovementSystem::Update(double dTime)
 			GOE::Matrix4x4 T = {};
 
 			 S = GOE::Matrix4x4::Identity();
-			 R = GOE::Matrix4x4::Identity();
+			 R = GOE::Matrix4x4::RotationY(rot.y);
 			 T = GOE::Matrix4x4::Translation(pos.x, pos.y, pos.z);
 
 			// (2) 합성

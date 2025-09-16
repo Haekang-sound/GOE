@@ -26,8 +26,7 @@ public:
 
 public:
 	bool LoadModelFromFile(const std::string& filePath);
-	bool LoadTextureFromFile(const std::string& filePath);
-
+	
 public:
 	const Model* GetModel(const std::string hash)
 	{

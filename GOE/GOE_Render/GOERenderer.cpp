@@ -63,18 +63,21 @@ void GOERenderer::OnUpdate()
 	m_cube->OnUpdate();
 
 	{ // 큐브는 로딩해서 가져오는게 아니라서 이걸로해야됨
-		XMFLOAT4X4 cbData = {};
-		XMMATRIX mvp =
-			m_cube->GetLocalTransForm()
-			* m_camera->GetViewTransform()
+		Graphics::CB cbData = {};
+		XMMATRIX world = m_cube->GetLocalTransForm();
+		XMMATRIX vp =
+			m_camera->GetViewTransform()
 			* XMLoadFloat4x4(&m_proj);
-		XMStoreFloat4x4(&cbData, XMMatrixTranspose(mvp));
+		cbData.cameraPosition = m_camera->GetPosition();
+
+		XMStoreFloat4x4(&cbData.world, XMMatrixTranspose(world));
+		XMStoreFloat4x4(&cbData.viewProjection, XMMatrixTranspose(vp));
 
 		// CUBE의 CBV에 업로드
 		void* pData = nullptr;
 		D3D12_RANGE readRange = { 0, 0 };
 		ThrowIfFailed(m_cube->m_constantBuffer->Map(0, &readRange, &pData));
-		memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
+		memcpy(pData, &cbData, sizeof(Graphics::CB));
 		m_cube->m_constantBuffer->Unmap(0, nullptr);
 	}
 
@@ -82,19 +85,21 @@ void GOERenderer::OnUpdate()
 	// 여긴 콘스탄트 버퍼를 업데이트 하는거임
 	for (const auto& renderObject : m_renderObjects)
 	{
-		XMFLOAT4X4 cbData = {};
-		XMMATRIX mvp =
-			XMLoadFloat4x4(&renderObject.get()->GetLocalTM().matrix)
-			* m_camera->GetViewTransform()
+		Graphics::CB cbData = {};
+		XMMATRIX world = XMLoadFloat4x4(&renderObject.get()->GetLocalTM().matrix);
+		XMMATRIX vp =
+			m_camera->GetViewTransform()
 			* XMLoadFloat4x4(&m_proj);
+		cbData.cameraPosition = m_camera->GetPosition();
 
-		XMStoreFloat4x4(&cbData, XMMatrixTranspose(mvp));
+		XMStoreFloat4x4(&cbData.world, XMMatrixTranspose(world));
+		XMStoreFloat4x4(&cbData.viewProjection, XMMatrixTranspose(vp));
 
 		// CUBE의 CBV에 업로드
 		void* pData = nullptr;
 		D3D12_RANGE readRange = { 0, 0 };
 		ThrowIfFailed(renderObject->GetCB()->Map(0, &readRange, &pData));
-		memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
+		memcpy(pData, &cbData, sizeof(Graphics::CB));
 		renderObject->GetCB()->Unmap(0, nullptr);
 	}
 }
@@ -910,6 +915,17 @@ void GOERenderer::CreatePipelineState()
 		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
 		0 };
 	m_inputElementDescs[2] = iaDesc;
+	
+	// 텍스처 좌표를 위한 입력 레이아웃 정의
+	iaDesc = {
+		"NORMAL",
+		0,
+		DXGI_FORMAT_R32G32B32_FLOAT,
+		0,
+		D3D12_APPEND_ALIGNED_ELEMENT,
+		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+		0 };
+	m_inputElementDescs[3] = iaDesc;
 
 	// D3D12_SHADER_BYTECODE
 	// : 셰이더 코드의 바이트코드를 나타내는 구조체입니다.
@@ -1550,18 +1566,18 @@ void GOERenderer::CreateCBResource(RenderObject* render_object, const D3D12_RESO
 	D3D12_CONSTANT_BUFFER_VIEW_DESC CBVDesc = {};
 	// CBV 디스크립터 생성
 	CBVDesc.BufferLocation = constantBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
-	CBVDesc.SizeInBytes = (sizeof(Graphics::Matrix4x4) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
+	CBVDesc.SizeInBytes = (sizeof(Graphics::CB) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
 
 	CBVHandle = CBVHeap->GetCPUDescriptorHandleForHeapStart();
 	m_device->CreateConstantBufferView(&CBVDesc, CBVHandle);
 
-	DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
+	//DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
+	//DirectX::XMMATRIX mvp = world;
+	//Graphics::Matrix4x4 cbData = {};
+	Graphics::CB cbData = {};
 
-	DirectX::XMMATRIX mvp = world;
-
-
-	Graphics::Matrix4x4 cbData = {};
-	DirectX::XMStoreFloat4x4(&cbData.matrix, DirectX::XMMatrixTranspose(mvp)); // HLSL에서 row-major면 Transpose
+	DirectX::XMStoreFloat4x4(&cbData.world, DirectX::XMMatrixIdentity()); 
+	DirectX::XMStoreFloat4x4(&cbData.viewProjection, DirectX::XMMatrixIdentity());
 
 	void* pData = nullptr;
 	D3D12_RANGE readRange = { 0, 0 };
@@ -1573,4 +1589,3 @@ void GOERenderer::CreateCBResource(RenderObject* render_object, const D3D12_RESO
 	render_object->SetCBVHeap(CBVHeap.Get()); // Constant Buffer View 디스크립터 힙 설정
 	render_object->SetCBVHandle(std::move(CBVHandle)); // Constant Buffer View 디스크립터 핸들 설정
 }
-

@@ -50,7 +50,7 @@ namespace GOE
 		// X축 기준 회전 행렬을 생성합니다. (라디안 값 사용)
 		static Matrix4x4 RotationX(float radians)
 		{
-			Matrix4x4 result = Identity();;
+			Matrix4x4 result = Identity();
 			result._22 = cos(radians);
 			result._23 = sin(radians);
 			result._32 = -sin(radians);
@@ -115,6 +115,37 @@ namespace GOE
 
 	};
 
+	struct FloatVector2
+	{
+		float x;
+		float y;
+	public:
+		FloatVector2() = default;
+		FloatVector2(float x, float y)
+			: x(x), y(y){}
+
+	public:
+		FloatVector2& operator* (const float& other)
+		{
+			x *= other;
+			y *= other;
+			return *this;
+		}
+		FloatVector2& operator- (const FloatVector2& other)
+		{
+			x -= other.x;
+			y -= other.y;
+			return *this;
+		}
+		FloatVector2& operator+= (const FloatVector2& other)
+		{
+			x += other.x;
+			y += other.y;
+			return *this;
+		}
+
+	};
+
 	struct FLoatVector3
 	{
 		float x;
@@ -159,9 +190,7 @@ namespace GOE
 	public:
 		FLoatVector4() = default;
 		FLoatVector4(float x, float y, float z, float w)
-			: x(x), y(y), z(z), w(w)
-		{
-		}
+			: x(x), y(y), z(z), w(w){}
 	public:
 		FLoatVector4& operator* (const float& scalar)
 		{
@@ -193,17 +222,18 @@ namespace GOE
 	struct Vertex
 	{
 		// 위치, 법선, UV 등 필요한 데이터를 정의합니다.
-		float position[3] = {};
-		float color[4] = { 1,1,1,1 }; // 색상 (RGBA)
-		float uv[2] = { 0,0 }; // UV 좌표
+		FLoatVector3 position = {};
+		FLoatVector4 color = { 1,1,1,1 }; // 색상 (RGBA)
+		FloatVector2 uv = { 0,0 }; // UV 좌표
+		FLoatVector3 normal = { 0,0,0 }; // 법선 벡터
 	};
+
 	// 엔진에서 사용할 메시 데이터 구조체
 	struct MeshData
 	{
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 	};
-
 
 
 }

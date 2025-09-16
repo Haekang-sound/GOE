@@ -39,9 +39,7 @@ private:
 	bool m_keydown = false;
 
 public: 
-	inline XMMATRIX GetViewTransform()
-	{
-		return XMLoadFloat4x4(&m_local);
-	}
+	inline XMMATRIX GetViewTransform(){	return XMLoadFloat4x4(&m_local);}
+	inline XMFLOAT3 GetPosition() const { return m_position; }
 };
 

@@ -70,62 +70,6 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 	return true;
 }
 
-bool AssetLoader::LoadTextureFromFile(const std::string& filePath)
-{
-	// hasher 객체를 함수처럼 호출하여 filePath의 해시 값을 계산합니다.
-	size_t pathHash = GOE::FileManager::GetHash(filePath);
-	m_textures[pathHash] = std::make_unique<Texture>(pathHash); // 텍스처를 해시맵에 추가
-	// Assimp를 사용하여 텍스처를 로드합니다.
-	Assimp::Importer importer;
-	const unsigned int dxFlags =		// dx설정
-		aiProcess_MakeLeftHanded |		// 1. 왼손 좌표계로 변환
-		aiProcess_FlipUVs |				// 2. 텍스처 V좌표 뒤집기
-		aiProcess_FlipWindingOrder |
-		aiProcess_Triangulate |			// (권장) 모든 면을 삼각형으로 분할
-		aiProcess_CalcTangentSpace |	// (권장) 탄젠트와 바이탄젠트 계산
-		aiProcess_JoinIdenticalVertices |// 동일한 정점 병합
-		aiProcess_SortByPType | 			// 3. 프리미티브 타입별로 정렬
-		aiProcess_ValidateDataStructure |        // 로더의 출력을 검증
-		aiProcess_ImproveCacheLocality |        // 출력 정점의 캐쉬위치를 개선
-		aiProcess_RemoveRedundantMaterials |    // 중복된 매터리얼 제거
-		aiProcess_GenUVCoords |                    // 구형, 원통형, 상자 및 평면 매핑을 적절한 UV로 변환
-		aiProcess_TransformUVCoords |            // UV 변환 처리기 (스케일링, 변환...)
-		aiProcess_FindInstances |                // 인스턴스된 매쉬를 검색하여 하나의 마스터에 대한 참조로 제거
-		aiProcess_LimitBoneWeights |            // 정점당 뼈의 가중치를 최대 4개로 제한
-		aiProcess_OptimizeMeshes |                // 가능한 경우 작은 매쉬를 조인
-		aiProcess_GenSmoothNormals |            // 부드러운 노말벡터(법선벡터) 생성
-		aiProcess_SplitLargeMeshes;           // 거대한 하나의 매쉬를 하위매쉬들로 분활(나눔)
-
-	const aiScene* scene = importer.ReadFile(filePath, dxFlags);
-	// If the import failed, report it
-	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-	{
-		if (scene->HasTextures())
-		{
-			for(int i = 0; i < scene->mNumMaterials; i++)
-			{
-				// 현재 매터리얼을 가져옵니다.
-				aiMaterial* material = scene->mMaterials[i];
-				// 매터리얼의 텍스처를 처리합니다.
-				for (unsigned int j = 0; j < material->GetTextureCount(aiTextureType_DIFFUSE); j++)
-				{
-					aiString texturePath;
-					if (material->GetTexture(aiTextureType_DIFFUSE, j, &texturePath) == AI_SUCCESS)
-					{
-						std::string fullPath = filePath + "/" + texturePath.C_Str();
-						m_textures[GOE::FileManager::GetHash(fullPath)] = std::make_unique<Texture>(GOE::FileManager::GetHash(fullPath));
-					}
-				}
-			}
-			aiMaterial* material = scene->mMaterials[0]; // 첫 번째 매터리얼을 가져옵니다.
-		}
-		// 에러 처리: 씬 로딩 실패
-		return true;
-	}
-
-	return false;
-}
-
 std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node)
 {
 	/// 노드이름을 해쉬로 저장중-> 이걸로 충분한지는 의문
@@ -154,19 +98,32 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
 		meshData.get()->vertices.emplace_back();
-		meshData.get()->vertices.back().position[0] = mesh->mVertices[i].x;
-		meshData.get()->vertices.back().position[1] = mesh->mVertices[i].y;
-		meshData.get()->vertices.back().position[2] = mesh->mVertices[i].z;
+		meshData.get()->vertices.back().position.x = mesh->mVertices[i].x;
+		meshData.get()->vertices.back().position.y = mesh->mVertices[i].y;
+		meshData.get()->vertices.back().position.z = mesh->mVertices[i].z;
 
 		if(mesh->HasTextureCoords(0))
 		{
-			meshData.get()->vertices.back().uv[0] = mesh->mTextureCoords[0][i].x; // UV 좌표 X
-			meshData.get()->vertices.back().uv[1] = mesh->mTextureCoords[0][i].y; // UV 좌표 Y
+			meshData.get()->vertices.back().uv.x = mesh->mTextureCoords[0][i].x; // UV 좌표 X
+			meshData.get()->vertices.back().uv.y = mesh->mTextureCoords[0][i].y; // UV 좌표 Y
 		}
 		else
 		{
-			meshData.get()->vertices.back().uv[0] = 0.0f; // UV 좌표 X
-			meshData.get()->vertices.back().uv[1] = 0.0f; // UV 좌표 Y
+			meshData.get()->vertices.back().uv.x = 0.0f; // UV 좌표 X
+			meshData.get()->vertices.back().uv.y = 0.0f; // UV 좌표 Y
+		}
+
+		if (mesh->HasNormals())
+		{
+			meshData.get()->vertices.back().normal.x = mesh->mNormals[i].x;
+			meshData.get()->vertices.back().normal.y = mesh->mNormals[i].y;
+			meshData.get()->vertices.back().normal.z = mesh->mNormals[i].z;
+		}
+		else
+		{
+			meshData.get()->vertices.back().normal.x = 0.0f;
+			meshData.get()->vertices.back().normal.y = 0.0f;
+			meshData.get()->vertices.back().normal.z = 0.0f;
 		}
 	}
 
@@ -178,6 +135,7 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 			meshData.get()->indices.emplace_back(face.mIndices[j]);
 		}
 	}
+
 
 	currentMesh.get()->SetMeshData(std::move(meshData));
 

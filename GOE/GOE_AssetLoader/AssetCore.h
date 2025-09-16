@@ -22,7 +22,6 @@ public:
 public:
 	void CreateAssetLoader();
 	bool LoadModel(const std::string& filePath);
-	bool LoadTextureFromFile(const std::string& filePath);
 
 	const std::unordered_map<std::size_t, std::unique_ptr<Model>>& GetModels() const;
 	const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& GetMeshes() const;

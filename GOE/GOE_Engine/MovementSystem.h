@@ -4,9 +4,7 @@ class MovementSystem : public ISystem
 {
 public:
 	MovementSystem(Scene* scene, GOE::EngineContext* context)
-		: ISystem(scene, context)
-	{
-	}
+		: ISystem(scene, context){}
 	~MovementSystem() = default;
 
 public:

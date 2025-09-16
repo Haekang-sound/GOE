@@ -6,15 +6,15 @@ namespace Graphics
 {
 	struct Matrix4x4
 	{
-	public: 
+	public:
 		XMFLOAT4X4 matrix; // 64바이트(행렬)
-	public: 
+	public:
 		Matrix4x4() = default;
 		Matrix4x4(GOE::Matrix4x4 core_matrix)
 		{
-			for(int i = 0 ; i < 4; ++i)
+			for (int i = 0; i < 4; ++i)
 			{
-				for(int j = 0; j < 4; ++j)
+				for (int j = 0; j < 4; ++j)
 				{
 					matrix.m[i][j] = core_matrix.m[i][j];
 				}
@@ -33,7 +33,7 @@ namespace Graphics
 			}
 			return *this;
 		}
-	};	
+	};
 
 	/// <summary>z
 	/// 버텍스 구조체
@@ -43,6 +43,7 @@ namespace Graphics
 		XMFLOAT3 position = {};
 		XMFLOAT4 color = { 1,1,1,1 };
 		XMFLOAT2 uv = { 0,0 }; // UV 좌표
+		XMFLOAT3 normal = { 0,0,0 }; // 법선 벡터
 
 	public:
 		Vertex() = default;
@@ -51,38 +52,48 @@ namespace Graphics
 			position = pos;
 			color = col;
 			uv = { 0, 0 }; // UV 좌표 초기화
+			normal = { 0, 0, 0 }; // 법선 벡터 초기화
 		}
 
 		Vertex(const GOE::Vertex& other)
 		{
-			position.x = other.position[0];
-			position.y = other.position[1];
-			position.z = other.position[2];
+			position.x = other.position.x;
+			position.y = other.position.y;
+			position.z = other.position.z;
 
-			color.x = other.color[0];
-			color.y = other.color[1];
-			color.z = other.color[2];
-			color.w = other.color[3];
+			color.x = other.color.x;
+			color.y = other.color.y;
+			color.z = other.color.z;
+			color.w = other.color.w;
 
-			uv.x = other.uv[0];
-			uv.y = other.uv[1];
+			uv.x = other.uv.x;
+			uv.y = other.uv.y;
+
+			normal.x = other.normal.x;
+			normal.y = other.normal.y;
+			normal.z = other.normal.z;
 		}
 
 	public:
 		Vertex& operator=(const GOE::Vertex& other)
 		{
 
-			position.x = other.position[0];
-			position.y = other.position[1];
-			position.z = other.position[2];
+			position.x = other.position.x;
+			position.y = other.position.y;
+			position.z = other.position.z;
 
-			color.x = other.color[0];
-			color.y = other.color[1];
-			color.z = other.color[2];
-			color.w = other.color[3];
+			color.x = other.color.x;
+			color.y = other.color.y;
+			color.z = other.color.z;
+			color.w = other.color.w;
 
-			uv.x = other.uv[0];
-			uv.y = other.uv[1];
+			uv.x = other.uv.x;
+			uv.y = other.uv.y;
+
+			normal.x = other.normal.x;
+			normal.y = other.normal.y;
+			normal.z = other.normal.z;
+
 			return *this;
 		}
 
@@ -131,5 +142,13 @@ namespace Graphics
 			}
 			return *this;
 		}
+	};
+
+	struct CB
+	{
+		XMFLOAT4X4 world;
+		XMFLOAT4X4 viewProjection;
+		XMFLOAT3   cameraPosition = {};
+		float      padding = 0.f; // 16바이트 정렬을 위한 패딩
 	};
 }
