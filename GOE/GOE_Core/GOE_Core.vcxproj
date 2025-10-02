@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="Bone.h" />
+    <ClInclude Include="BoneAnimation.h" />
     <ClInclude Include="Commons.h" />
     <ClInclude Include="CoreMath.h" />
     <ClInclude Include="Core_pch.h" />
@@ -31,6 +34,9 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="Bone.cpp" />
+    <ClCompile Include="BoneAnimation.cpp" />
     <ClCompile Include="Core_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>

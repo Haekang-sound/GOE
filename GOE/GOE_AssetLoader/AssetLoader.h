@@ -7,7 +7,8 @@ class Model;
 class Node;
 class Mesh;
 class Texture;
-
+class Animation;
+class Bone;
 
 struct aiNode;
 struct aiMesh;
@@ -26,6 +27,13 @@ public:
 
 public:
 	bool LoadModelFromFile(const std::string& filePath);
+
+	/// <summary>
+	/// 애니메이션을 로드하는 함수
+	/// </summary>
+	/// <param name="filePath">파일경로</param>
+	/// <returns></returns>
+	bool LoadAnimiationFromFile(const std::string& filePath);
 	
 public:
 	const Model* GetModel(const std::string hash)
@@ -58,6 +66,18 @@ public:
 		return nullptr; // 못 찾았으면 nullptr 반환
 	}
 
+	const Animation* GetAnimation(size_t hash)
+	{
+		auto it = m_animations.find(hash);
+		if (it != m_animations.end())
+		{
+			return it->second.get();
+		}
+
+		return nullptr;
+	}
+
+
 private:
 	std::unique_ptr<Node> ProcessNode(aiNode* node);
 	std::unique_ptr<Mesh> ProcessMesh(aiMesh* mesh, const aiScene* scene);
@@ -65,8 +85,8 @@ private:
 private:
 	std::unordered_map <std::size_t, std::unique_ptr<Model>> m_models;
 	std::unordered_map <std::size_t, std::unique_ptr<Mesh>> m_meshes;
-	/// <summary>
-	///  이제 텍스처를 추가해야한다.
-	/// </summary>
-	std::unordered_map <std::size_t, std::unique_ptr<Texture>> m_textures;
+	std::unordered_map <std::size_t, std::unique_ptr<Animation>> m_animations;
+
+private:
+	GOE::Matrix4x4 aiMatrix4x4ToCoreMtrix(const aiMatrix4x4& nodeTM);
 };

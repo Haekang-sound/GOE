@@ -5,23 +5,32 @@ public:
 	Node() = default;
 	Node(const std::string& name, size_t id)
 		: m_name(name), m_id(id){}
-
-	~Node() = default;
+	~Node();
 
 public:	
 	inline const std::string& GetName() const { return m_name; }
 	inline size_t GetID() const { return m_id; }
-
-	// 이동생성으로 노드를 받아오기
-	inline void AddChild(std::unique_ptr<Node>&& child) { m_children.push_back(std::move(child));}
+	// 이동생성으로 자식노드를 추가한다.
 	inline const std::vector<std::unique_ptr<Node>>& GetChildren() const { return m_children; }
-
-	inline void AddMeshIndex(size_t meshIndex) { m_meshIndex.push_back(meshIndex); }
 	inline const std::vector<size_t>& GetMeshIndex() const { return m_meshIndex; }
 
+public:
+	inline void AddChild(std::unique_ptr<Node>&& child) { m_children.push_back(std::move(child));}
+	inline void AddMeshIndex(size_t meshIndex) { m_meshIndex.push_back(meshIndex); }
+	inline void SetLocalTransfrom(GOE::Matrix4x4 transform) { m_transfrom = transform; }
+	
 private:
 	const std::string m_name; // 노드 이름
 	const size_t m_id; // 노드 ID
+
+	/// <summary>
+	/// 스키닝 하는 중
+	/// 노드는 각각 로컬한 트랜스폼을 갖고 있다.
+	/// 노드의 위치는 부모의 트랜스폼도 받아와서 그 위에 존재해야함
+	/// 그리고 이 노드에 애니메이션 값이 곱해질 것이고
+	/// 
+	/// </summary>
+	GOE::Matrix4x4 m_transfrom;
 
 	std::vector<std::unique_ptr<Node>> m_children;
 	std::vector<size_t> m_meshIndex; // 이 노드가 참조하는 메쉬의 인덱스

@@ -15,27 +15,23 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 	Assimp::Importer importer;
 
 	// DirectX 호환을 위한 플래그 설정
-	const unsigned int dxFlags =		// dx설정
-		aiProcess_MakeLeftHanded |		// 1. 왼손 좌표계로 변환
-		aiProcess_FlipUVs |				// 2. 텍스처 V좌표 뒤집기
+	const unsigned int modelFlags =
+		aiProcess_MakeLeftHanded |
+		aiProcess_FlipUVs |
 		aiProcess_FlipWindingOrder |
-		aiProcess_Triangulate |			// (권장) 모든 면을 삼각형으로 분할
-		aiProcess_CalcTangentSpace |	// (권장) 탄젠트와 바이탄젠트 계산
-		aiProcess_JoinIdenticalVertices |// 동일한 정점 병합
-		aiProcess_SortByPType | 			// 3. 프리미티브 타입별로 정렬
-		aiProcess_ValidateDataStructure |        // 로더의 출력을 검증
-		aiProcess_ImproveCacheLocality |        // 출력 정점의 캐쉬위치를 개선
-		aiProcess_RemoveRedundantMaterials |    // 중복된 매터리얼 제거
-		aiProcess_GenUVCoords |                    // 구형, 원통형, 상자 및 평면 매핑을 적절한 UV로 변환
-		aiProcess_TransformUVCoords |            // UV 변환 처리기 (스케일링, 변환...)
-		aiProcess_FindInstances |                // 인스턴스된 매쉬를 검색하여 하나의 마스터에 대한 참조로 제거
-		aiProcess_LimitBoneWeights |            // 정점당 뼈의 가중치를 최대 4개로 제한
-		aiProcess_OptimizeMeshes |                // 가능한 경우 작은 매쉬를 조인
-		aiProcess_GenSmoothNormals |            // 부드러운 노말벡터(법선벡터) 생성
-		aiProcess_SplitLargeMeshes;           // 거대한 하나의 매쉬를 하위매쉬들로 분활(나눔)
+		aiProcess_Triangulate |
+		aiProcess_CalcTangentSpace |
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_SortByPType |
+		aiProcess_ValidateDataStructure |
+		aiProcess_ImproveCacheLocality |
+		aiProcess_RemoveRedundantMaterials |
+		aiProcess_OptimizeMeshes |
+		aiProcess_GenSmoothNormals |
+		aiProcess_SplitLargeMeshes;
 
 
-	const aiScene* scene = importer.ReadFile(filePath, dxFlags);
+	const aiScene* scene = importer.ReadFile(filePath, modelFlags);
 
 	// If the import failed, report it
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
@@ -55,7 +51,7 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 		{
 			// 현재 메쉬를 가져옵니다.
 			aiMesh* mesh = scene->mMeshes[i];
-			
+
 			// 메쉬 데이터를 처리합니다.
 			/// 진정 메쉬정보는 메쉬랜더러가 갖는게 맞다. 모델은 메쉬와의 관계를 소유한다.
 			m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())] = ProcessMesh(mesh, scene);
@@ -70,10 +66,85 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 	return true;
 }
 
+bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
+{
+	// hasher 객체를 함수처럼 호출하여 filePath의 해시 값을 계산합니다.
+	size_t pathHash = GOE::FileManager::GetHash(filePath);
+
+	m_models[pathHash] = std::make_unique<Model>(pathHash); // 모델을 해시맵에 추가
+
+	// Create an instance of the Importer class
+	Assimp::Importer importer;
+
+	const unsigned int animFlags =
+		aiProcess_MakeLeftHanded |     // DX 좌표계 맞춤
+		aiProcess_FlipUVs |            // UV 뒤집기 (필요 시)
+		aiProcess_FlipWindingOrder |   // 인덱스 시계방향 뒤집기
+		aiProcess_Triangulate |        // 삼각형화 (본 매핑용)
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_SortByPType |
+		aiProcess_LimitBoneWeights |   // 정점당 본 4개 제한
+		aiProcess_GlobalScale |        // FBX/Collada 단위계 보정
+		aiProcess_ValidateDataStructure; // 데이터 구조 검증
+
+	const aiScene* scene = importer.ReadFile(filePath, animFlags);
+
+	// If the import failed, report it
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+	{
+		// 에러 처리: 씬 로딩 실패
+		return false;
+	}
+
+
+	/// 애니메이션 클래스를 채우고 보관한다.
+	if (scene->HasAnimations())
+	{
+		for (int i = 0; i < scene->mNumAnimations; ++i)
+		{
+			aiAnimation* anim = scene->mAnimations[i];
+
+			std::unique_ptr<Animation> a = std::make_unique<Animation>(anim->mName.C_Str(), GOE::FileManager::GetHash(anim->mName.C_Str()));
+
+			a.get()->SetDuation(anim->mDuration);
+			a.get()->SetTicksPerSecond(anim->mTicksPerSecond);
+
+			for (int j = 0; j < anim->mNumChannels; ++j)
+			{
+				std::unique_ptr<BoneAnimation> boneAnim = std::make_unique<BoneAnimation>(anim->mChannels[j]->mNodeName.C_Str(), GOE::FileManager::GetHash(anim->mChannels[j]->mNodeName.C_Str()));
+				boneAnim.get()->AddPositions({
+				anim->mChannels[j]->mPositionKeys->mValue[0],
+				anim->mChannels[j]->mPositionKeys->mValue[1],
+				anim->mChannels[j]->mPositionKeys->mValue[2] });
+
+				boneAnim.get()->AddScales({
+				anim->mChannels[j]->mScalingKeys->mValue[0],
+				anim->mChannels[j]->mScalingKeys->mValue[1],
+				anim->mChannels[j]->mScalingKeys->mValue[2] });
+
+				boneAnim.get()->AddRotations({
+				anim->mChannels[j]->mRotationKeys->mValue.w,
+				anim->mChannels[j]->mRotationKeys->mValue.x,
+				anim->mChannels[j]->mRotationKeys->mValue.y,
+				anim->mChannels[j]->mRotationKeys->mValue.z });
+
+				a.get()->AddBoneAnimation(move(boneAnim));
+			}
+			m_animations[GOE::FileManager::GetHash(anim->mName.C_Str())] = move(a);
+		}
+
+	}
+
+
+	return true;
+}
+
 std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node)
 {
 	/// 노드이름을 해쉬로 저장중-> 이걸로 충분한지는 의문
 	std::unique_ptr<Node> currentNode = std::make_unique<Node>(node->mName.C_Str(), GOE::FileManager::GetHash(node->mName.C_Str()));
+	currentNode.get()->SetLocalTransfrom(aiMatrix4x4ToCoreMtrix(node->mTransformation));
+
 	// 노드의 자식 노드를 재귀적으로 처리합니다.
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
@@ -102,7 +173,7 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		meshData.get()->vertices.back().position.y = mesh->mVertices[i].y;
 		meshData.get()->vertices.back().position.z = mesh->mVertices[i].z;
 
-		if(mesh->HasTextureCoords(0))
+		if (mesh->HasTextureCoords(0))
 		{
 			meshData.get()->vertices.back().uv.x = mesh->mTextureCoords[0][i].x; // UV 좌표 X
 			meshData.get()->vertices.back().uv.y = mesh->mTextureCoords[0][i].y; // UV 좌표 Y
@@ -140,4 +211,26 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 	currentMesh.get()->SetMeshData(std::move(meshData));
 
 	return currentMesh;
+}
+
+GOE::Matrix4x4 AssetLoader::aiMatrix4x4ToCoreMtrix(const aiMatrix4x4& nodeTM)
+{
+	GOE::Matrix4x4 l_tm;
+	l_tm._11 = nodeTM.a1;
+	l_tm._12 = nodeTM.a2;
+	l_tm._13 = nodeTM.a3;
+	l_tm._14 = nodeTM.a4;
+	l_tm._21 = nodeTM.b1;
+	l_tm._22 = nodeTM.b2;
+	l_tm._23 = nodeTM.b3;
+	l_tm._24 = nodeTM.b4;
+	l_tm._31 = nodeTM.c1;
+	l_tm._32 = nodeTM.c2;
+	l_tm._33 = nodeTM.c3;
+	l_tm._34 = nodeTM.c4;
+	l_tm._41 = nodeTM.d1;
+	l_tm._42 = nodeTM.d2;
+	l_tm._43 = nodeTM.d3;
+	l_tm._44 = nodeTM.d4;
+	return l_tm;
 }

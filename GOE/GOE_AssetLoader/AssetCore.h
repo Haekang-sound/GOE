@@ -22,6 +22,8 @@ public:
 public:
 	void CreateAssetLoader();
 	bool LoadModel(const std::string& filePath);
+	// view를 한번써보기
+	bool LoadAnimation(const std::string_view filePath);
 
 	const std::unordered_map<std::size_t, std::unique_ptr<Model>>& GetModels() const;
 	const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& GetMeshes() const;

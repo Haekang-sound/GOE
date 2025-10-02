@@ -31,14 +31,13 @@ public:
 
 public:	
 	inline const std::string& GetName() const { return m_name; }
-	inline std::size_t GetID() const { return m_id; }
+	inline const std::size_t GetID() const { return m_id; }
 	inline const std::unique_ptr<Node>& GetRootNode() const { return m_rootNode; }
 
 public:
 	inline void SetName(const std::string& name) { m_name = name; }
 	inline void AddRootNode(std::unique_ptr<Node>&& node) { m_rootNode = std::move(node); }
 	inline void AddMeshID(MESH_ID id) { m_meshIDs.push_back(id); }
-	//inline void AddMesh(std::unique_ptr<Mesh>&& mesh) { m_meshes.push_back(std::move(mesh)); }
 	inline void AddMeshToMap(MESH_ID id, MESH_INDEX index)
 	{
 		m_meshMap[id] = index; // 매쉬 ID와 인덱스를 해시맵에 추가

@@ -18,6 +18,11 @@ bool AssetCore::LoadModel(const std::string& filePath)
 	return m_assetLoader.get()->LoadModelFromFile(filePath);
 }
 
+bool AssetCore::LoadAnimation(const std::string_view filePath)
+{
+	return m_assetLoader.get()->LoadAnimiationFromFile(std::string(filePath));
+}
+
 const std::unordered_map<std::size_t, std::unique_ptr<Model>>& AssetCore::GetModels() const
 {
 	return m_assetLoader.get()->GetModels();

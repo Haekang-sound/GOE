@@ -29,7 +29,9 @@ void GOE::Engine::Initialize()
 	m_assetCore.get()->CreateAssetLoader();
 	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\Ch03_nonPBR.fbx");
 	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
-	//m_assetCore.get()->LoadTextureFromFile("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
+
+	///애니메이션 로드
+	m_assetCore.get()->LoadAnimation("D:\\project\\GOE\\GOE\\Assets\\animation\\Samba Dancing.fbx");
 
 	// 렌더러 초기화
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND());

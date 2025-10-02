@@ -39,7 +39,12 @@
     <ClInclude Include="Texture.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="FileManager.h" />
+    <ClInclude Include="FileManager.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation.h" />
+    <ClInclude Include="BoneAnimation.h" />
+    <ClInclude Include="Bone.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
@@ -60,6 +65,11 @@
     <ClCompile Include="Node.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
-    <ClCompile Include="FileManager.cpp" />
+    <ClCompile Include="FileManager.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Animation.cpp" />
+    <ClCompile Include="BoneAnimation.cpp" />
+    <ClCompile Include="Bone.cpp" />
   </ItemGroup>
 </Project>

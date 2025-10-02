@@ -25,6 +25,8 @@
 #include "Mesh.h"
 #include "Node.h"
 #include "Texture.h"
+#include "Animation.h"
+#include "BoneAnimation.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;

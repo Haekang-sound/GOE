@@ -90,6 +90,7 @@ void Scene::Script()
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 		m_materialManager.get()->GetCurrentComponent().SetTextureID(texturePath);
 
+		// 이게 붙으면 이동함
 		m_movementUnitManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
@@ -106,9 +107,9 @@ void Scene::Script()
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 
 		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
-		tm._41 = 40.0f; // 위치를 약간 이동시켜보자
 
 		m_transformManager.get()->GetCurrentComponent().SetLocalTM(tm);
+		m_transformManager.get()->GetCurrentComponent().SetScaleTM({ 0.1f, 0.1f, 0.1f });
 
 		std::hash<std::string> hasher;
 		// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
@@ -126,5 +127,10 @@ void Scene::Script()
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 		m_materialManager.get()->GetCurrentComponent().SetTextureID(texturePath);
+
+		// 이게 붙으면 이동함
+		m_movementUnitManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 	}
 }

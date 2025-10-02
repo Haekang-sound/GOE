@@ -18,6 +18,7 @@ class MovementUnit;
 class RenderSystem;
 class TransfromSystem;
 class MovementSystem;
+class AnimationSystem;
 
 /// <summary>
 /// 씬의 내용이 기록되는 Scene 
@@ -69,7 +70,6 @@ private:
 	std::unique_ptr<ComponentManager<Transform>> m_transformManager;
 	std::unique_ptr<ComponentManager<MeshRenderer>> m_meshRendererManager;
 	std::unique_ptr<ComponentManager<Material>> m_materialManager;
-	/// 이동을 한번 만들어볼 예정 이것까지 끝나면 정말 엔진구조는 잠시스탑
 	std::unique_ptr<ComponentManager<MovementUnit>> m_movementUnitManager;
 
 	std::unique_ptr<RenderSystem> m_renderSystem;
