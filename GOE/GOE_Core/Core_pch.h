@@ -24,6 +24,7 @@
 #include "Model.h"
 #include "Mesh.h"
 #include "Node.h"
+#include "Bone.h"
 #include "Texture.h"
 #include "Animation.h"
 #include "BoneAnimation.h"

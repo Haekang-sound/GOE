@@ -17,11 +17,15 @@ public:
 public:
 	inline void AddChild(std::unique_ptr<Node>&& child) { m_children.push_back(std::move(child));}
 	inline void AddMeshIndex(size_t meshIndex) { m_meshIndex.push_back(meshIndex); }
-	inline void SetLocalTransfrom(GOE::Matrix4x4 transform) { m_transfrom = transform; }
-	
+	inline void SetLocalTransfrom(GOE::Matrix4x4 transform) { m_transform = transform; }
+	inline void SetNodeIndex(int i) { m_index = i; }
+	inline void SetModelID(size_t id) { m_modelID = id; }
+
 private:
 	const std::string m_name; // 노드 이름
 	const size_t m_id; // 노드 ID
+	size_t m_modelID = 0;
+	int m_index = -1;
 
 	/// <summary>
 	/// 스키닝 하는 중
@@ -30,7 +34,7 @@ private:
 	/// 그리고 이 노드에 애니메이션 값이 곱해질 것이고
 	/// 
 	/// </summary>
-	GOE::Matrix4x4 m_transfrom;
+	GOE::Matrix4x4 m_transform;
 
 	std::vector<std::unique_ptr<Node>> m_children;
 	std::vector<size_t> m_meshIndex; // 이 노드가 참조하는 메쉬의 인덱스

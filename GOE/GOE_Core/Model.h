@@ -8,6 +8,7 @@ using MESH_INDEX = std::size_t;
 
 class Node;
 class Mesh;
+class Bone;
 
 /// <summary>
 /// 모델링에 필요한 
@@ -33,10 +34,14 @@ public:
 	inline const std::string& GetName() const { return m_name; }
 	inline const std::size_t GetID() const { return m_id; }
 	inline const std::unique_ptr<Node>& GetRootNode() const { return m_rootNode; }
+	inline std::vector<Node*>& GetNodeVector() { return m_nodes; }
 
 public:
 	inline void SetName(const std::string& name) { m_name = name; }
 	inline void AddRootNode(std::unique_ptr<Node>&& node) { m_rootNode = std::move(node); }
+	inline void AddNodeToVector(Node* node) { m_nodes.push_back(node); }
+	inline void AddNodeToMap(size_t id, Node* node) { m_nodeMap[id] = node; }
+
 	inline void AddMeshID(MESH_ID id) { m_meshIDs.push_back(id); }
 	inline void AddMeshToMap(MESH_ID id, MESH_INDEX index)
 	{
@@ -48,6 +53,11 @@ private:
 	const size_t m_id;		// 모델 ID
 
 	std::unique_ptr<Node> m_rootNode; 
+	std::vector<Node*> m_nodes;
+	std::unordered_map<size_t, Node*> m_nodeMap;
+
+
+
 	std::vector<MESH_ID> m_meshIDs;
 	std::unordered_map<MESH_ID, MESH_INDEX> m_meshMap; // 매쉬 이름과 인덱스를 매핑하는 해시맵
 };

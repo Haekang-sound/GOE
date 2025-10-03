@@ -37,3 +37,8 @@ const Mesh* AssetCore::GetMesh(size_t id)
 {
 	return m_assetLoader.get()->GetMesh(id);
 }
+
+Model* AssetCore::GetModel(size_t id)
+{
+	return m_assetLoader.get()->GetModel(id);
+}

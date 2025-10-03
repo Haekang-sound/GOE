@@ -28,7 +28,8 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 		aiProcess_RemoveRedundantMaterials |
 		aiProcess_OptimizeMeshes |
 		aiProcess_GenSmoothNormals |
-		aiProcess_SplitLargeMeshes;
+		aiProcess_SplitLargeMeshes|
+		aiProcess_PopulateArmatureData;
 
 
 	const aiScene* scene = importer.ReadFile(filePath, modelFlags);
@@ -43,9 +44,32 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 	// 노드를 처리한다.
 	if (scene->HasMeshes())
 	{
+		// 여기서 노드를 트리형태로 저장하고
 		aiNode* rootNode = scene->mRootNode;
 		rootNode->mName.C_Str(); // 노드 이름을 가져옵니다.
 		m_models[pathHash].get()->AddRootNode(ProcessNode(rootNode));
+		// 트리로 저장된 노드들을 순회하면서 벡터에담으면서 인덱스를 부여한다.
+		// 동시에 해쉬-노드 형태로 저장한다.
+		Node* start = m_models[pathHash].get()->GetRootNode().get();
+
+		///dfs를 사용해서 트리탐색
+		std::vector<Node*> nodeStack;
+		nodeStack.push_back(start);
+		while (nodeStack.size() > 0)
+		{
+			Node* temp = nodeStack.back();
+			nodeStack.pop_back();
+			temp->SetModelID(m_models[pathHash].get()->GetID());
+			temp->SetNodeIndex(m_models[pathHash].get()->GetNodeVector().size());
+			m_models[pathHash].get()->AddNodeToVector(temp);
+			m_models[pathHash].get()->AddNodeToMap(temp->GetID(), temp);
+			
+			for (int i = 0; i < temp->GetChildren().size(); ++i)
+			{
+				nodeStack.push_back(temp->GetChildren()[i].get());
+			}
+		}
+
 
 		for (int i = 0; i < scene->mNumMeshes; i++)
 		{
@@ -206,7 +230,25 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 			meshData.get()->indices.emplace_back(face.mIndices[j]);
 		}
 	}
+	if (mesh->HasBones())
+	{
+		for (size_t i = 0; i < mesh->mNumBones; ++i)
+		{
+			// 본을 채운다.
+			std::unique_ptr<Bone> currentBone = std::make_unique<Bone>(mesh->mBones[i]->mName.C_Str(), GOE::FileManager::GetHash(mesh->mBones[i]->mName.C_Str()));
+			currentBone.get()->SetBoneOffset(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix));
+			currentBone.get()->SetNode(GOE::FileManager::GetHash(mesh->mBones[i]->mNode->mName.C_Str()));
+			currentBone.get()->SetRootNode(GOE::FileManager::GetHash(mesh->mBones[i]->mArmature->mName.C_Str()));
+			for (int j = 0; j < mesh->mBones[i]->mNumWeights; ++j)
+			{
+				currentBone.get()->AddWeight(
+					mesh->mBones[i]->mWeights[i].mVertexId,
+					mesh->mBones[i]->mWeights[i].mWeight);
+			}
 
+			m_bones.push_back(move(currentBone));
+		}
+	}
 
 	currentMesh.get()->SetMeshData(std::move(meshData));
 

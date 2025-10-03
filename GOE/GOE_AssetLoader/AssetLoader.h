@@ -36,10 +36,10 @@ public:
 	bool LoadAnimiationFromFile(const std::string& filePath);
 	
 public:
-	const Model* GetModel(const std::string hash)
+	inline Model* GetModel(size_t hash)
 	{
-		auto it = m_models.find(GOE::FileManager::GetHash(hash));
-		if (m_models.find(GOE::FileManager::GetHash(hash)) != m_models.end())
+		auto it = m_models.find(hash);
+		if (it != m_models.end())
 		{
 			return it->second.get(); // 찾았으면 모델의 raw pointer 반환
 		}
@@ -84,6 +84,7 @@ private:
 
 private:
 	std::unordered_map <std::size_t, std::unique_ptr<Model>> m_models;
+	std::vector<std::unique_ptr<Bone>> m_bones;
 	std::unordered_map <std::size_t, std::unique_ptr<Mesh>> m_meshes;
 	std::unordered_map <std::size_t, std::unique_ptr<Animation>> m_animations;
 
