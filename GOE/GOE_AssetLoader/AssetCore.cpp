@@ -2,11 +2,8 @@
 #include "AssetCore.h"
 #include "AssetLoader.h"
 
-//#include <assimp/Importer.hpp> // assimp Çì´õ´Â cpp ÆÄÀÏ¿¡¼­¸¸ Æ÷ÇÔ!
-
-
 AssetCore::AssetCore(){}
-AssetCore::~AssetCore() = default; // ¼Ò¸êÀÚ ±¸Çö
+AssetCore::~AssetCore() = default; // ì†Œë©¸ìž êµ¬í˜„
 
 void AssetCore::CreateAssetLoader()
 {
@@ -41,4 +38,9 @@ const Mesh* AssetCore::GetMesh(size_t id)
 Model* AssetCore::GetModel(size_t id)
 {
 	return m_assetLoader.get()->GetModel(id);
+}
+
+Animation* AssetCore::GetAnimation(size_t id)
+{
+	return m_assetLoader.get()->GetAnimation(id);
 }

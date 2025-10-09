@@ -11,15 +11,37 @@ public:
 	inline const std::string& GetName() const { return m_name; }
 	inline size_t GetID() const { return m_id; }
 	// 이동생성으로 자식노드를 추가한다.
+public:
+	inline Node* GetParent() const { return m_parent; }
 	inline const std::vector<std::unique_ptr<Node>>& GetChildren() const { return m_children; }
 	inline const std::vector<size_t>& GetMeshIndex() const { return m_meshIndex; }
+	inline GOE::Matrix4x4& GetBindPose() { return m_bindPose; }
+	inline GOE::Matrix4x4& GetLocalTM() { return m_localTM; }
+	inline GOE::Matrix4x4 GetWorldTM()
+	{
+		if (m_parent) return m_parent->GetWorldTM() * m_localTM;
+		else return m_localTM;
+	}
 
 public:
+	inline void SetParent(Node* parent) { m_parent = parent; }
+	inline void SetModelID(size_t id) { m_modelID = id; }
 	inline void AddChild(std::unique_ptr<Node>&& child) { m_children.push_back(std::move(child));}
 	inline void AddMeshIndex(size_t meshIndex) { m_meshIndex.push_back(meshIndex); }
-	inline void SetLocalTransfrom(GOE::Matrix4x4 transform) { m_transform = transform; }
 	inline void SetNodeIndex(int i) { m_index = i; }
-	inline void SetModelID(size_t id) { m_modelID = id; }
+
+	inline void SetLocalTM(GOE::Matrix4x4 transform) { m_localTM = transform; }
+	inline void SetWorldTM()
+	{
+		if (m_parent) m_worldTM = m_parent->GetWorldTM() * m_localTM;
+		else m_worldTM = m_localTM;
+	}
+	inline void SetBindTM(GOE::Matrix4x4 transform) { m_bindPose = transform; }
+	inline void SetAnimatedTM(GOE::Matrix4x4 anim) { m_localTM = m_bindPose * anim; }
+	// 이 함수는 테스트용이니 실용성은 없다.
+	inline void SetSkinnedTM(GOE::Matrix4x4 skinned) { m_worldTM = m_worldTM*skinned; }
+public:
+	void UpdateHierarchy(Node* node);
 
 private:
 	const std::string m_name; // 노드 이름
@@ -34,8 +56,11 @@ private:
 	/// 그리고 이 노드에 애니메이션 값이 곱해질 것이고
 	/// 
 	/// </summary>
-	GOE::Matrix4x4 m_transform;
-
+	GOE::Matrix4x4 m_localTM = GOE::Matrix4x4::Identity();
+	GOE::Matrix4x4 m_worldTM = GOE::Matrix4x4::Identity();
+	GOE::Matrix4x4 m_bindPose = GOE::Matrix4x4::Identity();
+	
+	Node* m_parent = nullptr;
 	std::vector<std::unique_ptr<Node>> m_children;
 	std::vector<size_t> m_meshIndex; // 이 노드가 참조하는 메쉬의 인덱스
 

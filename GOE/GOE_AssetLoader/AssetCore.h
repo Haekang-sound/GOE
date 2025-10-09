@@ -9,7 +9,7 @@ namespace GOE
 class AssetLoader;
 
 /// <summary>
-/// ¿¡¼ÂÀ» ºÒ·¯¿À±âÀ§ÇÑ ÀüÃÊ±âÁö
+/// ì—ì…‹ì„ ë¶ˆëŸ¬ì˜¤ê¸°ìœ„í•œ ì „ì´ˆê¸°ì§€
 /// 
 /// ohk 2025.07.17
 /// </summary>
@@ -22,13 +22,14 @@ public:
 public:
 	void CreateAssetLoader();
 	bool LoadModel(const std::string& filePath);
-	// view¸¦ ÇÑ¹ø½áº¸±â
+	// viewë¥¼ í•œë²ˆì¨ë³´ê¸°
 	bool LoadAnimation(const std::string_view filePath);
 
 	const std::unordered_map<std::size_t, std::unique_ptr<Model>>& GetModels() const;
 	const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& GetMeshes() const;
 	const Mesh* GetMesh(size_t id);
 	Model* GetModel(size_t id);
+	Animation* GetAnimation(size_t id);
 	
 public:
 	std::unique_ptr<AssetLoader> m_assetLoader = nullptr;

@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include<memory>
 #include <Windows.h>
 #include "IEngine.h"
@@ -13,8 +13,11 @@ class EditorCore;
 class AssetCore;
 class SceneManager;
 
+
+
+
 /// <summary>
-/// ±â´ÉµéÀÌ ¸¸µé¾îÁú ¿£Áø
+/// ê¸°ëŠ¥ë“¤ì´ ë§Œë“¤ì–´ì§ˆ ì—”ì§„
 /// </summary>
 namespace GOE
 {

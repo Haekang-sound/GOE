@@ -66,7 +66,8 @@ public:
 		return nullptr; // 못 찾았으면 nullptr 반환
 	}
 
-	const Animation* GetAnimation(size_t hash)
+
+	Animation* GetAnimation(size_t hash)
 	{
 		auto it = m_animations.find(hash);
 		if (it != m_animations.end())
@@ -77,14 +78,12 @@ public:
 		return nullptr;
 	}
 
-
 private:
-	std::unique_ptr<Node> ProcessNode(aiNode* node);
+	std::unique_ptr<Node> ProcessNode(aiNode* node, Node* parent = nullptr);
 	std::unique_ptr<Mesh> ProcessMesh(aiMesh* mesh, const aiScene* scene);
 
 private:
 	std::unordered_map <std::size_t, std::unique_ptr<Model>> m_models;
-	std::vector<std::unique_ptr<Bone>> m_bones;
 	std::unordered_map <std::size_t, std::unique_ptr<Mesh>> m_meshes;
 	std::unordered_map <std::size_t, std::unique_ptr<Animation>> m_animations;
 

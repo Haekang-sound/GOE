@@ -63,6 +63,8 @@
     <ClInclude Include="Material.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\GOE_AssetLoader\AssetCore.h" />
+    <ClInclude Include="..\GOE_Core\Node.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">

@@ -18,6 +18,8 @@ public:
 	inline const std::size_t GetID() const { return m_id; }
 	inline const double GetDuration() const { return m_Duration; }
 	inline const double GetTicksPerSecond() const { return m_TicksPerSecond; }
+	inline std::vector<std::unique_ptr<BoneAnimation>>& GetBoneAnimation() { return m_BoneAnimations; }
+
 
 public:
 	inline void SetName(const std::string& name) { m_name = name; }
@@ -32,8 +34,6 @@ private:
 
 	double m_Duration = 0.0;
 	double m_TicksPerSecond = 0.0;
-
-	unsigned int m_NumChannels = 0;
 
 	// 본트랜스폼을 담는 boneanimation
 	std::vector<std::unique_ptr<BoneAnimation>> m_BoneAnimations;

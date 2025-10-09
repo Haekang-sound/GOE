@@ -89,6 +89,19 @@ namespace GOE
 			result._33 = z;
 			return result;
 		}
+	public:
+		Matrix4x4 Transpose()
+		{
+			Matrix4x4 temp = *this;
+			for (int i = 0; i < 4; ++i)
+			{
+				for (int j = 0; j < 4; ++j)
+				{
+					m[i][j] = temp.m[j][i];
+				}
+			}
+			return *this;
+		}
 
 	public:
 		// 행렬 곱셈 연산자
@@ -157,6 +170,24 @@ namespace GOE
 			: x(x), y(y), z(z){}
 
 	public:
+		Matrix4x4 ToScaleMatrix() const
+		{
+			return Matrix4x4::Scaling(x, y, z);
+		}
+
+		// 오일러 회전 일경우
+		Matrix4x4 ToRotationXMatrix() const
+		{
+			return Matrix4x4::RotationX(x) * Matrix4x4::RotationY(y) * Matrix4x4::RotationZ(z);
+		}
+
+		Matrix4x4 ToTranslationMatrix() const
+		{
+			return Matrix4x4::Translation(x, y, z);
+		}
+		
+
+	public:
 		FLoatVector3& operator* (const float& other)
 		{
 			x *= other;
@@ -191,6 +222,28 @@ namespace GOE
 		FLoatVector4() = default;
 		FLoatVector4(float x, float y, float z, float w)
 			: x(x), y(y), z(z), w(w){}
+
+	public: 
+		Matrix4x4 ToRotationXMatrix() const
+		{
+			// 쿼터니언을 회전 행렬로 변환
+			Matrix4x4 result = Matrix4x4::Identity();
+
+			result._11 = 1 - 2 * (y * y + z * z);
+			result._12 = 2 * (x * y + z * w);
+			result._13 = 2 * (x * z - y * w);
+
+			result._21 = 2 * (x * y - z * w);
+			result._22 = 1 - 2 * (x * x + z * z);
+			result._23 = 2 * (y * z + x * w);
+
+			result._31 = 2 * (x * z + y * w);
+			result._32 = 2 * (y * z - x * w);
+			result._33 = 1 - 2 * (x * x + y * y);
+
+			return result;
+		}
+
 	public:
 		FLoatVector4& operator* (const float& scalar)
 		{

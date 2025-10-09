@@ -13,8 +13,8 @@ struct VertexWeight
 {
 public:
 	Bone() = default;
-	Bone(const std::string& name, size_t id)
-		: m_name(name), m_id(id)
+	Bone(const std::string& name, size_t id, size_t meshid)
+		: m_name(name), m_id(id), m_meshID(meshid), m_offsetTM(GOE::Matrix4x4::Identity()), m_rootNode(0), m_node(0)
 	{}
 	~Bone();
 
@@ -35,6 +35,7 @@ public:
 private:
 	const std::string m_name; // 노드 이름
 	const size_t m_id; // 노드 ID
+	const size_t m_meshID = 0; // 이 본이 속한 메쉬 ID (필요시 사용)
 
 	GOE::Matrix4x4 m_offsetTM;
 	

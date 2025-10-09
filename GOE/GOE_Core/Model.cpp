@@ -1,3 +1,12 @@
 #include "Core_pch.h"
 
-Model::~Model()=default; // 家戈磊 备泅
+Model::~Model() = default; // 家戈磊 备泅
+void Model::UpdateHierarchy(Node* node)
+{
+	node->SetWorldTM();
+
+	for (const auto& child : node->GetChildren())
+	{
+		UpdateHierarchy(child.get());
+	}
+}

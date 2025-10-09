@@ -35,6 +35,17 @@ public:
 	inline const std::size_t GetID() const { return m_id; }
 	inline const std::unique_ptr<Node>& GetRootNode() const { return m_rootNode; }
 	inline std::vector<Node*>& GetNodeVector() { return m_nodes; }
+	inline Node* GetNodeFromMap(size_t id)
+	{
+		auto it = m_nodeMap.find(id);
+		if (it != m_nodeMap.end())
+		{
+			return it->second; // 찾았으면 노드의 raw pointer 반환
+		}
+		return nullptr; // 못 찾았으면 nullptr 반환
+	}
+	inline const std::vector<MESH_ID>& GetMeshIDs() const { return m_meshIDs; }
+
 
 public:
 	inline void SetName(const std::string& name) { m_name = name; }
@@ -48,6 +59,12 @@ public:
 		m_meshMap[id] = index; // 매쉬 ID와 인덱스를 해시맵에 추가
 	}
 	
+public: 
+	void UpdateNodeHierarchy() { UpdateHierarchy(m_rootNode.get()); }
+
+private:
+	void UpdateHierarchy(Node* node);
+
 private:
 	std::string m_name = ""; // 모델 이름
 	const size_t m_id;		// 모델 ID
@@ -55,8 +72,6 @@ private:
 	std::unique_ptr<Node> m_rootNode; 
 	std::vector<Node*> m_nodes;
 	std::unordered_map<size_t, Node*> m_nodeMap;
-
-
 
 	std::vector<MESH_ID> m_meshIDs;
 	std::unordered_map<MESH_ID, MESH_INDEX> m_meshMap; // 매쉬 이름과 인덱스를 매핑하는 해시맵

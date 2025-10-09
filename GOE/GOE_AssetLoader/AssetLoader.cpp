@@ -28,7 +28,7 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 		aiProcess_RemoveRedundantMaterials |
 		aiProcess_OptimizeMeshes |
 		aiProcess_GenSmoothNormals |
-		aiProcess_SplitLargeMeshes|
+		aiProcess_SplitLargeMeshes |
 		aiProcess_PopulateArmatureData;
 
 
@@ -63,7 +63,7 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 			temp->SetNodeIndex(m_models[pathHash].get()->GetNodeVector().size());
 			m_models[pathHash].get()->AddNodeToVector(temp);
 			m_models[pathHash].get()->AddNodeToMap(temp->GetID(), temp);
-			
+
 			for (int i = 0; i < temp->GetChildren().size(); ++i)
 			{
 				nodeStack.push_back(temp->GetChildren()[i].get());
@@ -136,21 +136,30 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 			for (int j = 0; j < anim->mNumChannels; ++j)
 			{
 				std::unique_ptr<BoneAnimation> boneAnim = std::make_unique<BoneAnimation>(anim->mChannels[j]->mNodeName.C_Str(), GOE::FileManager::GetHash(anim->mChannels[j]->mNodeName.C_Str()));
-				boneAnim.get()->AddPositions({
-				anim->mChannels[j]->mPositionKeys->mValue[0],
-				anim->mChannels[j]->mPositionKeys->mValue[1],
-				anim->mChannels[j]->mPositionKeys->mValue[2] });
+				for (int k = 0; k < anim->mChannels[j]->mNumPositionKeys; ++k)
+				{
+					boneAnim.get()->AddPositions({
+						anim->mChannels[j]->mPositionKeys[k].mValue[0],
+						anim->mChannels[j]->mPositionKeys[k].mValue[1],
+						anim->mChannels[j]->mPositionKeys[k].mValue[2]});
+				}
 
-				boneAnim.get()->AddScales({
-				anim->mChannels[j]->mScalingKeys->mValue[0],
-				anim->mChannels[j]->mScalingKeys->mValue[1],
-				anim->mChannels[j]->mScalingKeys->mValue[2] });
-
-				boneAnim.get()->AddRotations({
-				anim->mChannels[j]->mRotationKeys->mValue.w,
-				anim->mChannels[j]->mRotationKeys->mValue.x,
-				anim->mChannels[j]->mRotationKeys->mValue.y,
-				anim->mChannels[j]->mRotationKeys->mValue.z });
+				for (int k = 0; k < anim->mChannels[j]->mNumScalingKeys; ++k)
+				{
+					boneAnim.get()->AddScales({
+						anim->mChannels[j]->mScalingKeys[k].mValue[0],
+						anim->mChannels[j]->mScalingKeys[k].mValue[1],
+						anim->mChannels[j]->mScalingKeys[k].mValue[2] });
+				}
+				
+				for (int k = 0; k < anim->mChannels[j]->mNumRotationKeys; ++k)
+				{
+					boneAnim.get()->AddRotations({
+						anim->mChannels[j]->mRotationKeys[k].mValue.w,
+						anim->mChannels[j]->mRotationKeys[k].mValue.x,
+						anim->mChannels[j]->mRotationKeys[k].mValue.y,
+						anim->mChannels[j]->mRotationKeys[k].mValue.z });
+				}
 
 				a.get()->AddBoneAnimation(move(boneAnim));
 			}
@@ -163,11 +172,12 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 	return true;
 }
 
-std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node)
+std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node, Node* parent)
 {
 	/// 노드이름을 해쉬로 저장중-> 이걸로 충분한지는 의문
 	std::unique_ptr<Node> currentNode = std::make_unique<Node>(node->mName.C_Str(), GOE::FileManager::GetHash(node->mName.C_Str()));
-	currentNode.get()->SetLocalTransfrom(aiMatrix4x4ToCoreMtrix(node->mTransformation));
+	currentNode.get()->SetBindTM(aiMatrix4x4ToCoreMtrix(node->mTransformation.Transpose()));
+	currentNode.get()->SetParent(parent); // 부모노드 설정
 
 	// 노드의 자식 노드를 재귀적으로 처리합니다.
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
@@ -178,7 +188,7 @@ std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node)
 		// 현재 노드의 자식 노드를 가져옵니다.
 		aiNode* childNode = node->mChildren[i];
 		// 자식 노드를 재귀적으로 처리합니다.
-		currentNode.get()->AddChild(ProcessNode(childNode));
+		currentNode.get()->AddChild(ProcessNode(childNode, currentNode.get()));
 	}
 
 	return currentNode; // 현재 노드에 대한 처리가 끝났으므로 빈 노드를 반환합니다.
@@ -230,12 +240,23 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 			meshData.get()->indices.emplace_back(face.mIndices[j]);
 		}
 	}
+
+	// 본을 추가한다.
 	if (mesh->HasBones())
 	{
 		for (size_t i = 0; i < mesh->mNumBones; ++i)
 		{
 			// 본을 채운다.
-			std::unique_ptr<Bone> currentBone = std::make_unique<Bone>(mesh->mBones[i]->mName.C_Str(), GOE::FileManager::GetHash(mesh->mBones[i]->mName.C_Str()));
+			std::unique_ptr<Bone> currentBone 
+				= std::make_unique<Bone>(mesh->mBones[i]->mName.C_Str(),
+				GOE::FileManager::GetHash(mesh->mBones[i]->mName.C_Str()),
+					currentMesh.get()->GetID());
+
+			//aiMatrix4x4 assimpOffsetMatrix = mesh->mBones[i]->mOffsetMatrix;
+			//assimpOffsetMatrix.Transpose(); // 전치(Transpose) 실행
+			//currentBone.get()->SetBoneOffset(aiMatrix4x4ToCoreMtrix(assimpOffsetMatrix));
+
+			////// --- 수정 끝 ---
 			currentBone.get()->SetBoneOffset(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix));
 			currentBone.get()->SetNode(GOE::FileManager::GetHash(mesh->mBones[i]->mNode->mName.C_Str()));
 			currentBone.get()->SetRootNode(GOE::FileManager::GetHash(mesh->mBones[i]->mArmature->mName.C_Str()));
@@ -246,7 +267,7 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 					mesh->mBones[i]->mWeights[i].mWeight);
 			}
 
-			m_bones.push_back(move(currentBone));
+			currentMesh.get()->AddBone(move(currentBone));
 		}
 	}
 

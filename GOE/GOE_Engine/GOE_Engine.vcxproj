@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\GOE_AssetLoader\AssetCore.h" />
+    <ClInclude Include="..\GOE_Core\Node.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Engine_pch.h" />
     <ClInclude Include="Entity.h" />
