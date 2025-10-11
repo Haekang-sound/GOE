@@ -3,7 +3,14 @@
 Model::~Model() = default; // ¼Ò¸êÀÚ ±¸Çö
 void Model::UpdateHierarchy(Node* node)
 {
-	node->SetWorldTM();
+	if (node->GetParent())
+	{
+		node->SetWorldTM(node->GetParent()->GetWorldTM() * node->GetLocalTM());
+	}
+	else
+	{
+		node->SetWorldTM(node->GetLocalTM());
+	}
 
 	for (const auto& child : node->GetChildren())
 	{

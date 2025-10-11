@@ -139,34 +139,12 @@ void GOE::Engine::OnUpdate(double dTime)
 		Node* currentNode = tempM->GetNodeFromMap(temp->GetBoneAnimation()[i].get()->GetID());
 		if (currentNode)
 		{
-			currentNode->SetAnimatedTM(boneAnim->GetSRTMatrix(frameIndex));
+			currentNode->SetLocalTM(boneAnim->GetSRTMatrix(frameIndex));
 		}
 	}
 
 	/// 2. 모델의 노드 계층구조를 업데이트한다.
 	tempM->UpdateNodeHierarchy();
-
-	/// 3. 모델의 메쉬를 순회하며 본의 offset을 적용한다.
-	/// 이 부분은 셰이더에서 처리하는게 맞지만 데이터가 제대로 입력되는지 확인하기 위한 용도라 
-	/// 주석처리되어있는것이 합당하다.
-	//for (int i = 0; i < tempM->GetMeshIDs().size(); ++i)
-	//{
-	//	// 본을 순회하며 offset을 적용한다.
-	//	MESH_ID meshID = tempM->GetMeshIDs()[i];
-	//	const Mesh* mesh = m_assetCore->GetMesh(meshID);
-	//	if (mesh)
-	//	{
-	//		for (int j = 0; j < mesh->GetBones().size(); ++j)
-	//		{
-	//			Bone* bone = mesh->GetBones()[j].get();
-	//			Node* boneNode = tempM->GetNodeFromMap(bone->GetID());
-	//			if (boneNode)
-	//			{
-	//				boneNode->SetSkinnedTM(bone->GetBoneOffset());
-	//			}
-	//		}
-	//	}
-	//}
 
 
 #pragma region testAnimation

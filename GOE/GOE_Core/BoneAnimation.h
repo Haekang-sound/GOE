@@ -13,6 +13,7 @@ public:
 	inline const std::vector<GOE::FLoatVector3>& GetScales() { return m_scales; }
 	inline const std::vector<GOE::FLoatVector3>& GetPositions() { return m_positions; }
 	inline const std::vector<GOE::FLoatVector4>& GetRotations() { return m_rotations; }
+	/// 애니메이션  키값은  변하지  않으니까 로드할때 미리 계산해놓는게 좋을듯
 	inline GOE::Matrix4x4 GetSRTMatrix(size_t index)
 	{
 		// 1. 각 변환을 위한 행렬을 단위 행렬로 초기화합니다.
@@ -40,7 +41,6 @@ public:
 
 		// 5. 최종 변환 행렬을 조합하여 반환합니다.
 		GOE::Matrix4x4 temp = scaleMatrix * rotationMatrix * translationMatrix;
-		
 		return temp;
 	}
 

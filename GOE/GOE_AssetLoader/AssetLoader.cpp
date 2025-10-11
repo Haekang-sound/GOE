@@ -176,7 +176,9 @@ std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node, Node* parent)
 {
 	/// 노드이름을 해쉬로 저장중-> 이걸로 충분한지는 의문
 	std::unique_ptr<Node> currentNode = std::make_unique<Node>(node->mName.C_Str(), GOE::FileManager::GetHash(node->mName.C_Str()));
-	currentNode.get()->SetBindTM(aiMatrix4x4ToCoreMtrix(node->mTransformation.Transpose()));
+
+	//currentNode.get()->SetBindPose(aiMatrix4x4ToCoreMtrix(node->mTransformation.Transpose()));
+	currentNode.get()->SetLocalTM(aiMatrix4x4ToCoreMtrix(node->mTransformation.Transpose()));
 	currentNode.get()->SetParent(parent); // 부모노드 설정
 
 	// 노드의 자식 노드를 재귀적으로 처리합니다.
@@ -252,12 +254,7 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 				GOE::FileManager::GetHash(mesh->mBones[i]->mName.C_Str()),
 					currentMesh.get()->GetID());
 
-			//aiMatrix4x4 assimpOffsetMatrix = mesh->mBones[i]->mOffsetMatrix;
-			//assimpOffsetMatrix.Transpose(); // 전치(Transpose) 실행
-			//currentBone.get()->SetBoneOffset(aiMatrix4x4ToCoreMtrix(assimpOffsetMatrix));
-
-			////// --- 수정 끝 ---
-			currentBone.get()->SetBoneOffset(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix));
+			currentBone.get()->SetBoneOffset(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix.Transpose()));
 			currentBone.get()->SetNode(GOE::FileManager::GetHash(mesh->mBones[i]->mNode->mName.C_Str()));
 			currentBone.get()->SetRootNode(GOE::FileManager::GetHash(mesh->mBones[i]->mArmature->mName.C_Str()));
 			for (int j = 0; j < mesh->mBones[i]->mNumWeights; ++j)

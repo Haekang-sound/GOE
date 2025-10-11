@@ -1,68 +1,56 @@
-#pragma once
+ï»¿#pragma once
 class Node
 {
 public:
-	Node() = default;
+	//Node() = default;
 	Node(const std::string& name, size_t id)
-		: m_name(name), m_id(id){}
+		: m_parent(nullptr), m_name(name), m_id(id)	{}
 	~Node();
 
-public:	
+public:
 	inline const std::string& GetName() const { return m_name; }
 	inline size_t GetID() const { return m_id; }
-	// ÀÌµ¿»ı¼ºÀ¸·Î ÀÚ½Ä³ëµå¸¦ Ãß°¡ÇÑ´Ù.
+	// ì´ë™ìƒì„±ìœ¼ë¡œ ìì‹ë…¸ë“œë¥¼ ì¶”ê°€í•œë‹¤.
 public:
 	inline Node* GetParent() const { return m_parent; }
 	inline const std::vector<std::unique_ptr<Node>>& GetChildren() const { return m_children; }
 	inline const std::vector<size_t>& GetMeshIndex() const { return m_meshIndex; }
 	inline GOE::Matrix4x4& GetBindPose() { return m_bindPose; }
 	inline GOE::Matrix4x4& GetLocalTM() { return m_localTM; }
-	inline GOE::Matrix4x4 GetWorldTM()
-	{
-		if (m_parent) return m_parent->GetWorldTM() * m_localTM;
-		else return m_localTM;
-	}
+	/// ë°˜ë“œì‹œ setWorldTMí•¨ìˆ˜ë¥¼ í˜¸ì¶œí•œ ì´í›„ì— ì‚¬ìš©í•´ì•¼í•œë‹¤.
+	inline GOE::Matrix4x4 GetWorldTM() { return m_worldTM; }
 
 public:
 	inline void SetParent(Node* parent) { m_parent = parent; }
 	inline void SetModelID(size_t id) { m_modelID = id; }
-	inline void AddChild(std::unique_ptr<Node>&& child) { m_children.push_back(std::move(child));}
+	inline void AddChild(std::unique_ptr<Node>&& child) { m_children.push_back(std::move(child)); }
 	inline void AddMeshIndex(size_t meshIndex) { m_meshIndex.push_back(meshIndex); }
 	inline void SetNodeIndex(int i) { m_index = i; }
-
-	inline void SetLocalTM(GOE::Matrix4x4 transform) { m_localTM = transform; }
-	inline void SetWorldTM()
-	{
-		if (m_parent) m_worldTM = m_parent->GetWorldTM() * m_localTM;
-		else m_worldTM = m_localTM;
-	}
-	inline void SetBindTM(GOE::Matrix4x4 transform) { m_bindPose = transform; }
-	inline void SetAnimatedTM(GOE::Matrix4x4 anim) { m_localTM = m_bindPose * anim; }
-	// ÀÌ ÇÔ¼ö´Â Å×½ºÆ®¿ëÀÌ´Ï ½Ç¿ë¼ºÀº ¾ø´Ù.
-	inline void SetSkinnedTM(GOE::Matrix4x4 skinned) { m_worldTM = m_worldTM*skinned; }
-public:
-	void UpdateHierarchy(Node* node);
+	inline void SetLocalTM(GOE::Matrix4x4 transform){ m_localTM = transform; }	
+	inline void SetWorldTM(GOE::Matrix4x4 transform) { m_worldTM = transform; }
+	inline void SetBindPose(GOE::Matrix4x4 transform) { m_bindPose = transform; }
+	inline void MultiplyLocal(GOE::Matrix4x4 transform) { m_localTM = m_localTM * transform; }
 
 private:
-	const std::string m_name; // ³ëµå ÀÌ¸§
-	const size_t m_id; // ³ëµå ID
+	const std::string m_name; // ë…¸ë“œ ì´ë¦„
+	const size_t m_id; // ë…¸ë“œ ID
 	size_t m_modelID = 0;
 	int m_index = -1;
 
 	/// <summary>
-	/// ½ºÅ°´× ÇÏ´Â Áß
-	/// ³ëµå´Â °¢°¢ ·ÎÄÃÇÑ Æ®·£½ºÆûÀ» °®°í ÀÖ´Ù.
-	/// ³ëµåÀÇ À§Ä¡´Â ºÎ¸ğÀÇ Æ®·£½ºÆûµµ ¹Ş¾Æ¿Í¼­ ±× À§¿¡ Á¸ÀçÇØ¾ßÇÔ
-	/// ±×¸®°í ÀÌ ³ëµå¿¡ ¾Ö´Ï¸ŞÀÌ¼Ç °ªÀÌ °öÇØÁú °ÍÀÌ°í
+	/// ìŠ¤í‚¤ë‹ í•˜ëŠ” ì¤‘
+	/// ë…¸ë“œëŠ” ê°ê° ë¡œì»¬í•œ íŠ¸ëœìŠ¤í¼ì„ ê°–ê³  ìˆë‹¤.
+	/// ë…¸ë“œì˜ ìœ„ì¹˜ëŠ” ë¶€ëª¨ì˜ íŠ¸ëœìŠ¤í¼ë„ ë°›ì•„ì™€ì„œ ê·¸ ìœ„ì— ì¡´ì¬í•´ì•¼í•¨
+	/// ê·¸ë¦¬ê³  ì´ ë…¸ë“œì— ì• ë‹ˆë©”ì´ì…˜ ê°’ì´ ê³±í•´ì§ˆ ê²ƒì´ê³ 
 	/// 
 	/// </summary>
+	GOE::Matrix4x4 m_bindPose = GOE::Matrix4x4::Identity();
 	GOE::Matrix4x4 m_localTM = GOE::Matrix4x4::Identity();
 	GOE::Matrix4x4 m_worldTM = GOE::Matrix4x4::Identity();
-	GOE::Matrix4x4 m_bindPose = GOE::Matrix4x4::Identity();
-	
+
 	Node* m_parent = nullptr;
 	std::vector<std::unique_ptr<Node>> m_children;
-	std::vector<size_t> m_meshIndex; // ÀÌ ³ëµå°¡ ÂüÁ¶ÇÏ´Â ¸Ş½¬ÀÇ ÀÎµ¦½º
+	std::vector<size_t> m_meshIndex; // ì´ ë…¸ë“œê°€ ì°¸ì¡°í•˜ëŠ” ë©”ì‰¬ì˜ ì¸ë±ìŠ¤
 
 };
 
