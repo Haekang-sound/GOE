@@ -4,6 +4,7 @@
 
 // PI 값 정의
 #define PI 3.1415926535f
+#define MAX_BONE 4
 
 // Degree를 Radian으로 변환하는 매크로
 #define DEGREE_TO_RAD(degree) ((degree) * PI / 180.0f)
@@ -130,8 +131,8 @@ namespace GOE
 
 	struct FloatVector2
 	{
-		float x;
-		float y;
+		float x=0.0;
+		float y=0.0;
 	public:
 		FloatVector2() = default;
 		FloatVector2(float x, float y)
@@ -279,6 +280,11 @@ namespace GOE
 		FLoatVector4 color = { 1,1,1,1 }; // 색상 (RGBA)
 		FloatVector2 uv = { 0,0 }; // UV 좌표
 		FLoatVector3 normal = { 0,0,0 }; // 법선 벡터
+		unsigned int boneIndices[MAX_BONE];
+		float boneWeights[MAX_BONE];
+
+		// 16바이트 정렬을 위한 패딩
+		FloatVector2 padding = {}; 
 	};
 
 	// 엔진에서 사용할 메시 데이터 구조체

@@ -16,6 +16,7 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 
 	// DirectX 호환을 위한 플래그 설정
 	const unsigned int modelFlags =
+		aiProcess_LimitBoneWeights |   // 최대 4개 본 제한
 		aiProcess_MakeLeftHanded |
 		aiProcess_FlipUVs |
 		aiProcess_FlipWindingOrder |
@@ -141,7 +142,7 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 					boneAnim.get()->AddPositions({
 						anim->mChannels[j]->mPositionKeys[k].mValue[0],
 						anim->mChannels[j]->mPositionKeys[k].mValue[1],
-						anim->mChannels[j]->mPositionKeys[k].mValue[2]});
+						anim->mChannels[j]->mPositionKeys[k].mValue[2] });
 				}
 
 				for (int k = 0; k < anim->mChannels[j]->mNumScalingKeys; ++k)
@@ -151,7 +152,7 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 						anim->mChannels[j]->mScalingKeys[k].mValue[1],
 						anim->mChannels[j]->mScalingKeys[k].mValue[2] });
 				}
-				
+
 				for (int k = 0; k < anim->mChannels[j]->mNumRotationKeys; ++k)
 				{
 					boneAnim.get()->AddRotations({
@@ -209,6 +210,7 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		meshData.get()->vertices.back().position.y = mesh->mVertices[i].y;
 		meshData.get()->vertices.back().position.z = mesh->mVertices[i].z;
 
+
 		if (mesh->HasTextureCoords(0))
 		{
 			meshData.get()->vertices.back().uv.x = mesh->mTextureCoords[0][i].x; // UV 좌표 X
@@ -232,6 +234,7 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 			meshData.get()->vertices.back().normal.y = 0.0f;
 			meshData.get()->vertices.back().normal.z = 0.0f;
 		}
+
 	}
 
 	for (size_t i = 0; i < mesh->mNumFaces; i++)
@@ -249,22 +252,68 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		for (size_t i = 0; i < mesh->mNumBones; ++i)
 		{
 			// 본을 채운다.
-			std::unique_ptr<Bone> currentBone 
+			std::unique_ptr<Bone> currentBone
 				= std::make_unique<Bone>(mesh->mBones[i]->mName.C_Str(),
-				GOE::FileManager::GetHash(mesh->mBones[i]->mName.C_Str()),
+					GOE::FileManager::GetHash(mesh->mBones[i]->mName.C_Str()),
 					currentMesh.get()->GetID());
-
+			currentBone.get()->SetBoneIndex(i); // 본 인덱스 설정
 			currentBone.get()->SetBoneOffset(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix.Transpose()));
 			currentBone.get()->SetNode(GOE::FileManager::GetHash(mesh->mBones[i]->mNode->mName.C_Str()));
 			currentBone.get()->SetRootNode(GOE::FileManager::GetHash(mesh->mBones[i]->mArmature->mName.C_Str()));
-			for (int j = 0; j < mesh->mBones[i]->mNumWeights; ++j)
-			{
-				currentBone.get()->AddWeight(
-					mesh->mBones[i]->mWeights[i].mVertexId,
-					mesh->mBones[i]->mWeights[i].mWeight);
-			}
 
+
+			currentMesh.get()->AddBoneToMap(currentBone.get()->GetID(), currentBone.get());
 			currentMesh.get()->AddBone(move(currentBone));
+		}
+
+		// 본을 순회한다.
+		for (size_t i = 0; i < mesh->mNumBones; ++i)
+		{
+			// 현재 본이 영향을 주는 버텍스의 수만큼 순회한다.
+			for (unsigned int j = 0; j < mesh->mBones[i]->mNumWeights; ++j)
+			{
+				// 본이 영향을주는 버텍스아이디와 가중치를 가져온다.
+				unsigned int vertexId = mesh->mBones[i]->mWeights[j].mVertexId;
+				float weight = mesh->mBones[i]->mWeights[j].mWeight;
+
+				/// 정점에 본데이터를 입력하는 과정이 필요함
+				if (weight > 0.f)
+				{
+					// 빈 슬롯을 찾아서 본 인덱스와 가중치를 설정
+					for (int k = 0; k < MAX_BONE; ++k)
+					{
+						// 가중치가 0이면 아직 빈 슬롯이므로 여기에 본 정보 입력
+						if (meshData.get()->vertices[vertexId].boneWeights[k] <= 0.0f)
+						{
+							meshData.get()->vertices[vertexId].boneIndices[k] = i;
+							meshData.get()->vertices[vertexId].boneWeights[k] = weight;
+							break;
+							// 빈 슬롯을 찾았으므로 루프 종료
+							// 여기서 종료하지 않으면 동일 본이 여러 슬롯에 들어갈 수 있음
+						}
+					}
+				}
+			}
+		}
+
+		// 본가중치 정규화
+		for (size_t i = 0; i < meshData->vertices.size(); ++i)
+		{
+			float totalWeight = 0.0f;
+			// 가중치의 합을 구한다.
+			for (int j = 0; j < MAX_BONE; ++j)
+			{
+				totalWeight += meshData->vertices[i].boneWeights[j];
+			}
+			// 가중치의 합이 0보다 크면 정규화 수행
+			if (totalWeight > 0.0f)
+			{
+				// 각 가중치를 합으로 나누어 정규화
+				for (int j = 0; j < MAX_BONE; ++j)
+				{
+					meshData->vertices[i].boneWeights[j] /= totalWeight;
+				}
+			}
 		}
 	}
 

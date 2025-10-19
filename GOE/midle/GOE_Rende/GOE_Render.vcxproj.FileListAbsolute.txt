@@ -1,0 +1,8 @@
+D:\project\GOE\GOE\lib\D3D12\D3D12Core.dll
+D:\project\GOE\GOE\lib\D3D12\D3D12Core.pdb
+D:\project\GOE\GOE\lib\D3D12\D3D12SDKLayers.dll
+D:\project\GOE\GOE\lib\D3D12\D3D12SDKLayers.pdb
+D:\project\GOE\GOE\lib\dxcompiler.dll
+D:\project\GOE\GOE\lib\dxcompiler.pdb
+D:\project\GOE\GOE\lib\dxil.dll
+D:\project\GOE\GOE\lib\dxil.pdb

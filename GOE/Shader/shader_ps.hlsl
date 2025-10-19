@@ -6,7 +6,7 @@ struct PSInput
 {
     float4 position : SV_POSITION;
     float4 color : COLOR;
-    float2 uv : TEXCOORD0; // 버텍스 셰이더에서 넘겨준 uv 좌표
+    float2 uv : TEXCOORD0; // 텍스처 좌표를 넘겨주기 위한 변수 추가
     float3 normal : NORMAL; // 법선 벡터를 넘겨주기 위한 변수 추가
 };
 

@@ -1,5 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
+#include "CoreMath.h"
+
 using namespace DirectX;
 
 namespace Graphics
@@ -35,6 +37,7 @@ namespace Graphics
 		}
 	};
 
+
 	/// <summary>z
 	/// 버텍스 구조체
 	/// </summary>
@@ -44,6 +47,10 @@ namespace Graphics
 		XMFLOAT4 color = { 1,1,1,1 };
 		XMFLOAT2 uv = { 0,0 }; // UV 좌표
 		XMFLOAT3 normal = { 0,0,0 }; // 법선 벡터
+		XMUINT4 boneIndices = {};
+		XMFLOAT4 boneWeights = {};
+		// 16바이트 정렬을 위한 패딩
+		XMFLOAT2 padding = {};
 
 	public:
 		Vertex() = default;
@@ -72,6 +79,16 @@ namespace Graphics
 			normal.x = other.normal.x;
 			normal.y = other.normal.y;
 			normal.z = other.normal.z;
+
+			boneIndices.w = other.boneIndices[0];
+			boneIndices.x = other.boneIndices[1];
+			boneIndices.y = other.boneIndices[2];
+			boneIndices.z = other.boneIndices[3];
+
+			boneWeights.w = other.boneWeights[0];
+			boneWeights.x = other.boneWeights[1];
+			boneWeights.y = other.boneWeights[2];
+			boneWeights.z = other.boneWeights[3];
 		}
 
 	public:
@@ -94,10 +111,21 @@ namespace Graphics
 			normal.y = other.normal.y;
 			normal.z = other.normal.z;
 
+			boneIndices.w = other.boneIndices[0];
+			boneIndices.x = other.boneIndices[1];
+			boneIndices.y = other.boneIndices[2];
+			boneIndices.z = other.boneIndices[3];
+
+			boneWeights.w = other.boneWeights[0];
+			boneWeights.x = other.boneWeights[1];
+			boneWeights.y = other.boneWeights[2];
+			boneWeights.z = other.boneWeights[3];
+
 			return *this;
 		}
 
 	};
+
 
 	/// <summary>
 	/// 버텍스와 인덱스 정보를 갖고 있는 
@@ -146,9 +174,19 @@ namespace Graphics
 
 	struct CB
 	{
-		XMFLOAT4X4 world;
-		XMFLOAT4X4 viewProjection;
+		XMFLOAT4X4 world = {};
+		XMFLOAT4X4 viewProjection = {};
 		XMFLOAT3   cameraPosition = {};
 		float      padding = 0.f; // 16바이트 정렬을 위한 패딩
+	};
+
+	struct SkinningCB
+	{
+		XMFLOAT4X4 boneTransforms[128]; // 최대 128개의 본 변환 행렬
+	};
+
+	struct BoneOffsetCB
+	{
+		XMFLOAT4X4 offsetTransforms[128]; // 최대 128개의 본 오프셋 행렬
 	};
 }

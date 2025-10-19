@@ -41,9 +41,11 @@ void GOE::Engine::Initialize()
 
 	/// 로드된 매쉬중 원하는 메쉬를 이름으로 골라서
 	/// 그래픽스 리소스를 생성합니다.
-	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("Ch03"))); // 첫번째 메쉬를 가져와서 리소스 생성
-	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_0"))); // 첫번째 메쉬를 가져와서 리소스 생성
-	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_1"))); // 첫번째 메쉬를 가져와서 리소스 생성
+	// 메쉬 리소스생성
+	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("Ch03"))); 
+	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_0")));
+	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_1")));
+	// 애니매이션 리소스 생성
 	m_renderer->CopyUploadHeapToDefault();
 
 	//// 에디터 초기화
@@ -236,9 +238,6 @@ void GOE::Engine::OnUpdate(double dTime)
 					ImGui::Text("%.6f, %.6f, %.6f, %.6f", temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._21, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._22, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._23, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._24);
 					ImGui::Text("%.6f, %.6f, %.6f, %.6f", temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._31, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._32, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._33, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._34);
 					ImGui::Text("%.6f, %.6f, %.6f, %.6f\n", temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._41, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._42, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._43, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._44);
-
-
-					
 					
 					ImGui::End();
 				}

@@ -124,9 +124,14 @@ public:
 	ComPtr<ID3D12Resource> m_depthStencilBuffer;
 	ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
 
+/// <summary>
+/// renderer는 너무 많은 리소스를 직접 소유하고 있다.
+/// 그래픽스단위의 리소스매니저가 필요하다
+/// </summary>
 private:
-	std::unordered_map<size_t, std::unique_ptr<MeshResource>> m_meshResources;
-	std::unordered_map<size_t, std::unique_ptr<TextureResource>> m_textureResources;
+	std::vector<std::unique_ptr<MeshResource>> m_meshResources;
+	std::unordered_map<size_t, MeshResource*> m_meshResourceMap;
+	std::unordered_map<size_t, std::unique_ptr<TextureResource>> m_textureResourceMap;
 	std::vector<std::unique_ptr<RenderObject>> m_renderObjects;
 
 public:
@@ -162,7 +167,7 @@ private:
 	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
 	ComPtr<ID3DBlob> m_vertexShader = nullptr;
 	ComPtr<ID3DBlob> m_pixelShader = nullptr;
-	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[4] = {};
+	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[6] = {};
 	ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
 	ComPtr<ID3D12GraphicsCommandList> m_commandList = nullptr;
 	HANDLE m_fenceEvent = nullptr;
