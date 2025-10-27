@@ -114,6 +114,10 @@ void GOE::Engine::OnUpdate(double dTime)
 
 
 
+
+
+#pragma region testAnimation
+
 	/// 값이 정확한지는 아직 모르지만 애니메이션 업데이트는 구조적으로 만들었다.
 	//1. 애니메이션-> 노드
 	// 특정 애니매이션을 id로 가져온다.
@@ -132,8 +136,7 @@ void GOE::Engine::OnUpdate(double dTime)
 	float animTime = fmod(timeInTicks, duration);     // 루프 재생
 	int keyframeCount = 155; // 예: 155
 	int frameIndex = GetFrameIndexFromTime(animTime, duration, keyframeCount);
-
-
+	
 	/// 1. 애니메이션은 순회하면서 모델 내부의 노드를 업데이트한다.
 	for (int i = 0; i < temp->GetBoneAnimation().size(); ++i)
 	{
@@ -142,14 +145,20 @@ void GOE::Engine::OnUpdate(double dTime)
 		if (currentNode)
 		{
 			currentNode->SetLocalTM(boneAnim->GetSRTMatrix(frameIndex));
+			if (currentNode->GetParent())
+			{
+				currentNode->SetWorldTM(currentNode->GetLocalTM() * currentNode->GetParent()->GetWorldTM());
+				//currentNode->SetWorldTM(currentNode->GetParent()->GetWorldTM() * currentNode->GetLocalTM());
+			}
+			else
+			{
+				currentNode->SetWorldTM(currentNode->GetLocalTM());
+			}
 		}
 	}
 
 	/// 2. 모델의 노드 계층구조를 업데이트한다.
 	tempM->UpdateNodeHierarchy();
-
-
-#pragma region testAnimation
 
 	static int tmIndex = 0;
 

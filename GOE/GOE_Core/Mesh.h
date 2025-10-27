@@ -34,12 +34,18 @@ public:
 		}
 		return nullptr; // 못 찾았으면 nullptr 반환
 	}
+	inline const GOE::Matrix4x4* GetBoneOffsetsByIndex(int index) const	{return m_boneOffsets[index];}
+	inline const std::vector<GOE::Matrix4x4*> GetBoneOffsets() const { return m_boneOffsets; }
+
 public: 
 	inline void SetModelID(size_t modelID) { m_modelID = modelID; }
 	inline void SetMeshIndex(size_t meshIndex) { m_meshIndex = meshIndex; }
 	inline void SetMeshData(std::unique_ptr<GOE::MeshData>&& meshData) { m_meshData = std::move(meshData); }
 	inline void AddBone(std::unique_ptr<Bone>&& bone) { m_bones.push_back(std::move(bone)); }
 	inline void AddBoneToMap(size_t boneID, Bone* bone) { m_boneMap[boneID] = bone; }
+	inline void AddBoneOffset(GOE::Matrix4x4* matrix) { m_boneOffsets.push_back(matrix); }
+	inline void SetBoneOffsetByIndex(unsigned int index, GOE::Matrix4x4* boneOffest) { m_boneOffsets[index] = boneOffest; }
+
 private:
 	const std::string m_name; // 매쉬 이름
 	const size_t m_id; // 매쉬 ID
@@ -48,6 +54,7 @@ private:
 	
 	std::vector<std::unique_ptr<Bone>> m_bones;
 	std::unordered_map<size_t, Bone*> m_boneMap; // 본 해쉬맵
+	std::vector<GOE::Matrix4x4*> m_boneOffsets = {};
 	std::unique_ptr<GOE::MeshData> m_meshData; // 매쉬 데이터 포인터
 };
 

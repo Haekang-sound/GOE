@@ -114,6 +114,10 @@ public:
 		const Graphics::MeshData& mesh_data,
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
 	void CreateCBResource(
+		MeshResource* mesh_resource,
+		const Graphics::MeshData& mesh_data,
+		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
+	void CreateRenderObjectCBResource(
 		RenderObject* render_object,
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
 	HRESULT CompileShaderFromFile(const WCHAR* fileName, const WCHAR* entryPoint, const WCHAR* targetProfile, ID3DBlob** ppShaderBlob);
@@ -131,7 +135,8 @@ public:
 private:
 	std::vector<std::unique_ptr<MeshResource>> m_meshResources;
 	std::unordered_map<size_t, MeshResource*> m_meshResourceMap;
-	std::unordered_map<size_t, std::unique_ptr<TextureResource>> m_textureResourceMap;
+	std::vector<std::unique_ptr<TextureResource>> m_textureResources;
+	std::unordered_map<size_t, TextureResource*> m_textureResourceMap;
 	std::vector<std::unique_ptr<RenderObject>> m_renderObjects;
 
 public:

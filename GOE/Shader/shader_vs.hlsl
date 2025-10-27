@@ -1,69 +1,70 @@
-cbuffer CB : register(b0)
+ï»¿cbuffer CB : register(b0)
 {
-    matrix world;
-    matrix viewProjection;
-    float3 cameraPosition; // Ä«¸Ş¶ó À§Ä¡
-    float padding; // 16¹ÙÀÌÆ® Á¤·ÄÀ» À§ÇÑ ÆĞµù
+    row_major matrix world;
+    row_major matrix viewProjection;
+    float3 cameraPosition; // ì¹´ë©”ë¼ ìœ„ì¹˜
+    float padding; // 16ë°”ì´íŠ¸ ì •ë ¬ì„ ìœ„í•œ íŒ¨ë”©
 };
 
+cbuffer bone : register(b1)
+{
+    row_major matrix boneMatrices[128]; // ì• ë‹ˆë©”ì´ì…˜ ì ìš©ëœ ìµœì¢… í–‰ë ¬
+};
 
+cbuffer offset : register(b2)
+{
+    row_major matrix boneOffsets[128]; // ì—­ë°”ì¸ë“œ í¬ì¦ˆ(Inverse Bind Pose) í–‰ë ¬
+};
 
 struct PSInput
 {
     float4 position : SV_POSITION;
     float4 color : COLOR;
-    float2 uv : TEXCOORD0; 
+    float2 uv : TEXCOORD0;
     float3 normal : NORMAL;
 };
 
-
-
-// ¼ÎÀÌ´õ ÇÔ¼öÀÇ ¸Å°³º¯¼ö¿Í IA¿¡¼­ Àü´ŞµÇ´Â µ¥ÀÌÅÍ ±¸Á¶Ã¼ Á¤ÀÇ´Â µ¿ÀÏÇØ¾ß ÇÕ´Ï´Ù.
+// ì…°ì´ë” í•¨ìˆ˜ì˜ ë§¤ê°œë³€ìˆ˜ì™€ IAì—ì„œ ì „ë‹¬ë˜ëŠ” ë°ì´í„° êµ¬ì¡°ì²´ ì •ì˜ëŠ” ë™ì¼í•´ì•¼ í•©ë‹ˆë‹¤.
 PSInput Main(
 float4 position : POSITION,
 float4 color : COLOR,
 float2 uv : TEXCOORD,
 float3 normal : NORMAL,
-uint4 boneIndices : BLENDINDICES,
-float4 boneWeights : BLENDWEIGHT)
+uint4 boneIndices : BONEINDICES,
+float4 boneWeights : BONEWEIGHTS)
 {
     PSInput result;
 
-    // ¨è ½ºÅ°´× ¸ÅÆ®¸¯½º °è»ê
-    matrix skinMatrix = 0;
-    [unroll]
+    matrix offsetW = (matrix)0;
+    matrix matrixW = (matrix) 0;
+    
+    matrix skinM= (matrix) 0;
+    
+     [unroll]
     for (int i = 0; i < 4; ++i)
     {
         uint idx = boneIndices[i];
         float w = boneWeights[i];
-
-        // boneOffset ¡¿ boneMatrix Á¶ÇÕ
-        //matrix finalMat = mul(boneOffsetMatrices[idx], boneMatrices[idx]);
-        matrix finalMat; // = mul(boneOffsetMatrices[idx], boneMatrices[idx]);
-        finalMat[0] = float4(1, 0, 0, 0);
-        finalMat[1] = float4(0, 1, 0, 0);
-        finalMat[2] = float4(0, 0, 1, 0);
-        finalMat[3] = float4(0, 0, 0, 1);
-        
-        skinMatrix = finalMat;// * w;
+        skinM += w * mul(boneOffsets[idx], boneMatrices[idx]);
     }
+    
+    float4 offsetPose = (float4)0;
+    float4 worldPos = (float4) 0;
+    float4 finalPos = (float4) 0;
 
-    // ¨é Á¤Á¡ À§Ä¡ ½ºÅ°´× Àû¿ë
-    float4 skinnedPos = mul(position, skinMatrix);
+    finalPos = mul(position, skinM);
+    finalPos = mul(finalPos, world);
 
-    // ¨ê ³ë¸Öµµ ½ºÅ°´× Àû¿ë
-    float3 skinnedNormal = mul(normal, (float3x3) skinMatrix);
+    // â‘£ ë…¸ë©€ë„ ìŠ¤í‚¤ë‹ ì ìš© (ëª¨ë¸ ê³µê°„)
+    float3 skinnedNormal = mul(normal, (float3x3) skinM);
     skinnedNormal = normalize(skinnedNormal);
 
-    //// ¨ë ¿ùµå / ºä / Åõ¿µ º¯È¯
-    //float4 worldPos = mul(skinnedPos, world);
-    //result.position = mul(worldPos, viewProjection);
-    
-    
-    result.position = mul(position, mul(world, viewProjection));
+    // â‘¤ ì›”ë“œ / ë·° / íˆ¬ì˜ ë³€í™˜
+    result.position = mul(finalPos, viewProjection);
     result.color = color;
-    result.uv = uv; // ÀÔ·Â¹ŞÀº uv¸¦ ±×´ë·Î °á°ú¿¡ ³Ñ°ÜÁÜ
-    result.normal = normalize(mul(normal, (float3x3) world));
-    
+    result.uv = uv;
+
+    // [ìˆ˜ì • 3] ìŠ¤í‚¤ë‹ì´ ì ìš©ëœ ë…¸ë©€(skinnedNormal)ì„ ì›”ë“œ ë³€í™˜í•©ë‹ˆë‹¤.
+    result.normal = normalize(mul(skinnedNormal, (float3x3) world)); 
     return result;
 }

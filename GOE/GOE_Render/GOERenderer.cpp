@@ -1,7 +1,7 @@
 ﻿#include "Renderer_pch.h"
 #include "GOERenderer.h"
 #if defined(_DEBUG)
-	#include "PIX.h"
+#include "PIX.h"
 #endif
 #include <d3dx12/d3dx12.h>
 #include "DirectXTex.h"	
@@ -70,8 +70,8 @@ void GOERenderer::OnUpdate()
 			* XMLoadFloat4x4(&m_proj);
 		cbData.cameraPosition = m_camera->GetPosition();
 
-		XMStoreFloat4x4(&cbData.world, XMMatrixTranspose(world));
-		XMStoreFloat4x4(&cbData.viewProjection, XMMatrixTranspose(vp));
+		XMStoreFloat4x4(&cbData.world, world);
+		XMStoreFloat4x4(&cbData.viewProjection, vp);
 
 		// CUBE의 CBV에 업로드
 		void* pData = nullptr;
@@ -92,15 +92,33 @@ void GOERenderer::OnUpdate()
 			* XMLoadFloat4x4(&m_proj);
 		cbData.cameraPosition = m_camera->GetPosition();
 
-		XMStoreFloat4x4(&cbData.world, XMMatrixTranspose(world));
-		XMStoreFloat4x4(&cbData.viewProjection, XMMatrixTranspose(vp));
+		XMStoreFloat4x4(&cbData.world, world);
+		XMStoreFloat4x4(&cbData.viewProjection, vp);
 
-		// CUBE의 CBV에 업로드
 		void* pData = nullptr;
 		D3D12_RANGE readRange = { 0, 0 };
 		ThrowIfFailed(renderObject->GetCB()->Map(0, &readRange, &pData));
 		memcpy(pData, &cbData, sizeof(Graphics::CB));
 		renderObject->GetCB()->Unmap(0, nullptr);
+
+
+
+		/// 애니메이션을 일단 여기서 업데이트 할까함;
+		XMFLOAT4X4 boneMatrix[128];
+
+		/// boneMatrix에 본순서대로 업데이트된 메트릭스를 채우넣으면 된다.
+		// 노드에 값이 들어있으니까 본을 순회하면서 노드 값을 충전하면됨
+		//메쉬를 찾는다 - > 본을 순회한다 -> 본에 해당하는 노드의 메트릭스를 찾아서 넣는다.
+		for (int i = 0; i < 128; ++i)
+		{
+			boneMatrix[i] = renderObject->GetBoneTM(i).matrix;
+		}
+		void* pBoneData = nullptr;
+		D3D12_RANGE boneRange = { 0, 0 };
+		ThrowIfFailed(renderObject->GetCBBoneMatrix()->Map(0, &boneRange, &pBoneData));
+		memcpy(pBoneData, &boneMatrix, sizeof(XMFLOAT4X4)*128);
+		renderObject->GetCB()->Unmap(0, nullptr);
+		
 	}
 }
 
@@ -145,7 +163,7 @@ void GOERenderer::BeginRender()
 	/// 드라마틱 한 변화이기 때문에 반드시 정리하자 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
 	rtvHandle.ptr += m_frameIndex * m_rtvDescriptorSize;
-	
+
 	D3D12_CPU_DESCRIPTOR_HANDLE dsvHandle = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
 
 	// Output Merger(최종 출력단)에 "이 렌더타겟에 그려라" 지정. 
@@ -176,14 +194,24 @@ void GOERenderer::OnRender()
 		m_commandList->IASetIndexBuffer(&m_meshResourceMap[renderObject->GetMeshID()]->GetIBView());
 
 		/// 콘스탄트 버퍼의 관한 문제는 고유자원을 기준으로 랜더할때 해결될것
-		m_commandList->SetGraphicsRootConstantBufferView(0, renderObject.get()->GetCB()->GetGPUVirtualAddress());
-		
-		// 디스크립터 힙 바인딩
-		ID3D12DescriptorHeap* ppHeaps[] = { m_textureResourceMap[renderObject.get()->GetTextureID()].get()->GetTextureHeap()};
-		m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+		// 1. 월드/뷰/프로젝션 CBV 바인딩 (루트 파라미터 0)
+		m_commandList->SetGraphicsRootConstantBufferView(0, renderObject->GetCB()->GetGPUVirtualAddress());
 
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvgHandle(m_textureResourceMap[renderObject.get()->GetTextureID()].get()->GetTextureHeap()->GetGPUDescriptorHandleForHeapStart());
-		m_commandList->SetGraphicsRootDescriptorTable(1, srvgHandle);
+		// 2. 본 변환 CBV 바인딩 (루트 파라미터 1) - RenderObject 소유
+		//    RenderObject에 GetBoneCB() 와 같은 함수가 추가되어야 합니다.
+		m_commandList->SetGraphicsRootConstantBufferView(1, renderObject->GetCBBoneMatrix()->GetGPUVirtualAddress()); // 예시: GetBoneCB() 호출
+
+		// 3. 본 오프셋 CBV 바인딩 (루트 파라미터 2) - MeshResource 소유
+		m_commandList->SetGraphicsRootConstantBufferView(2, m_meshResourceMap[renderObject->GetMeshID()]->GetCB()->GetGPUVirtualAddress()); // MeshResource의 CB 사용
+
+		// 4. 텍스처 서술자 테이블 바인딩 (루트 파라미터 3)
+		ID3D12DescriptorHeap* ppHeaps[] = { m_textureResourceMap[renderObject->GetTextureID()]->GetTextureHeap() }; // TextureResource에서 힙 가져오기
+		m_commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps); // 힙 설정
+
+		// GPU 핸들 가져오기 (TextureResource에 GetSRVGpuHandle() 같은 함수가 있으면 더 좋습니다)
+		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGpuHandle(m_textureResourceMap[renderObject->GetTextureID()]->GetTextureHeap()->GetGPUDescriptorHandleForHeapStart());
+		// 루트 파라미터 인덱스를 3으로 변경!
+		m_commandList->SetGraphicsRootDescriptorTable(3, srvGpuHandle); // <--- 인덱스 3 사용
 
 		// 7. 그리기 명령
 		m_commandList->DrawIndexedInstanced(m_meshResourceMap[renderObject->GetMeshID()]->GetIndexCount(), 1, 0, 0, 0);
@@ -266,7 +294,7 @@ void GOERenderer::AddRenderObejct(RenderObjectData& data)
 	auto newrendrobj = std::make_unique<RenderObject>(data);
 	m_renderObjects.emplace_back(std::move(newrendrobj));
 	// 콘스탄트버퍼를 개별적으로 생성해준다.
-	CreateCBResource(m_renderObjects.back().get());
+	CreateRenderObjectCBResource(m_renderObjects.back().get());
 }
 
 /// <summary>
@@ -307,7 +335,7 @@ void GOERenderer::LoadPipeline()
 	// This may happen if the application is launched through the PIX UI. 
 	if (GetModuleHandle(L"WinPixGpuCapturer.dll") == 0)
 	{
-		LoadLibrary(L"C:\\Program Files\\Microsoft PIX\\2505.30\\WinPixGpuCapturer.dll");
+		LoadLibrary(L"C:\\Program Files\\Microsoft PIX\\2509.25\\WinPixGpuCapturer.dll");
 	}
 
 	ActiveDebugLayer(true);
@@ -719,17 +747,33 @@ void GOERenderer::CreateRootSignature()
 
 	// D3D12_ROOT_PARAMETER
 	// : 루트 시그니처의 파라미터를 정의하는 구조체입니다.
-	D3D12_ROOT_PARAMETER rootParameters[2] = {};
-	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;	// Constant Buffer View
-	rootParameters[0].Descriptor.ShaderRegister = 0; // b0				// 셰이더 레지스터 번호
-	rootParameters[0].Descriptor.RegisterSpace = 0;						// 레지스터 스페이스 번호
-	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;	// 셰이더 가시성
+	// --- 루트 파라미터 배열 선언 (한 번만!) ---
+	D3D12_ROOT_PARAMETER rootParameters[4] = {}; // 총 4개의 파라미터 (CBV 3개 + Table 1개)
 
-	// 텍스처
-	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameters[1].DescriptorTable.NumDescriptorRanges = 1;				// 디스크립터 레인지 개수
-	rootParameters[1].DescriptorTable.pDescriptorRanges = descriptorRanges;
-	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;	// 셰이더 가시성
+	// 파라미터 0: 월드/뷰/투영 CBV (b0) - RenderObject 소유
+	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[0].Descriptor.ShaderRegister = 0; // b0 레지스터
+	rootParameters[0].Descriptor.RegisterSpace = 0;
+	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; // 모든 셰이더 단계에서 접근 가능
+
+	// 파라미터 1: 본 변환 행렬 CBV (b1) - RenderObject 소유
+	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[1].Descriptor.ShaderRegister = 1; // b1 레지스터
+	rootParameters[1].Descriptor.RegisterSpace = 0;
+	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX; // 버텍스 셰이더에서만 필요
+
+	// 파라미터 2: 본 오프셋 행렬 CBV (b2) - MeshResource 소유
+	rootParameters[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[2].Descriptor.ShaderRegister = 2; // b2 레지스터
+	rootParameters[2].Descriptor.RegisterSpace = 0;
+	rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX; // 버텍스 셰이더에서만 필요
+
+	// 파라미터 3: 텍스처 SRV 서술자 테이블 (t0)
+	rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[3].DescriptorTable.NumDescriptorRanges = 1; // 범위 1개
+	rootParameters[3].DescriptorTable.pDescriptorRanges = descriptorRanges; // 위에서 정의한 범위 사용
+	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // 픽셀 셰이더에서만 필요
+
 
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
 	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -749,7 +793,7 @@ void GOERenderer::CreateRootSignature()
 
 
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
-	rootSignatureDesc.NumParameters = 2;
+	rootSignatureDesc.NumParameters = 4;
 	rootSignatureDesc.pParameters = rootParameters;
 	rootSignatureDesc.NumStaticSamplers = 1;
 	rootSignatureDesc.pStaticSamplers = &sampler;
@@ -850,6 +894,8 @@ HRESULT GOERenderer::CompileShaderFromFile(
 	return hr;
 }
 
+
+
 /// <summary>
 /// 경로를 지정하여 셰이더를 컴파일합니다.
 /// 
@@ -914,7 +960,7 @@ void GOERenderer::CreatePipelineState()
 		D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
 		0 };
 	m_inputElementDescs[2] = iaDesc;
-	
+
 	// 텍스처 좌표를 위한 입력 레이아웃 정의
 	iaDesc = {
 		"NORMAL",
@@ -926,11 +972,11 @@ void GOERenderer::CreatePipelineState()
 		0 };
 	m_inputElementDescs[3] = iaDesc;
 	// 4개의 unsigned int를 한 묶음으로 보냅니다.
-	iaDesc = { "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	iaDesc = { "BONEINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
 	m_inputElementDescs[4] = iaDesc;
 
 	// 4개의 float를 한 묶음으로 보냅니다.
-	iaDesc = { "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
+	iaDesc = { "BONEWEIGHTS", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D12_APPEND_ALIGNED_ELEMENT, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 };
 	m_inputElementDescs[5] = iaDesc;
 
 	// D3D12_SHADER_BYTECODE
@@ -1014,7 +1060,7 @@ void GOERenderer::CreatePipelineState()
 	psoDesc.CachedPSO;				// 캐시된 파이프라인 상태 객체(PSO)를 설정합니다. 파이프라인 상태 캐시(빠른 생성, 로딩 지원용)
 	psoDesc.Flags;					// 추가 플래그(특별한 최적화 옵션 등)
 
-	
+
 
 	/*랜더타겟 포멧 여러번 지정하는 이유
 		텍스처(리소스) 만들 때 포맷 지정
@@ -1106,6 +1152,7 @@ void GOERenderer::CopyUploadHeapToDefault()
 		);
 
 		m_commandList->ResourceBarrier(1, &ibBarrier);
+
 	}
 
 	m_commandList->Close();
@@ -1199,14 +1246,14 @@ void GOERenderer::LoadTexture(std::string filepath)
 	/// 해셔와 관련된 내용은 
 	/// 전용 클래스로 대체될 것이기 때문에 
 	/// 굳이 임시변수로 만들어둔다.
-	std::unique_ptr<TextureResource> textureResource 
+	std::unique_ptr<TextureResource> textureResource
 		= std::make_unique<TextureResource>(filepath,
 			GOE::FileManager::GetHash(filepath));
 
 	ComPtr<ID3D12Resource> textureDefault = nullptr;
 	ComPtr<ID3D12Resource> textureUpload = nullptr;
 	ComPtr<ID3D12DescriptorHeap> textureheap = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;	
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
 
 	// ScratchImage로부터 얻은 메타데이터로 리소스 속성을 정의합니다.
 	D3D12_RESOURCE_DESC textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(
@@ -1277,7 +1324,7 @@ void GOERenderer::LoadTexture(std::string filepath)
 	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(m_device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&textureheap)));
-	
+
 	// --- 6. 셰이더 리소스 뷰(SRV) 생성 ---
 	// SRV를 생성할 디스크립터 힙의 핸들을 가져옵니다 (m_srvHeap은 미리 생성되어 있어야 함).
 	srvHandle = textureheap->GetCPUDescriptorHandleForHeapStart();
@@ -1294,8 +1341,8 @@ void GOERenderer::LoadTexture(std::string filepath)
 	textureResource.get()->SetTextureUpload(std::move(textureUpload));
 	textureResource.get()->SetTextureHeap(std::move(textureheap));
 	textureResource.get()->SetSRVHandle(srvHandle);
-
-	m_textureResourceMap[textureResource.get()->GetID()] = std::move(textureResource);
+	m_textureResourceMap[textureResource.get()->GetID()] = textureResource.get();
+	m_textureResources.push_back(std::move(textureResource));
 
 
 	// --- 7. 커맨드 리스트 실행 및 동기화 ---
@@ -1321,6 +1368,9 @@ void GOERenderer::CreateAllMeshResources(const std::unordered_map<std::size_t, s
 
 		// 메쉬데이터를 리소스로 변환해서 방금 추가한 메쉬리소스에 추가
 		CreateMeshResource(m_meshResourceMap[mesh.first], meshData);
+		//CreateVBResource(m_meshResourceMap[mesh.first], meshData, D3D12_RESOURCE_STATE_GENERIC_READ);
+		//CreateIBResource(m_meshResourceMap[mesh.first], meshData, D3D12_RESOURCE_STATE_GENERIC_READ);
+		//CreateCBResource(m_meshResourceMap[mesh.first], meshData, D3D12_RESOURCE_STATE_GENERIC_READ);
 
 		// 추가된 메쉬리소스에  modelID와 meshIndex를 설정한다.
 		// 모델 id 도 넣어야 한다.
@@ -1333,6 +1383,7 @@ void GOERenderer::CreateOneMeshResource(const Mesh* core_mesh)
 {
 	// 메쉬리소스생성하고 추가한다.		
 	m_meshResources.push_back(std::make_unique<MeshResource>(core_mesh->GetName(), core_mesh->GetID()));
+	
 	m_meshResourceMap[core_mesh->GetID()] = m_meshResources.back().get();
 
 	// 메쉬데이터를 가져옴
@@ -1356,6 +1407,7 @@ void GOERenderer::CreateMeshResource(MeshResource* mesh_resource, Graphics::Mesh
 {
 	CreateVBResource(mesh_resource, mesh_data, D3D12_RESOURCE_STATE_GENERIC_READ);
 	CreateIBResource(mesh_resource, mesh_data, D3D12_RESOURCE_STATE_GENERIC_READ);
+	CreateCBResource(mesh_resource, mesh_data, D3D12_RESOURCE_STATE_GENERIC_READ);
 }
 
 void GOERenderer::CreateVBResource(MeshResource* mesh_resource, const Graphics::MeshData& mesh_data, const D3D12_RESOURCE_STATES& state)
@@ -1524,7 +1576,110 @@ void GOERenderer::CreateIBResource(MeshResource* mesh_resource, const Graphics::
 	mesh_resource->SetIBView(indexBufferView); // 인덱스 버퍼 뷰 설정
 }
 
-void GOERenderer::CreateCBResource(RenderObject* render_object, const D3D12_RESOURCE_STATES& state)
+void GOERenderer::CreateCBResource(MeshResource* mesh_resource, const Graphics::MeshData& mesh_data, const D3D12_RESOURCE_STATES& state)
+{
+	/// 여기부턴 본매트릭스를 위한 cb생성구간이다.
+	ComPtr<ID3D12Resource> constantBuffer = {};
+	ComPtr<ID3D12DescriptorHeap> CBVHeap = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE CBVHandle = {};
+
+	// CBV디스크립터힙 heapProps
+	D3D12_HEAP_PROPERTIES matrixheapProps = {};
+	matrixheapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+	matrixheapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	matrixheapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	matrixheapProps.CreationNodeMask = 0;
+	matrixheapProps.VisibleNodeMask = 0;
+
+	// 리소스 description
+	D3D12_RESOURCE_DESC MatrixcbDesc = {};
+	MatrixcbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	MatrixcbDesc.Alignment = 0;
+	MatrixcbDesc.Width = sizeof(XMFLOAT4X4) * 128; // 최소 256바이트(행렬 64 + 패딩)
+	MatrixcbDesc.Height = 1;
+	MatrixcbDesc.DepthOrArraySize = 1;
+	MatrixcbDesc.MipLevels = 1;
+	MatrixcbDesc.Format = DXGI_FORMAT_UNKNOWN;
+	MatrixcbDesc.SampleDesc.Count = 1;
+	MatrixcbDesc.SampleDesc.Quality = 0;
+	MatrixcbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	MatrixcbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	// CB 리소스생성
+	HRESULT hr = m_device->CreateCommittedResource(
+		&matrixheapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&MatrixcbDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&constantBuffer)
+	);
+	ThrowIfFailed(hr);
+
+	// CBV 디스크립터 힙 생성
+	D3D12_DESCRIPTOR_HEAP_DESC MatrixheapDescCBV = {};
+	MatrixheapDescCBV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // Constant Buffer View, Shader Resource View, Unordered Access View
+	MatrixheapDescCBV.NumDescriptors = 1; // CBV 하나만 사용
+	MatrixheapDescCBV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // 셰이더에서 접근 가능하도록 설정
+	MatrixheapDescCBV.NodeMask = 0; // 멀티 GPU 시스템에서 사용할 노드 마스크, 단일 GPU 시스템에서는 1로 설정
+	m_device->CreateDescriptorHeap(&MatrixheapDescCBV, IID_PPV_ARGS(&CBVHeap));
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC MatrixCBVDesc = {};
+	// CBV 디스크립터 생성
+	MatrixCBVDesc.BufferLocation = constantBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
+	MatrixCBVDesc.SizeInBytes = ((sizeof(XMFLOAT4X4) * 128) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
+
+	CBVHandle = CBVHeap->GetCPUDescriptorHandleForHeapStart();
+	m_device->CreateConstantBufferView(&MatrixCBVDesc, CBVHandle);
+
+	/// 여기 잘 채우면 될듯? 
+	/// 이미 float4x4를 채워놨으니까 안해도될듯
+	XMFLOAT4X4 boneMatrix[128];
+	// 1. 실제 boneOffset 데이터를 복사합니다.
+	// vector의 data() 포인터를 사용해 메모리를 직접 복사하는 것이 효율적입니다.
+	size_t offsetCount = mesh_data.boneOffsets.size();
+	for (int i = 0; i < offsetCount; ++i)
+	{
+		boneMatrix[i] = mesh_data.boneOffsets[i];
+	}
+	for (int i = mesh_data.boneOffsets.size(); i < 128; ++i)
+	{
+		DirectX::XMStoreFloat4x4(&boneMatrix[i], /*XMMatrixTranspose(*/DirectX::XMMatrixIdentity());
+	}
+
+	void* pBoneData = nullptr;
+	D3D12_RANGE boneReadRange = { 0, 0 };
+	ThrowIfFailed(constantBuffer->Map(0, &boneReadRange, &pBoneData));
+	memcpy(pBoneData, boneMatrix, sizeof(boneMatrix));
+	constantBuffer->Unmap(0, nullptr);
+
+	//XMFLOAT4X4 boneMatrix[128];
+	//size_t offsetCount = mesh_data.boneOffsets.size();
+	//for (int i = 0; i < offsetCount; ++i)
+	//{
+	//	// 행렬 로드 후 Transpose
+	//	XMMATRIX offset = XMLoadFloat4x4(&mesh_data.boneOffsets[i]);
+	//	XMStoreFloat4x4(&boneMatrix[i], XMMatrixTranspose(offset)); // <-- Transpose 추가!
+	//}
+	//// Identity 채우는 부분도 동일하게 유지
+	//for (int i = offsetCount; i < 128; ++i)
+	//{
+	//	XMStoreFloat4x4(&boneMatrix[i], XMMatrixTranspose(XMMatrixIdentity()));
+	//}
+
+	//void* pBoneData = nullptr;
+	//D3D12_RANGE boneReadRange = { 0, 0 };
+	//ThrowIfFailed(constantBuffer->Map(0, &boneReadRange, &pBoneData));
+	//memcpy(pBoneData, boneMatrix, sizeof(boneMatrix)); // Transpose된 데이터 복사
+	//constantBuffer->Unmap(0, nullptr);
+
+	mesh_resource->SetCB(constantBuffer.Get()); // 업로드 힙 리소스 설정
+	mesh_resource->SetCBVHeap(CBVHeap.Get()); // Constant Buffer View 디스크립터 힙 설정
+	mesh_resource->SetCBVHandle(std::move(CBVHandle)); // Constant Buffer View 디스크립터 핸들 설정
+
+}
+
+void GOERenderer::CreateRenderObjectCBResource(RenderObject* render_object, const D3D12_RESOURCE_STATES& state)
 {
 	ComPtr<ID3D12Resource> constantBuffer = {};
 	ComPtr<ID3D12DescriptorHeap> CBVHeap = {};
@@ -1579,21 +1734,93 @@ void GOERenderer::CreateCBResource(RenderObject* render_object, const D3D12_RESO
 	CBVHandle = CBVHeap->GetCPUDescriptorHandleForHeapStart();
 	m_device->CreateConstantBufferView(&CBVDesc, CBVHandle);
 
-	//DirectX::XMMATRIX world = DirectX::XMMatrixIdentity();
-	//DirectX::XMMATRIX mvp = world;
-	//Graphics::Matrix4x4 cbData = {};
 	Graphics::CB cbData = {};
 
-	DirectX::XMStoreFloat4x4(&cbData.world, DirectX::XMMatrixIdentity()); 
+	DirectX::XMStoreFloat4x4(&cbData.world, DirectX::XMMatrixIdentity());
 	DirectX::XMStoreFloat4x4(&cbData.viewProjection, DirectX::XMMatrixIdentity());
 
 	void* pData = nullptr;
 	D3D12_RANGE readRange = { 0, 0 };
 	ThrowIfFailed(constantBuffer->Map(0, &readRange, &pData));
-	memcpy(pData, &cbData, sizeof(Graphics::Matrix4x4));
+	memcpy(pData, &cbData, sizeof(Graphics::CB));
 	constantBuffer->Unmap(0, nullptr);
 
 	render_object->SetCB(constantBuffer.Get()); // 업로드 힙 리소스 설정
 	render_object->SetCBVHeap(CBVHeap.Get()); // Constant Buffer View 디스크립터 힙 설정
 	render_object->SetCBVHandle(std::move(CBVHandle)); // Constant Buffer View 디스크립터 핸들 설정
+
+	/// 여기부턴 본매트릭스를 위한 cb생성구간이다.
+	ComPtr<ID3D12Resource> boneBuffer = {};
+	ComPtr<ID3D12DescriptorHeap> boneCBVHeap = {};
+	D3D12_CPU_DESCRIPTOR_HANDLE boneCBVHandle = {};
+
+	// CBV디스크립터힙 heapProps
+	D3D12_HEAP_PROPERTIES matrixheapProps = {};
+	matrixheapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+	matrixheapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+	matrixheapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+	matrixheapProps.CreationNodeMask = 0;
+	matrixheapProps.VisibleNodeMask = 0;
+
+	// 리소스 description
+	D3D12_RESOURCE_DESC MatrixcbDesc = {};
+	MatrixcbDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+	MatrixcbDesc.Alignment = 0;
+	MatrixcbDesc.Width = sizeof(XMFLOAT4X4) * 128; // 최소 256바이트(행렬 64 + 패딩)
+	MatrixcbDesc.Height = 1;
+	MatrixcbDesc.DepthOrArraySize = 1;
+	MatrixcbDesc.MipLevels = 1;
+	MatrixcbDesc.Format = DXGI_FORMAT_UNKNOWN;
+	MatrixcbDesc.SampleDesc.Count = 1;
+	MatrixcbDesc.SampleDesc.Quality = 0;
+	MatrixcbDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+	MatrixcbDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+	// CB 리소스생성
+	hr = m_device->CreateCommittedResource(
+		&matrixheapProps,
+		D3D12_HEAP_FLAG_NONE,
+		&MatrixcbDesc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&boneBuffer)
+	);
+	ThrowIfFailed(hr);
+
+	// CBV 디스크립터 힙 생성
+	D3D12_DESCRIPTOR_HEAP_DESC MatrixheapDescCBV = {};
+	MatrixheapDescCBV.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV; // Constant Buffer View, Shader Resource View, Unordered Access View
+	MatrixheapDescCBV.NumDescriptors = 1; // CBV 하나만 사용
+	MatrixheapDescCBV.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE; // 셰이더에서 접근 가능하도록 설정
+	MatrixheapDescCBV.NodeMask = 0; // 멀티 GPU 시스템에서 사용할 노드 마스크, 단일 GPU 시스템에서는 1로 설정
+	m_device->CreateDescriptorHeap(&MatrixheapDescCBV, IID_PPV_ARGS(&boneCBVHeap));
+
+	D3D12_CONSTANT_BUFFER_VIEW_DESC MatrixCBVDesc = {};
+	// CBV 디스크립터 생성
+	MatrixCBVDesc.BufferLocation = boneBuffer->GetGPUVirtualAddress(); // CB 리소스의 GPU 가상 주소
+	MatrixCBVDesc.SizeInBytes = ((sizeof(XMFLOAT4X4) * 128) + 255) & ~255; // CBV는 256바이트 정렬이 필요하므로, 크기를 256바이트로 올림 처리
+
+	boneCBVHandle = boneCBVHeap->GetCPUDescriptorHandleForHeapStart();
+	m_device->CreateConstantBufferView(&MatrixCBVDesc, boneCBVHandle);
+
+	XMFLOAT4X4 boneMatrix[128];
+	for (int i = 0; i < 128; ++i)
+	{
+		DirectX::XMStoreFloat4x4(&boneMatrix[i], DirectX::XMMatrixIdentity());
+	}
+
+	void* pBoneData = nullptr;
+	D3D12_RANGE boneReadRange = { 0, 0 };
+	ThrowIfFailed(boneBuffer->Map(0, &boneReadRange, &pBoneData));
+	//memcpy(pBoneData, &pBoneData, sizeof(Graphics::Matrix4x4)*128);
+	// 생성해둔 boneMatrix 배열의 데이터를 복사해야 합니다.
+	memcpy(pBoneData, boneMatrix, sizeof(boneMatrix));
+	boneBuffer->Unmap(0, nullptr);
+
+	render_object->SetCBBoneMatrix(boneBuffer.Get()); // 업로드 힙 리소스 설정
+	render_object->SetCBVoneMatrixHeap(boneCBVHeap.Get()); // Constant Buffer View 디스크립터 힙 설정
+	render_object->SetCBVoneMatrixHandle(std::move(boneCBVHandle)); // Constant Buffer View 디스크립터 핸들 설정
+
+
+
 }

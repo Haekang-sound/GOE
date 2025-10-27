@@ -111,18 +111,17 @@ void Scene::Script()
 		m_transformManager.get()->GetCurrentComponent().SetLocalTM(tm);
 		m_transformManager.get()->GetCurrentComponent().SetScaleTM({ 0.1f, 0.1f, 0.1f });
 
-		std::hash<std::string> hasher;
 		// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
 		m_meshRendererManager.get()->AddComponent(m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		size_t meshPath = hasher("Ch03");
+		size_t meshPath = GOE::FileManager::GetHash("Ch03");
 
 		m_meshRendererManager.get()->GetCurrentComponent().SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
 		m_meshRendererManager.get()->GetCurrentComponent().SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
 		m_meshRendererManager.get()->GetCurrentComponent().SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
 		m_meshRendererManager.get()->GetCurrentComponent().SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
 
-		size_t texturePath = hasher("D:\\project\\GOE\\GOE\\Assets\\textures\\Ch03_1001_Diffuse.png");
+		size_t texturePath = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\Ch03_1001_Diffuse.png");
 		m_materialManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());

@@ -15,7 +15,6 @@ public:
 	inline Node* GetParent() const { return m_parent; }
 	inline const std::vector<std::unique_ptr<Node>>& GetChildren() const { return m_children; }
 	inline const std::vector<size_t>& GetMeshIndex() const { return m_meshIndex; }
-	inline GOE::Matrix4x4& GetBindPose() { return m_bindPose; }
 	inline GOE::Matrix4x4& GetLocalTM() { return m_localTM; }
 	/// 반드시 setWorldTM함수를 호출한 이후에 사용해야한다.
 	inline GOE::Matrix4x4 GetWorldTM() { return m_worldTM; }
@@ -28,7 +27,6 @@ public:
 	inline void SetNodeIndex(int i) { m_index = i; }
 	inline void SetLocalTM(GOE::Matrix4x4 transform){ m_localTM = transform; }	
 	inline void SetWorldTM(GOE::Matrix4x4 transform) { m_worldTM = transform; }
-	inline void SetBindPose(GOE::Matrix4x4 transform) { m_bindPose = transform; }
 	inline void MultiplyLocal(GOE::Matrix4x4 transform) { m_localTM = m_localTM * transform; }
 
 private:
@@ -44,7 +42,6 @@ private:
 	/// 그리고 이 노드에 애니메이션 값이 곱해질 것이고
 	/// 
 	/// </summary>
-	GOE::Matrix4x4 m_bindPose = GOE::Matrix4x4::Identity();
 	GOE::Matrix4x4 m_localTM = GOE::Matrix4x4::Identity();
 	GOE::Matrix4x4 m_worldTM = GOE::Matrix4x4::Identity();
 

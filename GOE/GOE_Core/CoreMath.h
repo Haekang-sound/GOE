@@ -292,6 +292,7 @@ namespace GOE
 	{
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
+		std::vector<Matrix4x4> boneOffsets;
 	};
 
 

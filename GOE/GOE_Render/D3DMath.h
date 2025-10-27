@@ -149,17 +149,44 @@ namespace Graphics
 			{
 				indices.push_back(index);
 			}
+			for (const auto& matrix : other.boneOffsets)
+			{
+				XMFLOAT4X4 temp;
+				temp._11 = matrix._11;
+				temp._12 = matrix._12;
+				temp._13 = matrix._13;
+				temp._14 = matrix._14;
+
+				temp._21 = matrix._21;
+				temp._22 = matrix._22;
+				temp._23 = matrix._23;
+				temp._24 = matrix._24;
+
+				temp._31 = matrix._31;
+				temp._32 = matrix._32;
+				temp._33 = matrix._33;
+				temp._34 = matrix._34;
+
+				temp._41 = matrix._41;
+				temp._42 = matrix._42;
+				temp._43 = matrix._43;
+				temp._44 = matrix._44;
+
+				boneOffsets.push_back(temp);
+			}
 		}
 
 	public:
 		std::vector<Vertex> vertices; // 버텍스 정보
 		std::vector<UINT32> indices; // 인덱스 정보
+		std::vector<XMFLOAT4X4> boneOffsets;
 
 	public:
 		MeshData& operator=(const GOE::MeshData& other)
 		{
 			vertices.clear();
 			indices.clear();
+			boneOffsets.clear();
 			for (const auto& vertex : other.vertices)
 			{
 				vertices.emplace_back(vertex);
@@ -168,6 +195,32 @@ namespace Graphics
 			{
 				indices.push_back(index);
 			}
+			/*for (const auto& matrix : other.boneOffsets)
+			{
+				XMFLOAT4X4 temp;
+				temp._11 = matrix._11;
+				temp._12 = matrix._12;
+				temp._13 = matrix._13;
+				temp._14 = matrix._14;
+
+				temp._11 = matrix._21;
+				temp._12 = matrix._22;
+				temp._13 = matrix._23;
+				temp._14 = matrix._24;
+
+				temp._11 = matrix._31;
+				temp._12 = matrix._32;
+				temp._13 = matrix._33;
+				temp._14 = matrix._34;
+
+				temp._11 = matrix._41;
+				temp._12 = matrix._42;
+				temp._13 = matrix._43;
+				temp._14 = matrix._44;
+
+				boneOffsets.push_back(temp);
+
+			}*/
 			return *this;
 		}
 	};

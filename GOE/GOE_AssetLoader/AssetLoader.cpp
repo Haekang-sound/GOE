@@ -179,15 +179,30 @@ std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node, Node* parent)
 	std::unique_ptr<Node> currentNode = std::make_unique<Node>(node->mName.C_Str(), GOE::FileManager::GetHash(node->mName.C_Str()));
 
 	//currentNode.get()->SetBindPose(aiMatrix4x4ToCoreMtrix(node->mTransformation.Transpose()));
-	currentNode.get()->SetLocalTM(aiMatrix4x4ToCoreMtrix(node->mTransformation.Transpose()));
+	currentNode.get()->SetLocalTM(aiMatrix4x4ToCoreMtrix(node->mTransformation));// .Transpose()));
 	currentNode.get()->SetParent(parent); // 부모노드 설정
 
-	// 노드의 자식 노드를 재귀적으로 처리합니다.
-	for (unsigned int i = 0; i < node->mNumChildren; i++)
+	//// 노드의 자식 노드를 재귀적으로 처리합니다.
+	//for (unsigned int i = 0; i < node->mNumChildren; i++)
+	//{
+	//	// 메쉬인덱스
+	//	unsigned int meshIndex = node->mMeshes[i];
+	//	currentNode.get()->AddMeshIndex(meshIndex); // 현재 노드가 참조하는 메쉬 인덱스를 추가합니다.
+	//	// 현재 노드의 자식 노드를 가져옵니다.
+	//	aiNode* childNode = node->mChildren[i];
+	//	// 자식 노드를 재귀적으로 처리합니다.
+	//	currentNode.get()->AddChild(ProcessNode(childNode, currentNode.get()));
+	//}
+	// 1. 이 노드에 연결된 *메쉬 인덱스*들을 처리합니다.
+	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
-		// 메쉬인덱스
 		unsigned int meshIndex = node->mMeshes[i];
 		currentNode.get()->AddMeshIndex(meshIndex); // 현재 노드가 참조하는 메쉬 인덱스를 추가합니다.
+	}
+
+	// 2. 이 노드의 *자식 노드*들을 재귀적으로 처리합니다.
+	for (unsigned int i = 0; i < node->mNumChildren; i++)
+	{
 		// 현재 노드의 자식 노드를 가져옵니다.
 		aiNode* childNode = node->mChildren[i];
 		// 자식 노드를 재귀적으로 처리합니다.
@@ -257,18 +272,22 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 					GOE::FileManager::GetHash(mesh->mBones[i]->mName.C_Str()),
 					currentMesh.get()->GetID());
 			currentBone.get()->SetBoneIndex(i); // 본 인덱스 설정
-			currentBone.get()->SetBoneOffset(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix.Transpose()));
+			currentBone.get()->SetBoneOffset(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix));//.Transpose()));
 			currentBone.get()->SetNode(GOE::FileManager::GetHash(mesh->mBones[i]->mNode->mName.C_Str()));
 			currentBone.get()->SetRootNode(GOE::FileManager::GetHash(mesh->mBones[i]->mArmature->mName.C_Str()));
 
-
+			currentMesh.get()->AddBoneOffset(&currentBone.get()->GetBoneOffset());
 			currentMesh.get()->AddBoneToMap(currentBone.get()->GetID(), currentBone.get());
 			currentMesh.get()->AddBone(move(currentBone));
+
 		}
 
 		// 본을 순회한다.
 		for (size_t i = 0; i < mesh->mNumBones; ++i)
 		{
+			//meshData.get()->boneOffsets.push_back(GOE::Matrix4x4::Identity());
+			
+			meshData.get()->boneOffsets.push_back(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix));// .Transpose()));
 			// 현재 본이 영향을 주는 버텍스의 수만큼 순회한다.
 			for (unsigned int j = 0; j < mesh->mBones[i]->mNumWeights; ++j)
 			{
@@ -340,6 +359,8 @@ GOE::Matrix4x4 AssetLoader::aiMatrix4x4ToCoreMtrix(const aiMatrix4x4& nodeTM)
 	l_tm._41 = nodeTM.d1;
 	l_tm._42 = nodeTM.d2;
 	l_tm._43 = nodeTM.d3;
-	l_tm._44 = nodeTM.d4;
-	return l_tm;
+	//l_tm._44 = nodeTM.d4;
+	l_tm._44 = 1.f;
+
+	return l_tm.Transpose();
 }

@@ -5,14 +5,15 @@ void Model::UpdateHierarchy(Node* node)
 {
 	if (node->GetParent())
 	{
-		node->SetWorldTM(node->GetParent()->GetWorldTM() * node->GetLocalTM());
+		node->SetWorldTM(node->GetLocalTM() * node->GetParent()->GetWorldTM() );
+		//node->SetWorldTM(node->GetParent()->GetWorldTM() * node->GetLocalTM());
 	}
 	else
 	{
 		node->SetWorldTM(node->GetLocalTM());
 	}
 
-	for (const auto& child : node->GetChildren())
+	for (auto& child : node->GetChildren())
 	{
 		UpdateHierarchy(child.get());
 	}

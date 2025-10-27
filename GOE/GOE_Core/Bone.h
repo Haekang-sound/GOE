@@ -15,7 +15,7 @@ struct VertexWeight
 public:
 	Bone() = default;
 	Bone(const std::string& name, size_t id, size_t meshid)
-		: m_name(name), m_id(id), m_meshID(meshid), m_offsetTM(GOE::Matrix4x4::Identity()), m_rootNode(0), m_node(0)
+		: m_name(name), m_id(id), m_meshID(meshid), m_offsetTM(GOE::Matrix4x4::Identity()), m_rootNodeID(0), m_nodeID(0)
 	{}
 	~Bone();
 
@@ -23,16 +23,14 @@ public:
 	inline const std::string& GetName() const { return m_name; }
 	inline size_t GetID() const { return m_id; }
 	inline GOE::Matrix4x4& GetBoneOffset() { return m_offsetTM; }
-	//inline std::vector<VertexWeight>& GetWeights() { return m_weights; }
-	inline size_t GetRootNode() { return m_rootNode; }
-	inline size_t GetNode() { return m_node; }
+	inline size_t GetRootNode() { return m_rootNodeID; }
+	inline size_t GetNode() { return m_nodeID; }
 	inline unsigned int GetBoneIndex() { return m_boneIndex; }
 
 public:
 	inline void SetBoneOffset(GOE::Matrix4x4 transform) { m_offsetTM = transform; }
-	//inline void AddWeight(float vertexId, float weight) { m_weights.emplace_back(vertexId, weight); }
-	inline void SetNode(size_t hash) { m_node = hash; }
-	inline void SetRootNode(size_t hash) { m_rootNode = hash; }
+	inline void SetNode(size_t hash) { m_nodeID = hash; }
+	inline void SetRootNode(size_t hash) { m_rootNodeID = hash; }
 	inline void SetBoneIndex(unsigned int index) { m_boneIndex = index; }
 
 private:
@@ -43,10 +41,8 @@ private:
 
 	GOE::Matrix4x4 m_offsetTM;
 	
-	size_t m_rootNode;
-	size_t m_node;
+	size_t m_rootNodeID;
+	size_t m_nodeID;
 	
-	//std::vector<VertexWeight> m_weights;
-
 };
 
