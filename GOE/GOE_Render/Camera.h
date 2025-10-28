@@ -22,8 +22,8 @@ private:
 	float wheelValue = 0;
 	int prev_wheelValue = 0;
 
-	XMFLOAT3 m_position = {0, 0, -2};
-	XMFLOAT3 m_rotation = {};
+	XMFLOAT3 m_position = {0, 15, -36};
+	XMFLOAT3 m_rotation = {0.22,0,0};
 	XMFLOAT3 m_scale = {1,1,1};
 
 	float m_moveSpeed = 0.25f;

@@ -40,8 +40,7 @@ public:
 		}
 
 		// 5. 최종 변환 행렬을 조합하여 반환합니다.
-		GOE::Matrix4x4 temp = scaleMatrix * rotationMatrix * translationMatrix;
-		return temp;
+		return scaleMatrix * rotationMatrix * translationMatrix;
 	}
 
 

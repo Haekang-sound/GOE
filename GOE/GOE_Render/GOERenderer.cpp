@@ -91,7 +91,7 @@ void GOERenderer::OnUpdate()
 			m_camera->GetViewTransform()
 			* XMLoadFloat4x4(&m_proj);
 		cbData.cameraPosition = m_camera->GetPosition();
-
+		
 		XMStoreFloat4x4(&cbData.world, world);
 		XMStoreFloat4x4(&cbData.viewProjection, vp);
 

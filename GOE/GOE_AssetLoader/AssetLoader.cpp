@@ -93,11 +93,6 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 
 bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 {
-	// hasher 객체를 함수처럼 호출하여 filePath의 해시 값을 계산합니다.
-	size_t pathHash = GOE::FileManager::GetHash(filePath);
-
-	m_models[pathHash] = std::make_unique<Model>(pathHash); // 모델을 해시맵에 추가
-
 	// Create an instance of the Importer class
 	Assimp::Importer importer;
 
@@ -140,26 +135,26 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 				for (int k = 0; k < anim->mChannels[j]->mNumPositionKeys; ++k)
 				{
 					boneAnim.get()->AddPositions({
-						anim->mChannels[j]->mPositionKeys[k].mValue[0],
-						anim->mChannels[j]->mPositionKeys[k].mValue[1],
-						anim->mChannels[j]->mPositionKeys[k].mValue[2] });
+						anim->mChannels[j]->mPositionKeys[k].mValue.x,
+						anim->mChannels[j]->mPositionKeys[k].mValue.y,
+						anim->mChannels[j]->mPositionKeys[k].mValue.z });
 				}
 
 				for (int k = 0; k < anim->mChannels[j]->mNumScalingKeys; ++k)
 				{
 					boneAnim.get()->AddScales({
-						anim->mChannels[j]->mScalingKeys[k].mValue[0],
-						anim->mChannels[j]->mScalingKeys[k].mValue[1],
-						anim->mChannels[j]->mScalingKeys[k].mValue[2] });
+						anim->mChannels[j]->mScalingKeys[k].mValue.x,
+						anim->mChannels[j]->mScalingKeys[k].mValue.y,
+						anim->mChannels[j]->mScalingKeys[k].mValue.z });
 				}
 
 				for (int k = 0; k < anim->mChannels[j]->mNumRotationKeys; ++k)
 				{
 					boneAnim.get()->AddRotations({
-						anim->mChannels[j]->mRotationKeys[k].mValue.w,
 						anim->mChannels[j]->mRotationKeys[k].mValue.x,
 						anim->mChannels[j]->mRotationKeys[k].mValue.y,
-						anim->mChannels[j]->mRotationKeys[k].mValue.z });
+						anim->mChannels[j]->mRotationKeys[k].mValue.z, 
+						anim->mChannels[j]->mRotationKeys[k].mValue.w });
 				}
 
 				a.get()->AddBoneAnimation(move(boneAnim));
@@ -361,6 +356,25 @@ GOE::Matrix4x4 AssetLoader::aiMatrix4x4ToCoreMtrix(const aiMatrix4x4& nodeTM)
 	l_tm._43 = nodeTM.d3;
 	//l_tm._44 = nodeTM.d4;
 	l_tm._44 = 1.f;
+
+
+	//l_tm._11 = nodeTM.a1;
+	//l_tm._12 = nodeTM.b1;
+	//l_tm._13 = nodeTM.c1;
+	//l_tm._14 = nodeTM.d1;
+	//l_tm._21 = nodeTM.a2;
+	//l_tm._22 = nodeTM.b2;
+	//l_tm._23 = nodeTM.c2;
+	//l_tm._24 = nodeTM.d2;
+	//l_tm._31 = nodeTM.a3;
+	//l_tm._32 = nodeTM.b3;
+	//l_tm._33 = nodeTM.c3;
+	//l_tm._34 = nodeTM.d3;
+	//l_tm._41 = nodeTM.a4;
+	//l_tm._42 = nodeTM.b4;
+	//l_tm._43 = nodeTM.c4;
+	////l_tm._44 = nodeTM.d4;
+	//l_tm._44 = 1.f;
 
 	return l_tm.Transpose();
 }

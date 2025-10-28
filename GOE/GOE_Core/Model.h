@@ -61,8 +61,6 @@ public:
 	
 public: 
 	void UpdateNodeHierarchy() { UpdateHierarchy(m_rootNode.get()); }
-
-private:
 	void UpdateHierarchy(Node* node);
 
 private:

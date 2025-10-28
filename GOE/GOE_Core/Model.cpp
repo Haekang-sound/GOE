@@ -1,12 +1,12 @@
+#include "Model.h"
 #include "Core_pch.h"
-
+#include "Model.h"
 Model::~Model() = default; // ¼Ò¸êÀÚ ±¸Çö
 void Model::UpdateHierarchy(Node* node)
 {
 	if (node->GetParent())
 	{
-		node->SetWorldTM(node->GetLocalTM() * node->GetParent()->GetWorldTM() );
-		//node->SetWorldTM(node->GetParent()->GetWorldTM() * node->GetLocalTM());
+		node->SetWorldTM(node->GetLocalTM()* node->GetParent()->GetWorldTM());
 	}
 	else
 	{
@@ -18,3 +18,4 @@ void Model::UpdateHierarchy(Node* node)
 		UpdateHierarchy(child.get());
 	}
 }
+

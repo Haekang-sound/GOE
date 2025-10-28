@@ -42,7 +42,7 @@ void GOE::Engine::Initialize()
 	/// 로드된 매쉬중 원하는 메쉬를 이름으로 골라서
 	/// 그래픽스 리소스를 생성합니다.
 	// 메쉬 리소스생성
-	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("Ch03"))); 
+	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("Ch03")));
 	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_0")));
 	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_1")));
 	// 애니매이션 리소스 생성
@@ -136,19 +136,19 @@ void GOE::Engine::OnUpdate(double dTime)
 	float animTime = fmod(timeInTicks, duration);     // 루프 재생
 	int keyframeCount = 155; // 예: 155
 	int frameIndex = GetFrameIndexFromTime(animTime, duration, keyframeCount);
-	
-	/// 1. 애니메이션은 순회하면서 모델 내부의 노드를 업데이트한다.
+
+	// 1. 애니메이션은 순회하면서 모델 내부의 노드를 업데이트한다.
 	for (int i = 0; i < temp->GetBoneAnimation().size(); ++i)
 	{
 		BoneAnimation* boneAnim = temp->GetBoneAnimation()[i].get();
-		Node* currentNode = tempM->GetNodeFromMap(temp->GetBoneAnimation()[i].get()->GetID());
+		Node* currentNode = tempM->GetNodeFromMap(boneAnim->GetID());
 		if (currentNode)
 		{
 			currentNode->SetLocalTM(boneAnim->GetSRTMatrix(frameIndex));
+
 			if (currentNode->GetParent())
 			{
-				currentNode->SetWorldTM(currentNode->GetLocalTM() * currentNode->GetParent()->GetWorldTM());
-				//currentNode->SetWorldTM(currentNode->GetParent()->GetWorldTM() * currentNode->GetLocalTM());
+				currentNode->SetWorldTM(currentNode->GetLocalTM() * currentNode->GetWorldTM());
 			}
 			else
 			{
@@ -247,7 +247,7 @@ void GOE::Engine::OnUpdate(double dTime)
 					ImGui::Text("%.6f, %.6f, %.6f, %.6f", temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._21, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._22, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._23, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._24);
 					ImGui::Text("%.6f, %.6f, %.6f, %.6f", temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._31, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._32, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._33, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._34);
 					ImGui::Text("%.6f, %.6f, %.6f, %.6f\n", temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._41, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._42, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._43, temp->GetBoneAnimation()[0].get()->GetSRTMatrix(0)._44);
-					
+
 					ImGui::End();
 				}
 			}

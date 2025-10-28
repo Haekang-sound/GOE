@@ -27,7 +27,6 @@ public:
 	inline void SetNodeIndex(int i) { m_index = i; }
 	inline void SetLocalTM(GOE::Matrix4x4 transform){ m_localTM = transform; }	
 	inline void SetWorldTM(GOE::Matrix4x4 transform) { m_worldTM = transform; }
-	inline void MultiplyLocal(GOE::Matrix4x4 transform) { m_localTM = m_localTM * transform; }
 
 private:
 	const std::string m_name; // 노드 이름
