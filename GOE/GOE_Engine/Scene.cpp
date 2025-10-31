@@ -57,44 +57,44 @@ void Scene::DebugUpdate()
 /// </summary>
 void Scene::Script()
 {
-	{
-		// 엔티티를 만들고
-		m_entityManager.get()->CreateEntity("쿠라몬");
+	//{
+	//	// 엔티티를 만들고
+	//	m_entityManager.get()->CreateEntity("쿠라몬");
 
-		// 트랜스폼은 
-		// 시작위치, 스케일, 회전을 넣을 수 있어야 함
-		m_transformManager.get()->AddComponent(
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+	//	// 트랜스폼은 
+	//	// 시작위치, 스케일, 회전을 넣을 수 있어야 함
+	//	m_transformManager.get()->AddComponent(
+	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 
-		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
-		m_transformManager.get()->GetCurrentComponent().SetLocalTM(tm);
-		m_transformManager.get()->GetCurrentComponent().SetScaleTM({ 100.f, 100.f, 100.f });
+	//	GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
+	//	m_transformManager.get()->GetCurrentComponent().SetLocalTM(tm);
+	//	m_transformManager.get()->GetCurrentComponent().SetScaleTM({ 100.f, 100.f, 100.f });
 
-		// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
-		// 일단 컴포넌트 아이디와 entity 아이디를 동일하게 사용한다.
-		m_meshRendererManager.get()->AddComponent(
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		size_t meshPath = GOE::FileManager::GetHash("chr629_0");
+	//	// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
+	//	// 일단 컴포넌트 아이디와 entity 아이디를 동일하게 사용한다.
+	//	m_meshRendererManager.get()->AddComponent(
+	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+	//	size_t meshPath = GOE::FileManager::GetHash("chr629_0");
 
-		m_meshRendererManager.get()->GetCurrentComponent().SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
-		m_meshRendererManager.get()->GetCurrentComponent().SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
-		m_meshRendererManager.get()->GetCurrentComponent().SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
-		m_meshRendererManager.get()->GetCurrentComponent().SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
+	//	m_meshRendererManager.get()->GetCurrentComponent().SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
+	//	m_meshRendererManager.get()->GetCurrentComponent().SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
+	//	m_meshRendererManager.get()->GetCurrentComponent().SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
+	//	m_meshRendererManager.get()->GetCurrentComponent().SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
 
 
-		size_t texturePath = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
-		m_materialManager.get()->AddComponent(
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		m_materialManager.get()->GetCurrentComponent().SetTextureID(texturePath);
+	//	size_t texturePath = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
+	//	m_materialManager.get()->AddComponent(
+	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+	//	m_materialManager.get()->GetCurrentComponent().SetTextureID(texturePath);
 
-		// 이게 붙으면 이동함
-		m_movementUnitManager.get()->AddComponent(
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-	}
+	//	// 이게 붙으면 이동함
+	//	m_movementUnitManager.get()->AddComponent(
+	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+	//}
 
 	{
 		// 엔티티를 만들고

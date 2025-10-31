@@ -132,15 +132,17 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 			for (int j = 0; j < anim->mNumChannels; ++j)
 			{
 				std::unique_ptr<BoneAnimation> boneAnim = std::make_unique<BoneAnimation>(anim->mChannels[j]->mNodeName.C_Str(), GOE::FileManager::GetHash(anim->mChannels[j]->mNodeName.C_Str()));
+				int test = 3;
 				for (int k = 0; k < anim->mChannels[j]->mNumPositionKeys; ++k)
 				{
+					auto t = anim->mChannels[j]->mPositionKeys[k].mValue;
 					boneAnim.get()->AddPositions({
 						anim->mChannels[j]->mPositionKeys[k].mValue.x,
 						anim->mChannels[j]->mPositionKeys[k].mValue.y,
 						anim->mChannels[j]->mPositionKeys[k].mValue.z });
 				}
 
-				for (int k = 0; k < anim->mChannels[j]->mNumScalingKeys; ++k)
+ 				for (int k = 0; k < anim->mChannels[j]->mNumScalingKeys; ++k)
 				{
 					boneAnim.get()->AddScales({
 						anim->mChannels[j]->mScalingKeys[k].mValue.x,
@@ -156,7 +158,7 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 						anim->mChannels[j]->mRotationKeys[k].mValue.z, 
 						anim->mChannels[j]->mRotationKeys[k].mValue.w });
 				}
-
+				test = 56;
 				a.get()->AddBoneAnimation(move(boneAnim));
 			}
 			m_animations[GOE::FileManager::GetHash(anim->mName.C_Str())] = move(a);
@@ -173,22 +175,14 @@ std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node, Node* parent)
 	/// 노드이름을 해쉬로 저장중-> 이걸로 충분한지는 의문
 	std::unique_ptr<Node> currentNode = std::make_unique<Node>(node->mName.C_Str(), GOE::FileManager::GetHash(node->mName.C_Str()));
 
-	//currentNode.get()->SetBindPose(aiMatrix4x4ToCoreMtrix(node->mTransformation.Transpose()));
-	currentNode.get()->SetLocalTM(aiMatrix4x4ToCoreMtrix(node->mTransformation));// .Transpose()));
+	currentNode.get()->SetLocalTM(aiMatrix4x4ToCoreMtrix(node->mTransformation));
+	currentNode.get()->SetNodePosition(
+		node->mTransformation.a4,
+		node->mTransformation.b4,
+		node->mTransformation.c4);
 	currentNode.get()->SetParent(parent); // 부모노드 설정
 
-	//// 노드의 자식 노드를 재귀적으로 처리합니다.
-	//for (unsigned int i = 0; i < node->mNumChildren; i++)
-	//{
-	//	// 메쉬인덱스
-	//	unsigned int meshIndex = node->mMeshes[i];
-	//	currentNode.get()->AddMeshIndex(meshIndex); // 현재 노드가 참조하는 메쉬 인덱스를 추가합니다.
-	//	// 현재 노드의 자식 노드를 가져옵니다.
-	//	aiNode* childNode = node->mChildren[i];
-	//	// 자식 노드를 재귀적으로 처리합니다.
-	//	currentNode.get()->AddChild(ProcessNode(childNode, currentNode.get()));
-	//}
-	// 1. 이 노드에 연결된 *메쉬 인덱스*들을 처리합니다.
+	
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		unsigned int meshIndex = node->mMeshes[i];
@@ -351,30 +345,10 @@ GOE::Matrix4x4 AssetLoader::aiMatrix4x4ToCoreMtrix(const aiMatrix4x4& nodeTM)
 	l_tm._32 = nodeTM.c2;
 	l_tm._33 = nodeTM.c3;
 	l_tm._34 = nodeTM.c4;
-	l_tm._41 = nodeTM.d1;
-	l_tm._42 = nodeTM.d2;
-	l_tm._43 = nodeTM.d3;
-	//l_tm._44 = nodeTM.d4;
+	l_tm._41 = 0.f;//nodeTM.d1;
+	l_tm._42 = 0.f;//nodeTM.d2;
+	l_tm._43 = 0.f;//nodeTM.d3;
 	l_tm._44 = 1.f;
-
-
-	//l_tm._11 = nodeTM.a1;
-	//l_tm._12 = nodeTM.b1;
-	//l_tm._13 = nodeTM.c1;
-	//l_tm._14 = nodeTM.d1;
-	//l_tm._21 = nodeTM.a2;
-	//l_tm._22 = nodeTM.b2;
-	//l_tm._23 = nodeTM.c2;
-	//l_tm._24 = nodeTM.d2;
-	//l_tm._31 = nodeTM.a3;
-	//l_tm._32 = nodeTM.b3;
-	//l_tm._33 = nodeTM.c3;
-	//l_tm._34 = nodeTM.d3;
-	//l_tm._41 = nodeTM.a4;
-	//l_tm._42 = nodeTM.b4;
-	//l_tm._43 = nodeTM.c4;
-	////l_tm._44 = nodeTM.d4;
-	//l_tm._44 = 1.f;
 
 	return l_tm.Transpose();
 }

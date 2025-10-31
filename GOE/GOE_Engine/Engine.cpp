@@ -113,9 +113,6 @@ void GOE::Engine::OnUpdate(double dTime)
 	m_renderer->OnUpdate();
 
 
-
-
-
 #pragma region testAnimation
 
 	/// 값이 정확한지는 아직 모르지만 애니메이션 업데이트는 구조적으로 만들었다.
@@ -143,18 +140,10 @@ void GOE::Engine::OnUpdate(double dTime)
 		BoneAnimation* boneAnim = temp->GetBoneAnimation()[i].get();
 		Node* currentNode = tempM->GetNodeFromMap(boneAnim->GetID());
 		if (currentNode)
-		{
-			currentNode->SetLocalTM(boneAnim->GetSRTMatrix(frameIndex));
-
-			if (currentNode->GetParent())
-			{
-				currentNode->SetWorldTM(currentNode->GetLocalTM() * currentNode->GetWorldTM());
-			}
-			else
-			{
-				currentNode->SetWorldTM(currentNode->GetLocalTM());
-			}
+		{ 
+			currentNode->SetLocalTM(boneAnim->GetSRTMatrix(frameIndex) * currentNode->GetNodePositionMatrix());
 		}
+		int c = 3;
 	}
 
 	/// 2. 모델의 노드 계층구조를 업데이트한다.

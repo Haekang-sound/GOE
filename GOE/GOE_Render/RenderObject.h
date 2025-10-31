@@ -59,7 +59,7 @@ public:
 
 	inline void SetLocalTM(const GOE::Matrix4x4& localTM) { m_localTM = localTM; }
 	inline void SetWorldTM(const GOE::Matrix4x4& worldTM) { m_worldTM = worldTM; }
-	inline void SetBoneMatrix(int idx, GOE::Matrix4x4 matrix)
+	inline void SetBoneTM(int idx, GOE::Matrix4x4 matrix)
 	{
 		m_boneTM[idx] = matrix;// .Transpose();
 	}

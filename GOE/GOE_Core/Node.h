@@ -18,6 +18,13 @@ public:
 	inline GOE::Matrix4x4& GetLocalTM() { return m_localTM; }
 	/// 반드시 setWorldTM함수를 호출한 이후에 사용해야한다.
 	inline GOE::Matrix4x4 GetWorldTM() { return m_worldTM; }
+	inline GOE::Matrix4x4 GetNodePositionMatrix()
+	{
+		return GOE::Matrix4x4::Translation(
+			m_nodePosition.x,
+			m_nodePosition.y,
+			m_nodePosition.z);
+	}
 
 public:
 	inline void SetParent(Node* parent) { m_parent = parent; }
@@ -27,6 +34,12 @@ public:
 	inline void SetNodeIndex(int i) { m_index = i; }
 	inline void SetLocalTM(GOE::Matrix4x4 transform){ m_localTM = transform; }	
 	inline void SetWorldTM(GOE::Matrix4x4 transform) { m_worldTM = transform; }
+	inline void SetNodePosition(float x, float y, float z) 
+	{
+		m_nodePosition.x = x; 
+		m_nodePosition.y = y; 
+		m_nodePosition.z = z; 
+	}
 
 private:
 	const std::string m_name; // 노드 이름
@@ -37,12 +50,13 @@ private:
 	/// <summary>
 	/// 스키닝 하는 중
 	/// 노드는 각각 로컬한 트랜스폼을 갖고 있다.
-	/// 노드의 위치는 부모의 트랜스폼도 받아와서 그 위에 존재해야함
+	/// 노드의 위치는 부모의 트랜스폼도 받아와dld 서 그 위에 존재해야함
 	/// 그리고 이 노드에 애니메이션 값이 곱해질 것이고
 	/// 
 	/// </summary>
 	GOE::Matrix4x4 m_localTM = GOE::Matrix4x4::Identity();
 	GOE::Matrix4x4 m_worldTM = GOE::Matrix4x4::Identity();
+	GOE::FLoatVector3 m_nodePosition = GOE::FLoatVector3(0.0f, 0.0f, 0.0f);
 
 	Node* m_parent = nullptr;
 	std::vector<std::unique_ptr<Node>> m_children;

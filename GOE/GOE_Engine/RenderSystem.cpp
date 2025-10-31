@@ -11,7 +11,6 @@ void RenderSystem::Initialize()
 	// 현재 렌더시스템은
 	// 메쉬렌더러가 갖고 있는 메쉬의 id와 
 	// 트랜스폼이 갖고 있을 행렬을 콘스탄트 버퍼로바꿔서 랜더러측이 생성하도록 한다.
-	//for (int i = 0; i < GetScene()->GetMeshRendererManager()->GetComponents().size(); ++i)
 	for (auto& meshRenderer: GetScene()->GetMeshRendererManager()->GetComponents())
 	{
 		RenderObjectData* data = new RenderObjectData();
@@ -47,11 +46,11 @@ void RenderSystem::Update(double dTime)
 				GOE::Matrix4x4 temp = m_context->assetCore->GetModel(m_context->assetCore->GetMesh(renderobj.get()->GetMeshID())->GetModelID())
 					->GetNodeFromMap(nodeid)->GetWorldTM();
 
-				renderobj.get()->SetBoneMatrix(boneidx, temp);
+				renderobj.get()->SetBoneTM(boneidx, temp);
 			}
 			for (int i = bones; i < 128 ;++i)
 			{
-				renderobj.get()->SetBoneMatrix(i, GOE::Matrix4x4::Identity());
+				renderobj.get()->SetBoneTM(i, GOE::Matrix4x4::Identity());
 			}
 		}
 	}

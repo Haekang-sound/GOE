@@ -2,7 +2,7 @@
 class BoneAnimation
 {
 public:
-	BoneAnimation() = default;
+	//BoneAnimation() = default;
 	BoneAnimation(std::string name, size_t hash) : m_name(name), m_id(hash) {}
 	BoneAnimation(size_t hash) : m_id(hash) {}
 	~BoneAnimation();
@@ -39,17 +39,19 @@ public:
 			translationMatrix = m_positions[index % m_positions.size()].ToTranslationMatrix();
 		}
 
+		GOE::Matrix4x4 result = scaleMatrix * rotationMatrix;// *translationMatrix;
+
 		// 5. 최종 변환 행렬을 조합하여 반환합니다.
-		return scaleMatrix * rotationMatrix * translationMatrix;
+		return result;
 	}
 
 
 public:
 	inline void SetName(const std::string& name) { m_name = name; }
 
-	inline void AddPositions(GOE::FLoatVector3 position) { m_positions.push_back(position);}
-	inline void AddRotations(GOE::FLoatVector4 quat) { m_rotations.push_back(quat);}
 	inline void AddScales(GOE::FLoatVector3 scale) { m_scales.push_back(scale);}
+	inline void AddRotations(GOE::FLoatVector4 quat) { m_rotations.push_back(quat);}
+	inline void AddPositions(GOE::FLoatVector3 position) { m_positions.push_back(position);}
 	
 
 private:

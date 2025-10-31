@@ -806,93 +806,270 @@ void GOERenderer::CreateRootSignature()
 
 }
 
-/// <summary>
-/// DXC를 이용한 셰이더 컴파일 함수
-/// </summary>
-/// <param name="fileName">파일경로</param>
-/// <param name="entryPoint">엔트리포인트 이름</param>
-/// <param name="targetProfile">셰이더 버전</param>
-/// <param name="ppShaderBlob">저장 위치</param>
-/// <returns></returns>
+
 HRESULT GOERenderer::CompileShaderFromFile(
-	const WCHAR* fileName,
-	const WCHAR* entryPoint,
-	const WCHAR* targetProfile,
-	ID3DBlob** ppShaderBlob)
+	const WCHAR * fileName,     // 예: L"D:\project\GOE\GOE\CODE\Shader\shader_vs.hlsl"
+	const WCHAR * entryPoint,
+	const WCHAR * targetProfile,
+	ID3DBlob * *ppShaderBlob)
 {
-	// ComPtr<IDxcUtils> pUtils는 DXC(DirectX Shader Compiler)를 사용할 때 필요한 여러 가지 편의 기능(유틸리티)을 제공하는 헬퍼(Helper) 객체입니다.
-	// 주요 역할은 크게 두 가지입니다 :
-	// 셰이더 파일 로드 : 파일 시스템에서.hlsl 같은 셰이더 파일을 직접 읽어옵니다.
-	// 메모리에서 Blob 객체 생성 : 이미 메모리에 있는 문자열로부터 셰이더 소스 코드 객체(Blob)를 만듭니다.
 	ComPtr<IDxcUtils> pUtils;
 	ComPtr<IDxcCompiler3> pCompiler;
-	DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(pUtils.GetAddressOf()));
-	DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(pCompiler.GetAddressOf()));
+	HRESULT hr = DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&pUtils));
+	if (FAILED(hr)) return hr;
+	hr = DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&pCompiler));
+	if (FAILED(hr)) return hr;
 
 	ComPtr<IDxcBlobEncoding> pSource;
-	// 경로를 받아서 해당파일을 읽어서 컴파일러가 읽을 수 있는 자료형으로 변환시켜 줍니다.
-	HRESULT hr = pUtils->LoadFile(fileName, nullptr, pSource.GetAddressOf());
+	hr = pUtils->LoadFile(fileName, nullptr, &pSource);
 	if (FAILED(hr))
 	{
-		// 파일 로드 실패 시 디버그 메시지 출력
 		OutputDebugStringW(L"Failed to load shader file: ");
 		OutputDebugStringW(fileName);
 		OutputDebugStringW(L"\n");
 		return hr;
 	}
 
-	// 컴파일 옵션 설정 
+	// 컴파일 옵션 설정
 	std::vector<LPCWSTR> arguments;
+
+	// 원본 파일 경로를 가장 먼저 추가 (PDB 내 원본 경로 기록용)
+	arguments.push_back(fileName);
+
+	// 엔트리 포인트 및 타겟 프로필
 	arguments.push_back(L"-E");
 	arguments.push_back(entryPoint);
 	arguments.push_back(L"-T");
 	arguments.push_back(targetProfile);
 
+	// 일반 옵션
+	arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS);
+
+	// PDB 파일 경로를 저장할 변수
+	std::wstring pdbPath; // 최종 절대 경로 저장
+
 #if defined(_DEBUG)
-	arguments.push_back(DXC_ARG_DEBUG);
+	// 디버그 빌드 옵션
+	arguments.push_back(L"-Zi");
 	arguments.push_back(L"-Od");
+	arguments.push_back(L"-Qembed_debug"); // 선택 사항
+
+	// --- 절대 PDB 경로 설정 ---
+	// 1. 지정된 절대 경로 사용
+	std::filesystem::path pdbSaveDir = L"D:\\project\\GOE\\GOE\\Bin\\Debug\\x64\\exe"; // 사용자가 알려준 경로
+
+	// 2. PDB 파일 이름 생성 (기존 코드 활용)
+	std::filesystem::path shaderFilePath = fileName;
+	std::wstring pdbName = shaderFilePath.filename().wstring();
+	size_t dot = pdbName.rfind(L'.');
+	if (dot != std::wstring::npos)
+	{
+		pdbName = pdbName.substr(0, dot);
+	}
+	pdbName += L".pdb"; // 예: "shader_vs.pdb"
+
+	// 3. 최종 절대 PDB 경로 조합
+	std::filesystem::path fullPdbPath = pdbSaveDir / pdbName; // 예: D:\project\GOE\GOE\Bin\Debug\x64\exe\shader_vs.pdb
+	pdbPath = fullPdbPath.wstring(); // std::wstring으로 변환
+
+	// 4. -Fd 인수로 전달
+	arguments.push_back(L"-Fd");
+	arguments.push_back(pdbPath.c_str()); // 계산된 절대 경로 전달
+	// --- 절대 PDB 경로 설정 끝 ---
+
 #else
+	// 릴리즈 빌드 옵션
 	arguments.push_back(L"-O3");
 	arguments.push_back(L"-Qstrip_reflect");
+	arguments.push_back(L"-Qstrip_debug");
 #endif
-
-	arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS);
 
 	DxcBuffer sourceBuffer;
 	sourceBuffer.Ptr = pSource->GetBufferPointer();
 	sourceBuffer.Size = pSource->GetBufferSize();
-	sourceBuffer.Encoding = 0;
+	sourceBuffer.Encoding = 0; // 필요시 DXC_CP_UTF8 등으로 변경
 
 	ComPtr<IDxcResult> pResult;
 	hr = pCompiler->Compile(
 		&sourceBuffer,
 		arguments.data(),
 		static_cast<UINT32>(arguments.size()),
-		nullptr,
-		IID_PPV_ARGS(pResult.GetAddressOf())
+		nullptr, // Include handler
+		IID_PPV_ARGS(&pResult)
 	);
 
 	if (FAILED(hr))
 	{
+		OutputDebugStringW(L"DXC Compile() failed.\n");
 		return hr;
 	}
 
 	ComPtr<IDxcBlobUtf8> pErrors;
-	pResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
-	if (pErrors != nullptr && pErrors->GetStringLength() > 0)
+	hr = pResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(&pErrors), nullptr);
+	if (SUCCEEDED(hr) && pErrors != nullptr && pErrors->GetStringLength() > 0)
 	{
+		OutputDebugStringA("Shader Compiler Errors:\n");
 		OutputDebugStringA(pErrors->GetStringPointer());
+		OutputDebugStringA("\n");
 	}
 
-	// 컴파일 성공 시 셰이더 바이트코드 반환
-	pResult->GetStatus(&hr);
-	if (SUCCEEDED(hr))
+	HRESULT compileStatus;
+	hr = pResult->GetStatus(&compileStatus);
+	if (FAILED(hr) || FAILED(compileStatus))
 	{
-		pResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(reinterpret_cast<IDxcBlob**>(ppShaderBlob)), nullptr);
+		OutputDebugStringW(L"Shader compilation failed.\n");
+		return FAILED(compileStatus) ? compileStatus : hr;
+	}
+
+	// 컴파일 성공: PDB 저장 및 셰이더 바이트코드 반환
+#if defined(_DEBUG)
+	ComPtr<IDxcBlob> pPdbBlob;
+	hr = pResult->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(&pPdbBlob), nullptr);
+
+	if (SUCCEEDED(hr) && pPdbBlob != nullptr)
+	{
+		// -Fd 인수로 지정한 절대 경로(pdbPath)에 PDB 파일 저장
+		FILE* fp = nullptr;
+		errno_t err = _wfopen_s(&fp, pdbPath.c_str(), L"wb"); // 절대 경로 사용
+		if (err == 0 && fp != nullptr)
+		{
+			fwrite(pPdbBlob->GetBufferPointer(), pPdbBlob->GetBufferSize(), 1, fp);
+			fclose(fp);
+			OutputDebugStringW((L"Saved PDB: " + pdbPath + L"\n").c_str());
+		}
+		else
+		{
+			OutputDebugStringW((L"Failed to save PDB: " + pdbPath + L"\n").c_str());
+			// 권한 문제 등이 의심될 경우 에러 코드 출력 추가 가능
+		}
+	}
+	else
+	{
+		OutputDebugStringW(L"Failed to get PDB output from DXC result.\n");
+	}
+#endif
+
+	hr = pResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(reinterpret_cast<IDxcBlob**>(ppShaderBlob)), nullptr);
+	if (FAILED(hr))
+	{
+		OutputDebugStringW(L"Failed to get Shader Object output from DXC result.\n");
 	}
 
 	return hr;
 }
+///// <summary>
+///// DXC를 이용한 셰이더 컴파일 함수
+///// </summary>
+///// <param name="fileName">파일경로</param>
+///// <param name="entryPoint">엔트리포인트 이름</param>
+///// <param name="targetProfile">셰이더 버전</param>
+///// <param name="ppShaderBlob">저장 위치</param>
+///// <returns></returns>
+//HRESULT GOERenderer::CompileShaderFromFile(
+//	const WCHAR* fileName,
+//	const WCHAR* entryPoint,
+//	const WCHAR* targetProfile,
+//	ID3DBlob** ppShaderBlob)
+//{
+//	// ComPtr<IDxcUtils> pUtils는 DXC(DirectX Shader Compiler)를 사용할 때 필요한 여러 가지 편의 기능(유틸리티)을 제공하는 헬퍼(Helper) 객체입니다.
+//	// 주요 역할은 크게 두 가지입니다 :
+//	// 셰이더 파일 로드 : 파일 시스템에서.hlsl 같은 셰이더 파일을 직접 읽어옵니다.
+//	// 메모리에서 Blob 객체 생성 : 이미 메모리에 있는 문자열로부터 셰이더 소스 코드 객체(Blob)를 만듭니다.
+//	ComPtr<IDxcUtils> pUtils;
+//	ComPtr<IDxcCompiler3> pCompiler;
+//	DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(pUtils.GetAddressOf()));
+//	DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(pCompiler.GetAddressOf()));
+//
+//	ComPtr<IDxcBlobEncoding> pSource;
+//	// 경로를 받아서 해당파일을 읽어서 컴파일러가 읽을 수 있는 자료형으로 변환시켜 줍니다.
+//	HRESULT hr = pUtils->LoadFile(fileName, nullptr, pSource.GetAddressOf());
+//	if (FAILED(hr))
+//	{
+//		// 파일 로드 실패 시 디버그 메시지 출력
+//		OutputDebugStringW(L"Failed to load shader file: ");
+//		OutputDebugStringW(fileName);
+//		OutputDebugStringW(L"\n");
+//		return hr;
+//	}
+//
+//	// 컴파일 옵션 설정 
+//	std::vector<LPCWSTR> arguments;
+//	// [핵심] 디버그 모드일 때만 디버그 인수 추가
+//#if defined(_DEBUG)
+//	arguments.push_back(L"-Zi");  // 디버그 정보 활성화 (PDB 생성)
+//	arguments.push_back(L"-Od");  // 최적화 비활성화
+//#endif
+//	arguments.push_back(L"-E");
+//	arguments.push_back(entryPoint);
+//	arguments.push_back(L"-T");
+//	arguments.push_back(targetProfile);
+//
+//#if defined(_DEBUG)
+//	arguments.push_back(DXC_ARG_DEBUG);
+//	arguments.push_back(L"-Od");
+//#else
+//	arguments.push_back(L"-O3");
+//	arguments.push_back(L"-Qstrip_reflect");
+//#endif
+//
+//	arguments.push_back(DXC_ARG_WARNINGS_ARE_ERRORS);
+//
+//	DxcBuffer sourceBuffer;
+//	sourceBuffer.Ptr = pSource->GetBufferPointer();
+//	sourceBuffer.Size = pSource->GetBufferSize();
+//	sourceBuffer.Encoding = 0;
+//
+//	ComPtr<IDxcResult> pResult;
+//	hr = pCompiler->Compile(
+//		&sourceBuffer,
+//		arguments.data(),
+//		static_cast<UINT32>(arguments.size()),
+//		nullptr,
+//		IID_PPV_ARGS(pResult.GetAddressOf())
+//	);
+//
+//	if (FAILED(hr))
+//	{
+//		return hr;
+//	}
+//
+//	ComPtr<IDxcBlobUtf8> pErrors;
+//	pResult->GetOutput(DXC_OUT_ERRORS, IID_PPV_ARGS(pErrors.GetAddressOf()), nullptr);
+//	if (pErrors != nullptr && pErrors->GetStringLength() > 0)
+//	{
+//		OutputDebugStringA(pErrors->GetStringPointer());
+//	}
+//
+//	// 컴파일 성공 시 셰이더 바이트코드 반환
+//	pResult->GetStatus(&hr);
+//	if (SUCCEEDED(hr))
+//	{
+//		// [매우 중요] 디버그 정보(PDB) 가져오기
+//#if defined(_DEBUG)
+//		ComPtr<IDxcBlob> pPdbBlob;
+//		ComPtr<IDxcBlobUtf16> pPdbPath; // PDB 파일 이름
+//		pResult->GetOutput(DXC_OUT_PDB, IID_PPV_ARGS(&pPdbBlob), &pPdbPath);
+//
+//		if (pPdbBlob)
+//		{
+//			// PDB 데이터를 파일로 저장합니다. 
+//			// (예: 실행파일(.exe) 옆이나 셰이더(.cso) 옆)
+//			// PIX가 이 파일을 찾아야 HLSL 소스 코드를 보여줄 수 있습니다.
+//			FILE* fp = nullptr;
+//			_wfopen_s(&fp, pPdbPath->GetStringPointer(), L"wb");
+//			if (fp)
+//			{
+//				fwrite(pPdbBlob->GetBufferPointer(), pPdbBlob->GetBufferSize(), 1, fp);
+//				fclose(fp);
+//			}
+//		}
+//#endif
+//
+//		pResult->GetOutput(DXC_OUT_OBJECT, IID_PPV_ARGS(reinterpret_cast<IDxcBlob**>(ppShaderBlob)), nullptr);
+//	}
+//
+//	return hr;
+//}
 
 
 
