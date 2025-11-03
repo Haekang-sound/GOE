@@ -11,7 +11,7 @@ struct QuatKeyFrame
 {
 	float time = 0.0f;
 	GOE::FLoatVector4 value = {};
-	QuatKeyFrame(double time, GOE::FLoatVector4 quat) : time(time), value(quat){}
+	QuatKeyFrame(double time, GOE::FLoatVector4 value) : time(time), value(value){}
 };
 
 

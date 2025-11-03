@@ -139,13 +139,21 @@ namespace GOE
 			: x(x), y(y){}
 
 	public:
-		FloatVector2& operator* (const float& other)
+		FloatVector2 operator* (const float& scalar)
 		{
-			x *= other;
-			y *= other;
-			return *this;
+			FloatVector2 temp;
+			temp.x = x * scalar;
+			temp.y = y * scalar;
+			return temp;
 		}
-		FloatVector2& operator- (const FloatVector2& other)
+		FloatVector2 operator- (const FloatVector2& other)
+		{
+			FloatVector2 temp;
+			temp.x = x - other.x;
+			temp.y = y - other.y;
+			return temp;
+		}
+		FloatVector2& operator-= (const FloatVector2& other)
 		{
 			x -= other.x;
 			y -= other.y;
@@ -177,7 +185,7 @@ namespace GOE
 		}
 
 		// 오일러 회전 일경우
-		Matrix4x4 ToRotationXMatrix() const
+		Matrix4x4 ToRotationMatrixEuler() const
 		{
 			return Matrix4x4::RotationX(x) * Matrix4x4::RotationY(y) * Matrix4x4::RotationZ(z);
 		}
@@ -196,7 +204,7 @@ namespace GOE
 			z *= scalar;
 			return *this;
 		}
-		FLoatVector3&operator* (const float& scalar)
+		FLoatVector3 operator* (const float& scalar)
 		{
 			FLoatVector3 temp;
 			temp.x = x * scalar;

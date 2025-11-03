@@ -32,22 +32,44 @@ GOE::Matrix4x4 BoneAnimation::InterpolateScale(double normaliedTime)
 
 
 }
-
+// BoneAnimation.h 또는 BoneAnimation.cpp
+// (이 함수는 구현이 길어졌으므로 .cpp 파일로 옮기는 것을 강력히 권장합니다)
 GOE::Matrix4x4 BoneAnimation::InterpolatePosition(double normaliedTime)
 {
+	// --- 방어 코드 1: 키가 1개일 때 ---
 	if (m_positions.size() == 1)
 	{
 		return m_positions[0].value.ToTranslationMatrix();
 	}
+
+	// --- 경계 키프레임 탐색 ---
 	int indexA = FindKeyIndex<VectorKeyFrame>(normaliedTime, m_positions);
 	int indexB = indexA + 1;
+	
+	// --- 방어 코드 2: 0으로 나누기(NaN) 방지 ---
 	float timeA = m_positions[indexA].time;
 	float timeB = m_positions[indexB].time;
-	float factor = (normaliedTime - timeA) / (timeB - timeA);
+	float timeSpan = timeB - timeA;
+
+	if (timeSpan <= 0.0f)
+	{
+		return m_positions[indexA].value.ToTranslationMatrix();
+	}
+
+	// --- 보간 계수(Factor) 계산 ---
+	float factor = (normaliedTime - timeA) / timeSpan;
+
+	// --- Lerp 계산 ---
 	GOE::FLoatVector3 posA = m_positions[indexA].value;
 	GOE::FLoatVector3 posB = m_positions[indexB].value;
 	GOE::FLoatVector3 finalPos = posA;
+	
+	// (posB - posA) * factor;
+	// 🚨 경고: 이 라인이 올바르게 작동하려면
+	// CoreMath.h의 FLoatVector3::operator* (float) 버그가
+	// 반드시 수정되어야 합니다.
 	finalPos += (posB - posA) * factor;
+
 	return finalPos.ToTranslationMatrix();
 }
 

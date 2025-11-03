@@ -106,7 +106,7 @@ void AnimationSystem::Update(double dTime)
 					// 이제까지는 가장 가까운 키프레임을 선택해서 찾았지만
 					// 이제는 duration과 애니메이션 시간을 기반으로 
 					// 두 키프레임 사이를 보간해야 한다.
-					currentNode->SetLocalTM(m_boneAnim->InterpolateSR(m_noramlizedTick)*currentNode->GetNodePositionMatrix());
+					currentNode->SetLocalTM(m_boneAnim->InterpolateSR(m_noramlizedTick) *currentNode->GetNodePositionMatrix());
 				}
 			}
 
