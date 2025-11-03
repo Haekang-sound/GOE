@@ -15,7 +15,6 @@ public:
 	void SetName(const std::string name) { m_name = name; }
 
 protected:
-	/// 이걸가져가서 
 	size_t m_textureID = 0;
 
 	std::string m_name = ""; // 오브젝트 이름

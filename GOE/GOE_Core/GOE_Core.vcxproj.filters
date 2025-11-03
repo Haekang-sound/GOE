@@ -42,9 +42,15 @@
     <ClInclude Include="FileManager.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Animation.h" />
-    <ClInclude Include="BoneAnimation.h" />
-    <ClInclude Include="Bone.h" />
+    <ClInclude Include="Bone.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Animation.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="BoneAnimation.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
@@ -68,8 +74,14 @@
     <ClCompile Include="FileManager.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
-    <ClCompile Include="Animation.cpp" />
-    <ClCompile Include="BoneAnimation.cpp" />
-    <ClCompile Include="Bone.cpp" />
+    <ClCompile Include="Animation.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Bone.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="BoneAnimation.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

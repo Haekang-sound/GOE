@@ -17,11 +17,14 @@ public:
 public:
 	const size_t GetID() const { return m_id; }
 	const size_t GetOwner() const { return m_ownerID; }
+	inline const bool IsActive() const { return isActive; }
+
+public: 
+	inline void SetActive(bool active) { isActive = active; }
 
 protected:
-	// 자신의 id
 	const size_t m_id;
+	const size_t m_ownerID; // entity ID
 
-	// 자신의 entitiy()
-	const size_t m_ownerID;
+	bool isActive = true; // 활성화 여부
 };

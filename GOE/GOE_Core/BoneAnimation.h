@@ -2,7 +2,6 @@
 class BoneAnimation
 {
 public:
-	//BoneAnimation() = default;
 	BoneAnimation(std::string name, size_t hash) : m_name(name), m_id(hash) {}
 	BoneAnimation(size_t hash) : m_id(hash) {}
 	~BoneAnimation();
@@ -39,12 +38,44 @@ public:
 			translationMatrix = m_positions[index % m_positions.size()].ToTranslationMatrix();
 		}
 
-		GOE::Matrix4x4 result = scaleMatrix * rotationMatrix;// *translationMatrix;
+		GOE::Matrix4x4 result = scaleMatrix * rotationMatrix * translationMatrix;
 
 		// 5. 최종 변환 행렬을 조합하여 반환합니다.
 		return result;
 	}
+	inline GOE::Matrix4x4 GetSRMatrix(size_t index)
+	{
+		// 1. 각 변환을 위한 행렬을 단위 행렬로 초기화합니다.
+		GOE::Matrix4x4 scaleMatrix = GOE::Matrix4x4::Identity();
+		GOE::Matrix4x4 rotationMatrix = GOE::Matrix4x4::Identity();
 
+		// 2. 스케일 벡터가 비어있지 않은 경우에만 변환 행렬을 계산합니다.
+		if (!m_scales.empty())
+		{
+			scaleMatrix = m_scales[index % m_scales.size()].ToScaleMatrix();
+		}
+
+		// 3. 회전 벡터가 비어있지 않은 경우에만 변환 행렬을 계산합니다.
+		if (!m_rotations.empty())
+		{
+			rotationMatrix = m_rotations[index % m_rotations.size()].ToRotationXMatrix();
+		}
+
+		GOE::Matrix4x4 result = scaleMatrix * rotationMatrix;
+
+		// 5. 최종 변환 행렬을 조합하여 반환합니다.
+		return result;
+	}
+	inline GOE::Matrix4x4 TMatrix(size_t index)
+	{
+		GOE::Matrix4x4 translationMatrix = GOE::Matrix4x4::Identity();
+		// 4. 위치 벡터가 비어있지 않은 경우에만 변환 행렬을 계산합니다.
+		if (!m_positions.empty())
+		{
+			translationMatrix = m_positions[index % m_positions.size()].ToTranslationMatrix();
+		}
+		return translationMatrix;
+	}
 
 public:
 	inline void SetName(const std::string& name) { m_name = name; }

@@ -24,12 +24,12 @@ void MovementSystem::Update(double dTime)
 			if (GetAsyncKeyState('N') & 0x8000)	m_moveSpeed -= 0.1f;
 			if (GetAsyncKeyState('M') & 0x8000)	m_moveSpeed += 0.1f;
 
-			auto& transform = GetScene()->GetTransformManager()->GetComponentByOwner(movementunit.GetOwner());
+			auto transform = GetScene()->GetTransformManager()->GetComponentByOwner(movementunit.GetOwner());
 
 			/// 기저벡터를 뽑는 기능을 트랜스폼에 만들자
-			GOE::FLoatVector4 right = transform.GetRightVector();
-			GOE::FLoatVector4 up = transform.GetUpVector();
-			GOE::FLoatVector4 forward = transform.GetForwardVector();
+			GOE::FLoatVector4 right = transform->GetRightVector();
+			GOE::FLoatVector4 up = transform->GetUpVector();
+			GOE::FLoatVector4 forward = transform->GetForwardVector();
 
 			GOE::FLoatVector4 pos = { 0,0,0,0 };
 			if (GetAsyncKeyState(VK_UP) & 0x8000)	pos += forward	* m_moveSpeed*dTime;
@@ -55,7 +55,7 @@ void MovementSystem::Update(double dTime)
 			GOE::Matrix4x4 srt = S * R * T;
 
 			/// 트랜스폼에 적용
-			transform.SetLocalTM(transform.GetLocalTM() * srt);
+			transform->SetLocalTM(transform->GetLocalTM() * srt);
 		}
 	}
 }

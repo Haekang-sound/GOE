@@ -17,6 +17,7 @@
 #include <iostream> 
 #include <unordered_map>
 
+#include "Window.h"
 #include "CoreMath.h"
 #include "FileManager.h"
 

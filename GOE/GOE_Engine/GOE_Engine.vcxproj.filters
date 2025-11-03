@@ -10,6 +10,12 @@
     <Filter Include="Common">
       <UniqueIdentifier>{421211d0-7b3e-40de-8319-0cb2ffe7e31f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Component">
+      <UniqueIdentifier>{ba92e6c2-95eb-407b-907c-e260da7119de}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="System">
+      <UniqueIdentifier>{48e3ee2d-585e-4ffe-9203-ec3211a16c93}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine_pch.h">
@@ -33,12 +39,6 @@
     <ClInclude Include="Scene.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="MeshRenderer.h">
-      <Filter>00_Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="Transform.h">
-      <Filter>00_Headers</Filter>
-    </ClInclude>
     <ClInclude Include="SceneManager.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
@@ -48,23 +48,36 @@
     <ClInclude Include="EntityManager.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="RenderSystem.h">
-      <Filter>00_Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="MovementSystem.h">
+    <ClInclude Include="..\GOE_AssetLoader\AssetCore.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
     <ClInclude Include="MovementUnit.h">
-      <Filter>00_Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="TransfromSystem.h">
-      <Filter>00_Headers</Filter>
+      <Filter>Component</Filter>
     </ClInclude>
     <ClInclude Include="Material.h">
-      <Filter>00_Headers</Filter>
+      <Filter>Component</Filter>
     </ClInclude>
-    <ClInclude Include="..\GOE_AssetLoader\AssetCore.h" />
-    <ClInclude Include="..\GOE_Core\Node.h" />
+    <ClInclude Include="MeshRenderer.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationUnit.h">
+      <Filter>Component</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimationSystem.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="MovementSystem.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderSystem.h">
+      <Filter>System</Filter>
+    </ClInclude>
+    <ClInclude Include="TransfromSystem.h">
+      <Filter>System</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -73,13 +86,7 @@
     <ClCompile Include="Engine_pch.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="Transform.cpp">
-      <Filter>00_Sources</Filter>
-    </ClCompile>
     <ClCompile Include="Entity.cpp">
-      <Filter>00_Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="MeshRenderer.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
     <ClCompile Include="Scene.cpp">
@@ -91,20 +98,32 @@
     <ClCompile Include="EntityManager.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
-    <ClCompile Include="RenderSystem.cpp">
-      <Filter>00_Sources</Filter>
+    <ClCompile Include="Material.cpp">
+      <Filter>Component</Filter>
     </ClCompile>
-    <ClCompile Include="MovementSystem.cpp">
-      <Filter>00_Sources</Filter>
+    <ClCompile Include="MeshRenderer.cpp">
+      <Filter>Component</Filter>
     </ClCompile>
     <ClCompile Include="MovementUnit.cpp">
-      <Filter>00_Sources</Filter>
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="Transform.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimationUnit.cpp">
+      <Filter>Component</Filter>
+    </ClCompile>
+    <ClCompile Include="MovementSystem.cpp">
+      <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderSystem.cpp">
+      <Filter>System</Filter>
     </ClCompile>
     <ClCompile Include="TransfromSystem.cpp">
-      <Filter>00_Sources</Filter>
+      <Filter>System</Filter>
     </ClCompile>
-    <ClCompile Include="Material.cpp">
-      <Filter>00_Sources</Filter>
+    <ClCompile Include="AnimationSystem.cpp">
+      <Filter>System</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

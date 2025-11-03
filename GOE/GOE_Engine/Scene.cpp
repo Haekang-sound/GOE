@@ -8,10 +8,12 @@
 #include "MeshRenderer.h"
 #include "Material.h"
 #include "MovementUnit.h"
+#include "AnimationUnit.h"
 
 #include "RenderSystem.h"
 #include "MovementSystem.h"
 #include "TransfromSystem.h"
+#include "AnimationSystem.h"
 
 Scene::Scene() = default;
 Scene::~Scene() = default;
@@ -26,10 +28,13 @@ void Scene::Initialize(GOE::EngineContext* context)
 	m_meshRendererManager = std::make_unique<ComponentManager<MeshRenderer>>();
 	m_materialManager = std::make_unique<ComponentManager<Material>>();
 	m_movementUnitManager = std::make_unique<ComponentManager<MovementUnit>>();
+	m_animationUnitManager = std::make_unique<ComponentManager<AnimationUnit>>();
+
 	// 시스템 생성
 	m_renderSystem = std::make_unique<RenderSystem>(this, context);
 	m_transfromSystem = std::make_unique<TransfromSystem>(this, context);
 	m_movementSystem = std::make_unique<MovementSystem>(this, context);
+	m_animationSystem = std::make_unique<AnimationSystem>(this, context);
 
 	Script();
 
@@ -41,6 +46,7 @@ void Scene::OnUpdate(double dTime)
 {
 	m_movementSystem.get()->Update(dTime);
 	m_transfromSystem.get()->Update(dTime);
+	m_animationSystem.get()->Update(dTime);
 	m_renderSystem.get()->Update(dTime);
 }
 
@@ -48,6 +54,7 @@ void Scene::DebugUpdate()
 {
 	m_movementSystem.get()->DebugUpdate(0);
 	m_transfromSystem.get()->DebugUpdate(0);
+	m_animationSystem.get()->DebugUpdate(0);
 	m_renderSystem.get()->DebugUpdate(0);
 }
 
@@ -57,44 +64,44 @@ void Scene::DebugUpdate()
 /// </summary>
 void Scene::Script()
 {
-	//{
-	//	// 엔티티를 만들고
-	//	m_entityManager.get()->CreateEntity("쿠라몬");
+	{
+		// 엔티티를 만들고
+		m_entityManager.get()->CreateEntity("쿠라몬");
 
-	//	// 트랜스폼은 
-	//	// 시작위치, 스케일, 회전을 넣을 수 있어야 함
-	//	m_transformManager.get()->AddComponent(
-	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		// 트랜스폼은 
+		// 시작위치, 스케일, 회전을 넣을 수 있어야 함
+		m_transformManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 
-	//	GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
-	//	m_transformManager.get()->GetCurrentComponent().SetLocalTM(tm);
-	//	m_transformManager.get()->GetCurrentComponent().SetScaleTM({ 100.f, 100.f, 100.f });
+		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
+		m_transformManager.get()->GetCurrentComponent()->SetLocalTM(tm);
+		m_transformManager.get()->GetCurrentComponent()->SetScaleTM({ 100.f, 100.f, 100.f });
 
-	//	// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
-	//	// 일단 컴포넌트 아이디와 entity 아이디를 동일하게 사용한다.
-	//	m_meshRendererManager.get()->AddComponent(
-	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-	//	size_t meshPath = GOE::FileManager::GetHash("chr629_0");
+		// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
+		// 일단 컴포넌트 아이디와 entity 아이디를 동일하게 사용한다.
+		m_meshRendererManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		size_t meshPath = GOE::FileManager::GetHash("chr629_0");
 
-	//	m_meshRendererManager.get()->GetCurrentComponent().SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
-	//	m_meshRendererManager.get()->GetCurrentComponent().SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
-	//	m_meshRendererManager.get()->GetCurrentComponent().SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
-	//	m_meshRendererManager.get()->GetCurrentComponent().SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetVisible(true);
 
+		size_t texturePath = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
+		m_materialManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		m_materialManager.get()->GetCurrentComponent()->SetTextureID(texturePath);
 
-	//	size_t texturePath = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
-	//	m_materialManager.get()->AddComponent(
-	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-	//	m_materialManager.get()->GetCurrentComponent().SetTextureID(texturePath);
+		m_movementUnitManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 
-	//	// 이게 붙으면 이동함
-	//	m_movementUnitManager.get()->AddComponent(
-	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-	//		m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-	//}
+	}
 
 	{
 		// 엔티티를 만들고
@@ -108,28 +115,35 @@ void Scene::Script()
 
 		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
 
-		m_transformManager.get()->GetCurrentComponent().SetLocalTM(tm);
-		m_transformManager.get()->GetCurrentComponent().SetScaleTM({ 0.1f, 0.1f, 0.1f });
+		m_transformManager.get()->GetCurrentComponent()->SetLocalTM(tm);
+		m_transformManager.get()->GetCurrentComponent()->SetScaleTM({ 0.1f, 0.1f, 0.1f });
 
 		// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
 		m_meshRendererManager.get()->AddComponent(m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 		size_t meshPath = GOE::FileManager::GetHash("Ch03");
 
-		m_meshRendererManager.get()->GetCurrentComponent().SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
-		m_meshRendererManager.get()->GetCurrentComponent().SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
-		m_meshRendererManager.get()->GetCurrentComponent().SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
-		m_meshRendererManager.get()->GetCurrentComponent().SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
-
+		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetVisible(true);
+		
 		size_t texturePath = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\Ch03_1001_Diffuse.png");
 		m_materialManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		m_materialManager.get()->GetCurrentComponent().SetTextureID(texturePath);
+		m_materialManager.get()->GetCurrentComponent()->SetTextureID(texturePath);
 
 		// 이게 붙으면 이동함
 		m_movementUnitManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+
+		m_animationUnitManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimationHash(GOE::FileManager::GetHash("mixamo.com"));
+		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimate(true);
 	}
 }

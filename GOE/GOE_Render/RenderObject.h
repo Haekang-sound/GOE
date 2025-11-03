@@ -27,8 +27,9 @@ public:
 	inline size_t GetTextureID() const { return m_textureID; }
 	inline Graphics::Matrix4x4& GetLocalTM() { return m_localTM; }
 	inline Graphics::Matrix4x4& GetWorldTM() { return m_worldTM; }
+	inline bool IsVisible() const { return m_isVisible; }
+	inline bool IsAnimated() const { return m_isAnimated; }
 
-	inline bool IsVisible() const { return isVisible; }
 	inline const std::string& GetName() const { return m_name; }
 
 	inline ID3D12Resource* GetCB() const { return m_constantBuffer.Get(); }
@@ -42,7 +43,9 @@ public:
 	inline Graphics::Matrix4x4& GetBoneTM(int i) { return m_boneTM[i]; }
 
 public:
-	inline void SetVisible(bool visible) { isVisible = visible; }
+	inline void SetVisible(bool visible) { m_isVisible = visible; }
+	inline void SetAnimated(bool animated) { m_isAnimated = animated; }
+
 	inline void SetMeshID(size_t meshID) { m_meshID = meshID; }
 	inline void SetMeshIndex(size_t meshIndex) { m_meshIndex = meshIndex; }
 	inline void SetModelID(size_t modelID) { m_modelID = modelID; }
@@ -70,12 +73,13 @@ private:
 	size_t m_textureID = 0; // 텍스처 ID 
 	size_t m_modelID = 0; // 모델 ID 
 	
-	Graphics::Matrix4x4 m_localTM;
-	Graphics::Matrix4x4 m_worldTM;
+	Graphics::Matrix4x4 m_localTM = GOE::Matrix4x4::Identity();
+	Graphics::Matrix4x4 m_worldTM = GOE::Matrix4x4::Identity();
 	Graphics::Matrix4x4 m_boneTM[128];
 
 	std::string m_name = ""; // 오브젝트 이름
-	bool isVisible = true; // 오브젝트가 보이는지 여부
+	bool m_isVisible = false; // 오브젝트가 보이는지 여부
+	bool m_isAnimated = false; // 애니메이션 적용 여부
 
 private:
 	// CB

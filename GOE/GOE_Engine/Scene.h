@@ -8,12 +8,14 @@ namespace GOE
 {
 	struct EngineContext;
 }
+
 class Entity;
 class EntityManager;
 class Transform;
 class MeshRenderer;
 class Material;
 class MovementUnit;
+class AnimationUnit;
 
 class RenderSystem;
 class TransfromSystem;
@@ -57,6 +59,7 @@ public:
 	inline ComponentManager<MeshRenderer>* GetMeshRendererManager() { return m_meshRendererManager.get(); }
 	inline ComponentManager<Material>* GetMaterialManager() { return m_materialManager.get(); }
 	inline ComponentManager<MovementUnit>* GetMovementUnitManager() { return m_movementUnitManager.get(); }
+	inline ComponentManager<AnimationUnit>* GetAnimationUnitManager() { return m_animationUnitManager.get(); }
 
 private:
 	void Script();// 씬을 적는 곳이 있어야한다.
@@ -71,9 +74,11 @@ private:
 	std::unique_ptr<ComponentManager<MeshRenderer>> m_meshRendererManager;
 	std::unique_ptr<ComponentManager<Material>> m_materialManager;
 	std::unique_ptr<ComponentManager<MovementUnit>> m_movementUnitManager;
+	std::unique_ptr<ComponentManager<AnimationUnit>> m_animationUnitManager;
 
 	std::unique_ptr<RenderSystem> m_renderSystem;
 	std::unique_ptr<TransfromSystem> m_transfromSystem;
 	std::unique_ptr<MovementSystem> m_movementSystem;
+	std::unique_ptr<AnimationSystem> m_animationSystem;
 };
 

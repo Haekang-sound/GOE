@@ -19,13 +19,24 @@ using namespace DirectX;
 struct RenderObjectData
 {
 	std::string name;
-	size_t id;
-	size_t meshID;
-	size_t meshIndex;
-	size_t modelID;
-	size_t textureID;
-	GOE::Matrix4x4 localTM;
+	size_t id = 0;
+	size_t meshID = 0;
+	size_t meshIndex = 0;
+	size_t modelID = 0;
+	size_t textureID = 0;
+	GOE::Matrix4x4 localTM = GOE::Matrix4x4::Identity();
 	GOE::Matrix4x4 boneTM[128];
+	bool isVisible = false;
+	bool isAnimated = false;
+
+public:
+	RenderObjectData()
+	{
+		for (int i = 0; i < 128; ++i)
+		{
+			boneTM[i] = GOE::Matrix4x4::Identity();
+		}
+	}
 
 };
 
