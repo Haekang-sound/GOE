@@ -11,7 +11,7 @@
 
 void AnimationSystem::Initialize() {}
 
-int AnimationSystem::GetFrameIndexFromTime(float animTime, float duration, int frameCount)
+int AnimationSystem::GetFrameIndexFromTime(double animTime, double duration, int frameCount)
 {
 	// 1️⃣ 방어 코드
 	// 프레임이 1개 이하거나, duration이 0이면 무조건 0번째 프레임
@@ -50,43 +50,67 @@ int AnimationSystem::GetFrameIndexFromTime(float animTime, float duration, int f
 	return frameIndex;
 }
 
+/// <summary>
+/// 본애니메이션과 키프레임을 입력받고
+/// 보간된 변환 행렬을 반환한다.
+/// </summary>
+/// <param name="boneAnim">본애니메이션</param>
+/// <param name="animTime">현재 틱</param>
+/// <returns></returns>
+GOE::Matrix4x4 AnimationSystem::InterpolateTransform(BoneAnimation* boneAnim, double noramlizedTime)
+{
+	int scaleKeyframeCount = m_boneAnim->GetScaleCount();
+	int rotaionKeyframeCount = m_boneAnim->GetRotationCount();
+	int positionKeyframeCount = m_boneAnim->GetPositionCount();
+
+	
+
+
+	return GOE::Matrix4x4();
+}
+
 void AnimationSystem::Update(double dTime)
 {
 	for (const auto& animationUnit : GetScene()->GetAnimationUnitManager()->GetComponents())
 	{
 		if (animationUnit.IsAnimated())
 		{
+			/// 매쉬와 모델을 입력받는 편이 좋을지도
 			size_t meshID = GetScene()->GetMeshRendererManager()->GetComponentByOwner(animationUnit.GetOwner())->GetMeshID();
 			size_t modelID = GetScene()->GetMeshRendererManager()->GetComponentByOwner(animationUnit.GetOwner())->GetModelID();
-			int bones = m_context->assetCore->GetMesh(meshID)->GetBones().size();
 
 			// 애니메이션을 해쉬로저장할떄 단순 이름으로 저장하면 안될것 같다 왜냐면 애니메이션 이름이 죄다 mixamo.com 이기때문에
-			Animation* temp = m_context->assetCore->GetAnimation(animationUnit.GetAnimationHash());
-			Model* tempM = m_context->assetCore->GetModel(modelID);
+			m_anim = m_context->assetCore->GetAnimation(animationUnit.GetAnimationHash());
+			m_model = m_context->assetCore->GetModel(modelID);
 
-			static float elapsedTime = 0.0f;
-			elapsedTime += (float)dTime;
+			/// 1. 보간을 해야한다.
+			// 1. 시간을 누적한다.
+			totalTime += dTime;
 
-			float ticksPerSecond = temp->GetTicksPerSecond(); // 예: 30
-			float duration = temp->GetDuration();              // 예: 559
-
-			float timeInTicks = elapsedTime * ticksPerSecond; // 초 → tick 변환
-			float animTime = fmod(timeInTicks, duration);     // 루프 재생
-			int keyframeCount = 155; // 예: 155
-			int frameIndex = GetFrameIndexFromTime(animTime, duration, keyframeCount);
-
-			// 1. 애니메이션은 순회하면서 모델 내부의 노드를 업데이트한다.
-			for (int i = 0; i < temp->GetBoneAnimation().size(); ++i)
+			// 2. 누적된 시간을 바탕으로 현재 tick(정규화된 시간)을 구한다.
+			ticksPerSecond = m_anim->GetTicksPerSecond();
+			duration = m_anim->GetDuration();
+			m_totalTick = totalTime * ticksPerSecond;
+			// 정규화된 시간
+			m_noramlizedTick = fmod(m_totalTick, duration);
+			
+			// 현재 루트모션이 제거된 애니메이션만 사용할 수 있음
+			for (int i = 0; i < m_anim->GetBoneAnimation().size(); ++i)
 			{
-				BoneAnimation* boneAnim = temp->GetBoneAnimation()[i].get();
-				Node* currentNode = tempM->GetNodeFromMap(boneAnim->GetID());
+				// 3. 현재 tick에 해당하는 프레임 인덱스들과 각 프레임의 대한 가중치를 구한다.
+				m_boneAnim = m_anim->GetBoneAnimation()[i].get();
+
+				Node* currentNode = m_model->GetNodeFromMap(m_boneAnim->GetID());
 				if (currentNode)
 				{
-					currentNode->SetLocalTM(boneAnim->GetSRMatrix(frameIndex) * currentNode->GetNodePositionMatrix());
+					// 이제까지는 가장 가까운 키프레임을 선택해서 찾았지만
+					// 이제는 duration과 애니메이션 시간을 기반으로 
+					// 두 키프레임 사이를 보간해야 한다.
+					currentNode->SetLocalTM(m_boneAnim->InterpolateSR(m_noramlizedTick)*currentNode->GetNodePositionMatrix());
 				}
 			}
 
-			tempM->UpdateNodeHierarchy();
+			m_model->UpdateNodeHierarchy();
 		}
 	}
 

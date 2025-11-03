@@ -20,7 +20,6 @@ public:
 	inline const double GetTicksPerSecond() const { return m_TicksPerSecond; }
 	inline std::vector<std::unique_ptr<BoneAnimation>>& GetBoneAnimation() { return m_BoneAnimations; }
 
-
 public:
 	inline void SetName(const std::string& name) { m_name = name; }
 	inline void SetDuation(const double value) { m_Duration = value; }

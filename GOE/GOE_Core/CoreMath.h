@@ -189,20 +189,48 @@ namespace GOE
 		
 
 	public:
-		FLoatVector3& operator* (const float& other)
+		FLoatVector3& operator*= (const float& scalar)
 		{
-			x *= other;
-			y *= other;
-			z *= other;
+			x *= scalar;
+			y *= scalar;
+			z *= scalar;
 			return *this;
 		}
-		FLoatVector3& operator- (const FLoatVector3& other)
+		FLoatVector3&operator* (const float& scalar)
+		{
+			FLoatVector3 temp;
+			temp.x = x * scalar;
+			temp.y = y * scalar;
+			temp.z = z * scalar;
+			return temp;
+		}
+
+		FLoatVector3& operator-= (const FLoatVector3& other)
 		{
 			x -= other.x;
 			y -= other.y;
 			z -= other.z;
 			return *this;
 		}
+
+		FLoatVector3 operator- (const FLoatVector3& other)
+		{
+			FLoatVector3 temp;
+			temp.x = x - other.x;
+			temp.y = y - other.y;
+			temp.z = z - other.z;
+			return temp;
+		}
+
+		FLoatVector3 operator+ (const FLoatVector3& other)
+		{
+			FLoatVector3 temp;
+			temp.x = x + other.x;
+			temp.y = y + other.y;
+			temp.z = z + other.z;
+			return temp;
+		}
+
 		FLoatVector3& operator+= (const FLoatVector3& other)
 		{
 			x += other.x;
@@ -225,7 +253,7 @@ namespace GOE
 			: x(x), y(y), z(z), w(w){}
 
 	public: 
-		Matrix4x4 ToRotationXMatrix() const
+		Matrix4x4 ToRotationMatrix() const
 		{
 			// 쿼터니언을 회전 행렬로 변환
 			Matrix4x4 result = Matrix4x4::Identity();
@@ -245,14 +273,96 @@ namespace GOE
 			return result;
 		}
 
+		// 헬퍼 함수: 내적 (Dot Product)
+		float Dot(const FLoatVector4& other) const
+		{
+			return x * other.x + y * other.y + z * other.z + w * other.w;
+		}
+
+		// 헬퍼 함수: 정규화 (Normalize)
+		void Normalize()
+		{
+			float lenSq = x * x + y * y + z * z + w * w;
+			if (lenSq > 1e-6f)
+			{
+				float len = sqrt(lenSq);
+				x /= len;
+				y /= len;
+				z /= len;
+				w /= len;
+			}
+		}
+
+		// (연산자 오버로딩이 필요합니다: +, *, / (스칼라))
+		// (간략화를 위해 Lerp로 대체하는 부분에서만 +와 *를 사용)
+
+		// Slerp 함수 직접 구현
+		static FLoatVector4 Slerp(FLoatVector4 a, FLoatVector4 b, float t)
+		{
+			// 1. 두 쿼터니언 사이의 "각도"의 코사인 값을 계산합니다 (내적).
+			float cosTheta = a.Dot(b);
+
+			// 2. (중요) "최단 경로" 보정
+			// 만약 내적이 음수면, 두 쿼터니언은 180도가 넘는 경로에 있습니다.
+			// 한쪽 쿼터니언을 뒤집으면(-b) 180도 이내의 "최단 경로"로 보간할 수 있습니다.
+			// (쿼터니언 q와 -q는 동일한 회전을 나타냅니다)
+			if (cosTheta < 0.0f)
+			{
+				// b를 뒤집고, 코사인 값도 부호를 바꿉니다.
+				b.x = -b.x; b.y = -b.y; b.z = -b.z; b.w = -b.w;
+				cosTheta = -cosTheta;
+			}
+
+			// 3. (중요) "거의 같은" 쿼터니언 보정 (0으로 나누기 방지)
+			// 만약 cosTheta가 1.0에 매우 가까우면 (두 쿼터니언이 거의 같음),
+			// sin(theta)가 0이 되어 0으로 나누기 오류가 발생합니다.
+			// 이 경우, Slerp 대신 Lerp(선형 보간)를 사용해도 시각적으로 문제가 없습니다.
+			if (cosTheta > 0.9999f)
+			{
+				// Lerp: (1-t)*a + t*b
+				FLoatVector4 result = a * (1.0f - t) + b * t;
+				result.Normalize(); // Lerp 결과는 길이가 1이 아니므로 정규화
+				return result;
+			}
+
+			// 4. 실제 Slerp 계산
+			// 각도(theta)를 구합니다.
+			float theta = acos(cosTheta);
+			// sin(theta) 값을 구합니다 (0이 아님이 보장됨).
+			float sinTheta = sin(theta);
+
+			// 5. 두 쿼터니언에 적용할 가중치(스케일)를 계산합니다.
+			float scaleA = sin((1.0f - t) * theta) / sinTheta;
+			float scaleB = sin(t * theta) / sinTheta;
+
+			// 6. 가중치를 적용하여 최종 쿼터니언을 계산합니다.
+			FLoatVector4 result;
+			result.x = scaleA * a.x + scaleB * b.x;
+			result.y = scaleA * a.y + scaleB * b.y;
+			result.z = scaleA * a.z + scaleB * b.z;
+			result.w = scaleA * a.w + scaleB * b.w;
+			// Slerp 결과는 이미 정규화되어 있습니다.
+
+			return result;
+		}
+
 	public:
-		FLoatVector4& operator* (const float& scalar)
+		FLoatVector4& operator*= (const float& scalar)
 		{
 			x *= scalar;
 			y *= scalar;
 			z *= scalar;
 			w *= scalar;
 			return *this;
+		}
+		FLoatVector4 operator * (const float& scalar)
+		{
+			FLoatVector4 temp;
+			temp.x = x * scalar;
+			temp.y = y * scalar;
+			temp.z = z * scalar;
+			temp.w = w * scalar;
+			return temp;
 		}
 		FLoatVector4& operator+= (const FLoatVector4& other)
 		{
@@ -262,6 +372,15 @@ namespace GOE
 			w += other.w;
 			return *this;
 		}
+		FLoatVector4 operator + (const FLoatVector4& other)
+		{
+			FLoatVector4 temp;
+			temp.x = x + other.x;
+			temp.y = y + other.y;
+			temp.z = z + other.z;
+			temp.w = w + other.w;	
+			return temp;
+		}
 		FLoatVector4& operator-= (const FLoatVector4& other)
 		{
 			x -= other.x;
@@ -269,6 +388,15 @@ namespace GOE
 			z -= other.z;
 			w -= other.w;
 			return *this;
+		}
+		FLoatVector4 operator- (const FLoatVector4& other)
+		{
+			FLoatVector4 temp;
+			temp.x = x - other.x;
+			temp.y = y - other.y;
+			temp.z = z - other.z;
+			temp.w = w - other.w;
+			return temp;
 		}
 	};
 

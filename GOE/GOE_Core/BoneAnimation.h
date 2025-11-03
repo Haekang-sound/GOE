@@ -1,4 +1,20 @@
-#pragma once
+ï»¿#pragma once
+
+struct VectorKeyFrame
+{
+	float time = 0.0f;
+	GOE::FLoatVector3 value = {};
+	VectorKeyFrame(double time, GOE::FLoatVector3 value) : time(time), value(value){}
+};
+
+struct QuatKeyFrame
+{
+	float time = 0.0f;
+	GOE::FLoatVector4 value = {};
+	QuatKeyFrame(double time, GOE::FLoatVector4 quat) : time(time), value(quat){}
+};
+
+
 class BoneAnimation
 {
 public:
@@ -9,88 +25,78 @@ public:
 public:
 	inline const std::string& GetName() const { return m_name; }
 	inline const std::size_t GetID() const { return m_id; }
-	inline const std::vector<GOE::FLoatVector3>& GetScales() { return m_scales; }
-	inline const std::vector<GOE::FLoatVector3>& GetPositions() { return m_positions; }
-	inline const std::vector<GOE::FLoatVector4>& GetRotations() { return m_rotations; }
-	/// ¾Ö´Ï¸ŞÀÌ¼Ç  Å°°ªÀº  º¯ÇÏÁö  ¾ÊÀ¸´Ï±î ·ÎµåÇÒ¶§ ¹Ì¸® °è»êÇØ³õ´Â°Ô ÁÁÀ»µí
-	inline GOE::Matrix4x4 GetSRTMatrix(size_t index)
-	{
-		// 1. °¢ º¯È¯À» À§ÇÑ Çà·ÄÀ» ´ÜÀ§ Çà·Ä·Î ÃÊ±âÈ­ÇÕ´Ï´Ù.
-		GOE::Matrix4x4 scaleMatrix = GOE::Matrix4x4::Identity();
-		GOE::Matrix4x4 rotationMatrix = GOE::Matrix4x4::Identity();
-		GOE::Matrix4x4 translationMatrix = GOE::Matrix4x4::Identity();
-
-		// 2. ½ºÄÉÀÏ º¤ÅÍ°¡ ºñ¾îÀÖÁö ¾ÊÀº °æ¿ì¿¡¸¸ º¯È¯ Çà·ÄÀ» °è»êÇÕ´Ï´Ù.
-		if (!m_scales.empty())
-		{
-			scaleMatrix = m_scales[index % m_scales.size()].ToScaleMatrix();
-		}
-
-		// 3. È¸Àü º¤ÅÍ°¡ ºñ¾îÀÖÁö ¾ÊÀº °æ¿ì¿¡¸¸ º¯È¯ Çà·ÄÀ» °è»êÇÕ´Ï´Ù.
-		if (!m_rotations.empty())
-		{
-			rotationMatrix = m_rotations[index % m_rotations.size()].ToRotationXMatrix();
-		}
-
-		// 4. À§Ä¡ º¤ÅÍ°¡ ºñ¾îÀÖÁö ¾ÊÀº °æ¿ì¿¡¸¸ º¯È¯ Çà·ÄÀ» °è»êÇÕ´Ï´Ù.
-		if (!m_positions.empty())
-		{
-			translationMatrix = m_positions[index % m_positions.size()].ToTranslationMatrix();
-		}
-
-		GOE::Matrix4x4 result = scaleMatrix * rotationMatrix * translationMatrix;
-
-		// 5. ÃÖÁ¾ º¯È¯ Çà·ÄÀ» Á¶ÇÕÇÏ¿© ¹İÈ¯ÇÕ´Ï´Ù.
-		return result;
-	}
-	inline GOE::Matrix4x4 GetSRMatrix(size_t index)
-	{
-		// 1. °¢ º¯È¯À» À§ÇÑ Çà·ÄÀ» ´ÜÀ§ Çà·Ä·Î ÃÊ±âÈ­ÇÕ´Ï´Ù.
-		GOE::Matrix4x4 scaleMatrix = GOE::Matrix4x4::Identity();
-		GOE::Matrix4x4 rotationMatrix = GOE::Matrix4x4::Identity();
-
-		// 2. ½ºÄÉÀÏ º¤ÅÍ°¡ ºñ¾îÀÖÁö ¾ÊÀº °æ¿ì¿¡¸¸ º¯È¯ Çà·ÄÀ» °è»êÇÕ´Ï´Ù.
-		if (!m_scales.empty())
-		{
-			scaleMatrix = m_scales[index % m_scales.size()].ToScaleMatrix();
-		}
-
-		// 3. È¸Àü º¤ÅÍ°¡ ºñ¾îÀÖÁö ¾ÊÀº °æ¿ì¿¡¸¸ º¯È¯ Çà·ÄÀ» °è»êÇÕ´Ï´Ù.
-		if (!m_rotations.empty())
-		{
-			rotationMatrix = m_rotations[index % m_rotations.size()].ToRotationXMatrix();
-		}
-
-		GOE::Matrix4x4 result = scaleMatrix * rotationMatrix;
-
-		// 5. ÃÖÁ¾ º¯È¯ Çà·ÄÀ» Á¶ÇÕÇÏ¿© ¹İÈ¯ÇÕ´Ï´Ù.
-		return result;
-	}
-	inline GOE::Matrix4x4 TMatrix(size_t index)
-	{
-		GOE::Matrix4x4 translationMatrix = GOE::Matrix4x4::Identity();
-		// 4. À§Ä¡ º¤ÅÍ°¡ ºñ¾îÀÖÁö ¾ÊÀº °æ¿ì¿¡¸¸ º¯È¯ Çà·ÄÀ» °è»êÇÕ´Ï´Ù.
-		if (!m_positions.empty())
-		{
-			translationMatrix = m_positions[index % m_positions.size()].ToTranslationMatrix();
-		}
-		return translationMatrix;
-	}
+	inline const std::vector<VectorKeyFrame>& GetScales() { return m_scales; }
+	inline const std::vector<VectorKeyFrame>& GetPositions() { return m_positions; }
+	inline const std::vector<QuatKeyFrame>& GetQuatanions() { return m_quatanions; }
+	inline const int GetScaleCount() const { return static_cast<int>(m_scales.size()); }
+	inline const int GetPositionCount() const { return static_cast<int>(m_positions.size()); }
+	inline const int GetRotationCount() const { return static_cast<int>(m_quatanions.size()); }
+	
 
 public:
 	inline void SetName(const std::string& name) { m_name = name; }
 
-	inline void AddScales(GOE::FLoatVector3 scale) { m_scales.push_back(scale);}
-	inline void AddRotations(GOE::FLoatVector4 quat) { m_rotations.push_back(quat);}
-	inline void AddPositions(GOE::FLoatVector3 position) { m_positions.push_back(position);}
+	inline void AddScales(VectorKeyFrame scale) { m_scales.push_back(scale);}
+	inline void AddQuatanions(QuatKeyFrame quat) { m_quatanions.push_back(quat);}
+	inline void AddPositions(VectorKeyFrame position) { m_positions.push_back(position);}
 	
+public:
+	GOE::Matrix4x4 InterpolateSRT(double normaliedTime)
+	{
+		GOE::Matrix4x4 scaleMatrix = InterpolateScale(normaliedTime);
+		GOE::Matrix4x4 rotationMatrix = InterpolateQuatanion(normaliedTime);
+		GOE::Matrix4x4 positionMatrix = InterpolatePosition(normaliedTime);
+		return scaleMatrix * rotationMatrix * positionMatrix;
+	}
+
+	GOE::Matrix4x4 InterpolateSR(double normaliedTime)
+	{
+		GOE::Matrix4x4 scaleMatrix = InterpolateScale(normaliedTime);
+		GOE::Matrix4x4 rotationMatrix = InterpolateQuatanion(normaliedTime);
+		return scaleMatrix * rotationMatrix;
+	}
+
+private:
+	template <typename T> // T = VectorKeyFrame ë˜ëŠ” QuatKeyFrame
+	int FindKeyIndex(double currentTime, const std::vector<T>& keys)
+	{
+		size_t numKeys = keys.size();
+
+		// ë°©ì–´ ì½”ë“œ 1: í‚¤ê°€ í•˜ë‚˜ë¿ì´ë©´ í•­ìƒ 0ë²ˆ ì¸ë±ìŠ¤
+		if (numKeys <= 1)
+		{
+			return 0;
+		}
+
+		// ì„ í˜• íƒìƒ‰ (Linear Search)
+		for (int i = 0; i < numKeys - 1; i++)
+		{
+			// "í˜„ì¬ ì‹œê°„(currentTime)"ì´ "ë‹¤ìŒ í‚¤í”„ë ˆì„(keys[i+1])ì˜ ì‹œê°„"ë³´ë‹¤
+			// ì‘ì€ ìˆœê°„ì„ ì°¾ìŠµë‹ˆë‹¤.
+			if (currentTime < keys[i + 1].time)
+			{
+				// ì°¾ì•˜ìŠµë‹ˆë‹¤. í˜„ì¬ ì‹œê°„ì€ [i]ì™€ [i+1] ì‚¬ì´ì…ë‹ˆë‹¤.
+				// KeyAì˜ ì¸ë±ìŠ¤ì¸ 'i'ë¥¼ ë°˜í™˜í•©ë‹ˆë‹¤.
+				return i;
+			}
+		}
+
+		// ë°©ì–´ ì½”ë“œ 2: ë£¨í”„ë¥¼ ë‹¤ ëŒì•˜ë‹¤ë©´ (í˜„ì¬ ì‹œê°„ì´ ë§ˆì§€ë§‰ í‚¤ë³´ë‹¤ë„ ë’¤)
+		// ë§ˆì§€ë§‰ ìœ íš¨ êµ¬ê°„ì¸ [ë§ˆì§€ë§‰-2, ë§ˆì§€ë§‰-1]ì˜
+		// KeyA ì¸ë±ìŠ¤(numKeys - 2)ë¥¼ ë°˜í™˜í•©ë‹ˆë‹¤.
+		return static_cast<int>(numKeys) - 2;
+	}
+	GOE::Matrix4x4 InterpolateScale(double normaliedTime);
+	GOE::Matrix4x4 InterpolatePosition(double normaliedTime);
+	GOE::Matrix4x4 InterpolateQuatanion(double normaliedTime);
+	
+
 
 private:
 	std::string m_name = "";
 	size_t m_id = 0;
 
-	std::vector<GOE::FLoatVector3> m_scales;
-	std::vector<GOE::FLoatVector4> m_rotations;
-	std::vector<GOE::FLoatVector3> m_positions;
+	std::vector<VectorKeyFrame> m_scales;
+	std::vector<QuatKeyFrame> m_quatanions;
+	std::vector<VectorKeyFrame> m_positions;
 };
-

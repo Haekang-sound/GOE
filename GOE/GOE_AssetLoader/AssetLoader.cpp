@@ -136,27 +136,28 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 				for (int k = 0; k < anim->mChannels[j]->mNumPositionKeys; ++k)
 				{
 					auto t = anim->mChannels[j]->mPositionKeys[k].mValue;
-					boneAnim.get()->AddPositions({
-						anim->mChannels[j]->mPositionKeys[k].mValue.x,
-						anim->mChannels[j]->mPositionKeys[k].mValue.y,
-						anim->mChannels[j]->mPositionKeys[k].mValue.z });
+					boneAnim.get()->AddPositions({ anim->mChannels[j]->mScalingKeys[k].mTime, {
+						anim->mChannels[j]->mScalingKeys[k].mValue.x,
+						anim->mChannels[j]->mScalingKeys[k].mValue.y,
+						anim->mChannels[j]->mScalingKeys[k].mValue.z } });
 				}
 
  				for (int k = 0; k < anim->mChannels[j]->mNumScalingKeys; ++k)
 				{
-					boneAnim.get()->AddScales({
+					boneAnim.get()->AddScales({ anim->mChannels[j]->mScalingKeys[k].mTime, {
 						anim->mChannels[j]->mScalingKeys[k].mValue.x,
 						anim->mChannels[j]->mScalingKeys[k].mValue.y,
-						anim->mChannels[j]->mScalingKeys[k].mValue.z });
+						anim->mChannels[j]->mScalingKeys[k].mValue.z } });
 				}
 
 				for (int k = 0; k < anim->mChannels[j]->mNumRotationKeys; ++k)
 				{
-					boneAnim.get()->AddRotations({
-						anim->mChannels[j]->mRotationKeys[k].mValue.x,
+					boneAnim.get()->AddQuatanions(
+						{ anim->mChannels[j]->mRotationKeys[k].mTime,
+						{ anim->mChannels[j]->mRotationKeys[k].mValue.x,
 						anim->mChannels[j]->mRotationKeys[k].mValue.y,
-						anim->mChannels[j]->mRotationKeys[k].mValue.z, 
-						anim->mChannels[j]->mRotationKeys[k].mValue.w });
+						anim->mChannels[j]->mRotationKeys[k].mValue.z,
+						anim->mChannels[j]->mRotationKeys[k].mValue.w } });
 				}
 				test = 56;
 				a.get()->AddBoneAnimation(move(boneAnim));
