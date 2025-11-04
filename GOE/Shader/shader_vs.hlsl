@@ -36,11 +36,7 @@ float4 boneWeights : BONEWEIGHTS)
 {
     PSInput result;
 
-    matrix offsetW = (matrix) 0;
-    matrix matrixW = (matrix) 0;
     matrix skinM = (matrix) 0;
-    float4 offsetPose = (float4) 0;
-    float4 worldPos = (float4) 0;
     float4 finalPos = (float4) 0;
     
     [unroll]
