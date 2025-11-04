@@ -5,6 +5,7 @@
 // PI 값 정의
 #define PI 3.1415926535f
 #define MAX_BONE 4
+#define EPSILON 1e-6f
 
 // Degree를 Radian으로 변환하는 매크로
 #define DEGREE_TO_RAD(degree) ((degree) * PI / 180.0f)
@@ -291,7 +292,7 @@ namespace GOE
 		void Normalize()
 		{
 			float lenSq = x * x + y * y + z * z + w * w;
-			if (lenSq > 1e-6f)
+			if (lenSq > EPSILON)
 			{
 				float len = sqrt(lenSq);
 				x /= len;
@@ -301,16 +302,13 @@ namespace GOE
 			}
 		}
 
-		// (연산자 오버로딩이 필요합니다: +, *, / (스칼라))
-		// (간략화를 위해 Lerp로 대체하는 부분에서만 +와 *를 사용)
-
 		// Slerp 함수 직접 구현
 		static FLoatVector4 Slerp(FLoatVector4 a, FLoatVector4 b, float t)
 		{
 			// 1. 두 쿼터니언 사이의 "각도"의 코사인 값을 계산합니다 (내적).
 			float cosTheta = a.Dot(b);
 
-			// 2. (중요) "최단 경로" 보정
+			// 2."최단 경로" 보정
 			// 만약 내적이 음수면, 두 쿼터니언은 180도가 넘는 경로에 있습니다.
 			// 한쪽 쿼터니언을 뒤집으면(-b) 180도 이내의 "최단 경로"로 보간할 수 있습니다.
 			// (쿼터니언 q와 -q는 동일한 회전을 나타냅니다)
@@ -349,8 +347,7 @@ namespace GOE
 			result.y = scaleA * a.y + scaleB * b.y;
 			result.z = scaleA * a.z + scaleB * b.z;
 			result.w = scaleA * a.w + scaleB * b.w;
-			// Slerp 결과는 이미 정규화되어 있습니다.
-
+			
 			return result;
 		}
 

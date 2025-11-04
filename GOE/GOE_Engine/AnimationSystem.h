@@ -18,12 +18,6 @@ protected:
 	GOE::Matrix4x4 InterpolateTransform(BoneAnimation* boneAnim, double noramlizedTime);
 
 protected:
-	//double totalTime = 0.0f;
-	//double ticksPerSecond = 0.0f;
-	//double duration = 0.0f;
-	//double m_totalTick = 0.0f;
-	//double m_noramlizedTick = 0.0f;
-
 	Animation* m_anim = nullptr;
 	Model* m_model = nullptr;
 	BoneAnimation* m_boneAnim = nullptr;

@@ -30,6 +30,7 @@ void GOE::Engine::Initialize()
 
 	///애니메이션 로드
 	m_assetCore.get()->LoadAnimation("D:\\project\\GOE\\GOE\\Assets\\animation\\Samba Dancing.fbx");
+	m_assetCore.get()->LoadAnimation("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
 
 	// 렌더러 초기화
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND());

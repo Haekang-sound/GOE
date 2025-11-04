@@ -76,7 +76,7 @@ void Scene::Script()
 
 		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
 		m_transformManager.get()->GetCurrentComponent()->SetLocalTM(tm);
-		m_transformManager.get()->GetCurrentComponent()->SetScaleTM({ 100.f, 100.f, 100.f });
+		m_transformManager.get()->GetCurrentComponent()->SetScaleTM({ 0.1f, 0.1f, 0.1f });
 
 		// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
 		// 일단 컴포넌트 아이디와 entity 아이디를 동일하게 사용한다.
@@ -100,6 +100,12 @@ void Scene::Script()
 		m_movementUnitManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		size_t animationid = GOE::FileManager::GetHash("chr629_armature|chr629_ba01");
+		m_animationUnitManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimationHash(animationid);
+		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimate(true);
 	}
 
 	{
@@ -133,10 +139,10 @@ void Scene::Script()
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 		m_materialManager.get()->GetCurrentComponent()->SetTextureID(textureid);
 
-		// 이게 붙으면 이동함
-		m_movementUnitManager.get()->AddComponent(
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		//// 이게 붙으면 이동함
+		//m_movementUnitManager.get()->AddComponent(
+		//	m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+		//	m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 
 		size_t animationid = GOE::FileManager::GetHash("mixamo.com");
 		m_animationUnitManager.get()->AddComponent(
