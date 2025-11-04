@@ -63,7 +63,7 @@ GOE::Matrix4x4 AnimationSystem::InterpolateTransform(BoneAnimation* boneAnim, do
 	int rotaionKeyframeCount = m_boneAnim->GetRotationCount();
 	int positionKeyframeCount = m_boneAnim->GetPositionCount();
 
-	
+
 
 
 	return GOE::Matrix4x4();
@@ -71,29 +71,28 @@ GOE::Matrix4x4 AnimationSystem::InterpolateTransform(BoneAnimation* boneAnim, do
 
 void AnimationSystem::Update(double dTime)
 {
-	for (const auto& animationUnit : GetScene()->GetAnimationUnitManager()->GetComponents())
+	for (auto& animationUnit : GetScene()->GetAnimationUnitManager()->GetComponents())
 	{
+		/// 매쉬와 모델을 입력받는 편이 좋을지도
+		size_t modelID = GetScene()->GetMeshRendererManager()->GetComponentByOwner(animationUnit.GetOwner())->GetModelID();
+		m_model = m_context->assetCore->GetModel(modelID);
+		// 애니메이션을 해쉬로저장할떄 단순 이름으로 저장하면 안될것 같다 왜냐면 애니메이션 이름이 죄다 mixamo.com 이기때문에
+
 		if (animationUnit.IsAnimated())
 		{
-			/// 매쉬와 모델을 입력받는 편이 좋을지도
 			size_t meshID = GetScene()->GetMeshRendererManager()->GetComponentByOwner(animationUnit.GetOwner())->GetMeshID();
-			size_t modelID = GetScene()->GetMeshRendererManager()->GetComponentByOwner(animationUnit.GetOwner())->GetModelID();
-
-			// 애니메이션을 해쉬로저장할떄 단순 이름으로 저장하면 안될것 같다 왜냐면 애니메이션 이름이 죄다 mixamo.com 이기때문에
 			m_anim = m_context->assetCore->GetAnimation(animationUnit.GetAnimationHash());
-			m_model = m_context->assetCore->GetModel(modelID);
 
-			/// 1. 보간을 해야한다.
 			// 1. 시간을 누적한다.
-			totalTime += dTime;
+			animationUnit.m_totalTime += dTime;
 
 			// 2. 누적된 시간을 바탕으로 현재 tick(정규화된 시간)을 구한다.
-			ticksPerSecond = m_anim->GetTicksPerSecond();
-			duration = m_anim->GetDuration();
-			m_totalTick = totalTime * ticksPerSecond;
+			animationUnit.m_ticksPerSecond = m_anim->GetTicksPerSecond();
+			animationUnit.m_duration = m_anim->GetDuration();
+			animationUnit.m_totalTick = animationUnit.m_totalTime * animationUnit.m_ticksPerSecond;
 			// 정규화된 시간
-			m_noramlizedTick = fmod(m_totalTick, duration);
-			
+			animationUnit.m_normalizedTick = fmod(animationUnit.m_totalTick, animationUnit.m_duration);
+
 			// 현재 루트모션이 제거된 애니메이션만 사용할 수 있음
 			for (int i = 0; i < m_anim->GetBoneAnimation().size(); ++i)
 			{
@@ -103,15 +102,11 @@ void AnimationSystem::Update(double dTime)
 				Node* currentNode = m_model->GetNodeFromMap(m_boneAnim->GetID());
 				if (currentNode)
 				{
-					// 이제까지는 가장 가까운 키프레임을 선택해서 찾았지만
-					// 이제는 duration과 애니메이션 시간을 기반으로 
-					// 두 키프레임 사이를 보간해야 한다.
-					currentNode->SetLocalTM(m_boneAnim->InterpolateSR(m_noramlizedTick) *currentNode->GetNodePositionMatrix());
+					currentNode->SetLocalTM(m_boneAnim->InterpolateSRT(animationUnit.m_normalizedTick));// *currentNode->GetNodePositionMatrix());
 				}
 			}
-
-			m_model->UpdateNodeHierarchy();
 		}
+		m_model->UpdateNodeHierarchy();
 	}
 
 

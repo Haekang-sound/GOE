@@ -104,7 +104,7 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_SortByPType |
 		aiProcess_LimitBoneWeights |   // 정점당 본 4개 제한
-		aiProcess_GlobalScale |        // FBX/Collada 단위계 보정
+		//aiProcess_GlobalScale |        // FBX/Collada 단위계 보정 -> 이거 잘못사용하면망함;
 		aiProcess_ValidateDataStructure; // 데이터 구조 검증
 
 	const aiScene* scene = importer.ReadFile(filePath, animFlags);
@@ -135,31 +135,33 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 				int test = 3;
 				for (int k = 0; k < anim->mChannels[j]->mNumPositionKeys; ++k)
 				{
-					auto t = anim->mChannels[j]->mPositionKeys[k].mValue;
-					boneAnim.get()->AddPositions({ anim->mChannels[j]->mScalingKeys[k].mTime, {
-						anim->mChannels[j]->mScalingKeys[k].mValue.x,
-						anim->mChannels[j]->mScalingKeys[k].mValue.y,
-						anim->mChannels[j]->mScalingKeys[k].mValue.z } });
+					auto posKey = anim->mChannels[j]->mPositionKeys[k];
+					boneAnim.get()->AddPositions({ posKey.mTime, {
+						posKey.mValue.x,
+						posKey.mValue.y,
+						posKey.mValue.z } });
 				}
 
  				for (int k = 0; k < anim->mChannels[j]->mNumScalingKeys; ++k)
 				{
-					boneAnim.get()->AddScales({ anim->mChannels[j]->mScalingKeys[k].mTime, {
-						anim->mChannels[j]->mScalingKeys[k].mValue.x,
-						anim->mChannels[j]->mScalingKeys[k].mValue.y,
-						anim->mChannels[j]->mScalingKeys[k].mValue.z } });
+					auto scaleKey = anim->mChannels[j]->mScalingKeys[k];
+					boneAnim.get()->AddScales({ scaleKey.mTime, {
+						scaleKey.mValue.x,
+						scaleKey.mValue.y,
+						scaleKey.mValue.z } });
 				}
 
 				for (int k = 0; k < anim->mChannels[j]->mNumRotationKeys; ++k)
 				{
+					auto rotKey = anim->mChannels[j]->mRotationKeys[k];
 					boneAnim.get()->AddQuatanions(
-						{ anim->mChannels[j]->mRotationKeys[k].mTime,
-						{ anim->mChannels[j]->mRotationKeys[k].mValue.x,
-						anim->mChannels[j]->mRotationKeys[k].mValue.y,
-						anim->mChannels[j]->mRotationKeys[k].mValue.z,
-						anim->mChannels[j]->mRotationKeys[k].mValue.w } });
+						{ rotKey.mTime,
+						{rotKey.mValue.x,
+						rotKey.mValue.y,
+						rotKey.mValue.z,
+						rotKey.mValue.w } });
 				}
-				test = 56;
+
 				a.get()->AddBoneAnimation(move(boneAnim));
 			}
 			m_animations[GOE::FileManager::GetHash(anim->mName.C_Str())] = move(a);
@@ -275,8 +277,6 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		// 본을 순회한다.
 		for (size_t i = 0; i < mesh->mNumBones; ++i)
 		{
-			//meshData.get()->boneOffsets.push_back(GOE::Matrix4x4::Identity());
-			
 			meshData.get()->boneOffsets.push_back(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix));// .Transpose()));
 			// 현재 본이 영향을 주는 버텍스의 수만큼 순회한다.
 			for (unsigned int j = 0; j < mesh->mBones[i]->mNumWeights; ++j)

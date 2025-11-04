@@ -4,14 +4,14 @@ struct VectorKeyFrame
 {
 	float time = 0.0f;
 	GOE::FLoatVector3 value = {};
-	VectorKeyFrame(double time, GOE::FLoatVector3 value) : time(time), value(value){}
+	VectorKeyFrame(double time, GOE::FLoatVector3 value) : time(time), value(value) {}
 };
 
 struct QuatKeyFrame
 {
 	float time = 0.0f;
 	GOE::FLoatVector4 value = {};
-	QuatKeyFrame(double time, GOE::FLoatVector4 value) : time(time), value(value){}
+	QuatKeyFrame(double time, GOE::FLoatVector4 value) : time(time), value(value) {}
 };
 
 
@@ -31,15 +31,15 @@ public:
 	inline const int GetScaleCount() const { return static_cast<int>(m_scales.size()); }
 	inline const int GetPositionCount() const { return static_cast<int>(m_positions.size()); }
 	inline const int GetRotationCount() const { return static_cast<int>(m_quatanions.size()); }
-	
+
 
 public:
 	inline void SetName(const std::string& name) { m_name = name; }
 
-	inline void AddScales(VectorKeyFrame scale) { m_scales.push_back(scale);}
-	inline void AddQuatanions(QuatKeyFrame quat) { m_quatanions.push_back(quat);}
-	inline void AddPositions(VectorKeyFrame position) { m_positions.push_back(position);}
-	
+	inline void AddScales(VectorKeyFrame scale) { m_scales.emplace_back(scale); }
+	inline void AddQuatanions(QuatKeyFrame quat) { m_quatanions.emplace_back(quat); }
+	inline void AddPositions(VectorKeyFrame position) { m_positions.emplace_back(position); }
+
 public:
 	GOE::Matrix4x4 InterpolateSRT(double normaliedTime)
 	{
@@ -89,7 +89,7 @@ private:
 	GOE::Matrix4x4 InterpolateScale(double normaliedTime);
 	GOE::Matrix4x4 InterpolatePosition(double normaliedTime);
 	GOE::Matrix4x4 InterpolateQuatanion(double normaliedTime);
-	
+
 
 
 private:

@@ -45,7 +45,7 @@ GOE::Matrix4x4 BoneAnimation::InterpolatePosition(double normaliedTime)
 	// --- 경계 키프레임 탐색 ---
 	int indexA = FindKeyIndex<VectorKeyFrame>(normaliedTime, m_positions);
 	int indexB = indexA + 1;
-	
+
 	// --- 방어 코드 2: 0으로 나누기(NaN) 방지 ---
 	float timeA = m_positions[indexA].time;
 	float timeB = m_positions[indexB].time;
@@ -63,7 +63,7 @@ GOE::Matrix4x4 BoneAnimation::InterpolatePosition(double normaliedTime)
 	GOE::FLoatVector3 posA = m_positions[indexA].value;
 	GOE::FLoatVector3 posB = m_positions[indexB].value;
 	GOE::FLoatVector3 finalPos = posA;
-	
+
 	// (posB - posA) * factor;
 	// 🚨 경고: 이 라인이 올바르게 작동하려면
 	// CoreMath.h의 FLoatVector3::operator* (float) 버그가

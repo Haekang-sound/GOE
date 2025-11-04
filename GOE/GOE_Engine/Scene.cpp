@@ -83,24 +83,23 @@ void Scene::Script()
 		m_meshRendererManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		size_t meshPath = GOE::FileManager::GetHash("chr629_0");
-
-		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
-		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
-		m_meshRendererManager.get()->GetCurrentComponent()->SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
-		m_meshRendererManager.get()->GetCurrentComponent()->SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
+		
+		size_t meshid = GOE::FileManager::GetHash("chr629_0");
+		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshID(m_context->assetCore->GetMesh(meshid)->GetID());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshIndex(m_context->assetCore->GetMesh(meshid)->GetMeshIndex());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetModelID(m_context->assetCore->GetMesh(meshid)->GetModelID());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetName(m_context->assetCore->GetMesh(meshid)->GetName());
 		m_meshRendererManager.get()->GetCurrentComponent()->SetVisible(true);
 
-		size_t texturePath = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
+		size_t textureid = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
 		m_materialManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		m_materialManager.get()->GetCurrentComponent()->SetTextureID(texturePath);
+		m_materialManager.get()->GetCurrentComponent()->SetTextureID(textureid);
 
 		m_movementUnitManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-
 	}
 
 	{
@@ -114,7 +113,6 @@ void Scene::Script()
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 
 		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
-
 		m_transformManager.get()->GetCurrentComponent()->SetLocalTM(tm);
 		m_transformManager.get()->GetCurrentComponent()->SetScaleTM({ 0.1f, 0.1f, 0.1f });
 
@@ -129,21 +127,22 @@ void Scene::Script()
 		m_meshRendererManager.get()->GetCurrentComponent()->SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
 		m_meshRendererManager.get()->GetCurrentComponent()->SetVisible(true);
 		
-		size_t texturePath = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\Ch03_1001_Diffuse.png");
+		size_t textureid = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\Ch03_1001_Diffuse.png");
 		m_materialManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		m_materialManager.get()->GetCurrentComponent()->SetTextureID(texturePath);
+		m_materialManager.get()->GetCurrentComponent()->SetTextureID(textureid);
 
 		// 이게 붙으면 이동함
 		m_movementUnitManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 
+		size_t animationid = GOE::FileManager::GetHash("mixamo.com");
 		m_animationUnitManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimationHash(GOE::FileManager::GetHash("mixamo.com"));
+		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimationHash(animationid);
 		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimate(true);
 	}
 }
