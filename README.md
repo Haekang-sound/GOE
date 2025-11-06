@@ -7,7 +7,7 @@ https://github.com/user-attachments/assets/0150aee0-0b1d-439d-b397-fb3914b84a31
 실행파일 : GOE.sln
 
 ## 1. 프로젝트 개요
-  **GOE (Game Oriented Engine)**는 DirectX 12를 기반으로 한 3D 게임 엔진입니다. 최신 C++(17) 표준을 사용하여 객체 지향 및 데이터 지향 설계를 결합하였으며, 모듈성과 확장성을 고려하여 개발되었습니다. ECS(Entity-Component-System) 아키텍처를 채택하여 데이터와 로직을 분리하고, 유연한 게임 오브젝트 생성을 지원합니다.
+  **GOE (Game Oriented Engine)**는 DirectX 12를 기반으로 한 3D 게임 엔진입니다. 최신 C++(17) 표준을 사용하여 객체 지향 및 데이터 지향 설계를 결합하였으며, 모듈성과 확장성을 고려하여 개발되었습니다. ECS(Entity-Component-System) 아키텍처를 채택하여 데이터와 로직을 분리하고, 유연한 게임 오브젝트 생성을 지향합니다.
 
 ## 2. 기술설명
 ### 2.1 모듈식 아키텍처 (Modular Architecture)
