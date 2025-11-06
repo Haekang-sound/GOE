@@ -323,7 +323,7 @@ namespace GOE
 			// 만약 cosTheta가 1.0에 매우 가까우면 (두 쿼터니언이 거의 같음),
 			// sin(theta)가 0이 되어 0으로 나누기 오류가 발생합니다.
 			// 이 경우, Slerp 대신 Lerp(선형 보간)를 사용해도 시각적으로 문제가 없습니다.
-			if (cosTheta > 0.9999f)
+			if (cosTheta > 1.f-EPSILON)
 			{
 				// Lerp: (1-t)*a + t*b
 				FLoatVector4 result = a * (1.0f - t) + b * t;

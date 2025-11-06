@@ -4,18 +4,13 @@
 Model::~Model() = default; // ¼Ò¸êÀÚ ±¸Çö
 void Model::UpdateHierarchy(Node* node)
 {
-	auto string = node->GetName();
 	if (node->GetParent())
 	{
-		auto local = node->GetLocalTM();
-		auto parent = node->GetParent()->GetWorldTM();
-		auto total = local * parent;
-		node->SetWorldTM(total);
+		node->SetWorldTM(node->GetLocalTM() * node->GetParent()->GetWorldTM());
 	}
 	else
 	{
-		auto local = node->GetLocalTM();
-		node->SetWorldTM(local);
+		node->SetWorldTM(node->GetLocalTM());
 	}
 
 	for (auto& child : node->GetChildren())

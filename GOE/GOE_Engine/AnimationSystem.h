@@ -14,10 +14,6 @@ public:
 	void Update(double dTime) override;
 
 protected:
-	int GetFrameIndexFromTime(double animTime, double duration, int frameCount);
-	GOE::Matrix4x4 InterpolateTransform(BoneAnimation* boneAnim, double noramlizedTime);
-
-protected:
 	Animation* m_anim = nullptr;
 	Model* m_model = nullptr;
 	BoneAnimation* m_boneAnim = nullptr;

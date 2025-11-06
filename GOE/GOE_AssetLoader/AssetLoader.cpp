@@ -286,13 +286,13 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 				float weight = mesh->mBones[i]->mWeights[j].mWeight;
 
 				/// 정점에 본데이터를 입력하는 과정이 필요함
-				if (weight > 0.f)
+				if (weight >= EPSILON)
 				{
 					// 빈 슬롯을 찾아서 본 인덱스와 가중치를 설정
 					for (int k = 0; k < MAX_BONE; ++k)
 					{
-						// 가중치가 0이면 아직 빈 슬롯이므로 여기에 본 정보 입력
-						if (meshData.get()->vertices[vertexId].boneWeights[k] <= 0.0f)
+						// 가중치가 EPSILON보다작으면 아직 빈 슬롯이므로 여기에 본 정보 입력
+						if (meshData.get()->vertices[vertexId].boneWeights[k] < EPSILON)
 						{
 							meshData.get()->vertices[vertexId].boneIndices[k] = i;
 							meshData.get()->vertices[vertexId].boneWeights[k] = weight;
@@ -314,8 +314,8 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 			{
 				totalWeight += meshData->vertices[i].boneWeights[j];
 			}
-			// 가중치의 합이 0보다 크면 정규화 수행
-			if (totalWeight > 0.0f)
+			// 가중치의 합이 EPSILON보다 크면 정규화 수행
+			if (totalWeight > EPSILON)
 			{
 				// 각 가중치를 합으로 나누어 정규화
 				for (int j = 0; j < MAX_BONE; ++j)
