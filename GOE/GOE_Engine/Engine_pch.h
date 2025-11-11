@@ -3,6 +3,7 @@
 #include "../GOE_AssetLoader/AssetCore.h"
 #include "../GOE_Editor/EditorCore.h"
 
+
 namespace GOE
 {
 	struct EngineContext

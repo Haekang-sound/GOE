@@ -5,6 +5,9 @@ namespace GOE
 	struct EngineContext;
 }
 
+/// <summary>
+/// systemì˜ ì¸í„°í˜ì´ìŠ¤
+/// </summary>
 class ISystem
 {
 public:
@@ -24,5 +27,5 @@ public:
 
 protected:
 	Scene* m_scene;
-	const GOE::EngineContext* m_context = nullptr; // ¿£Áø ÄÁÅØ½ºÆ®
+	const GOE::EngineContext* m_context = nullptr; 
 };

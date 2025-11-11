@@ -1,4 +1,8 @@
 #pragma once
+/// <summary>
+/// ë©”ì‰¬ì •ë³´ë¥¼ ëœë”ëŸ¬ì—ì„œ ì‚¬ìš©í•  ìˆ˜ ìˆëŠ” í˜•íƒœë¡œ ê°€ê³µí•œ í´ë˜ìŠ¤
+/// 
+/// </summary>
 class MeshResource
 {
 public:
@@ -47,12 +51,12 @@ public:
 	inline void SetCBVHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_CBVHandle = handle; }
 
 private:
-	std::string m_name; // ¸ğµ¨ ÀÌ¸§
-	const size_t m_id = 0; // ¸ğµ¨ ID
-	int m_meshIndex = -1; // ¸Ş½¬ ÀÎµ¦½º (Ãß°¡ ÇÊ¿ä½Ã »ç¿ë)
-	size_t m_modelID = 0; // ¸ğµ¨ ID (Ãß°¡ ÇÊ¿ä½Ã »ç¿ë)
+	std::string m_name; // ëª¨ë¸ ì´ë¦„
+	const size_t m_id = 0; // ëª¨ë¸ ID
+	int m_meshIndex = -1; // ë©”ì‰¬ ì¸ë±ìŠ¤ (ì¶”ê°€ í•„ìš”ì‹œ ì‚¬ìš©)
+	size_t m_modelID = 0; // ëª¨ë¸ ID (ì¶”ê°€ í•„ìš”ì‹œ ì‚¬ìš©)
 
-	// ¸ğµ¨À» ±×¸±¶§ ÇÊ¿äÇÑ ¸®¼Ò½ºµéÀ» °®°íÀÖ´Ù.
+	// ëª¨ë¸ì„ ê·¸ë¦´ë•Œ í•„ìš”í•œ ë¦¬ì†ŒìŠ¤ë“¤ì„ ê°–ê³ ìˆë‹¤.
 private:
 	UINT64 m_VBSize = 0;
 	ComPtr<ID3D12Resource> m_vertexBufferUpload = nullptr;
@@ -65,7 +69,7 @@ private:
 	ComPtr<ID3D12Resource> m_indexBufferDefault = nullptr;
 	D3D12_INDEX_BUFFER_VIEW m_indexBufferView = {};
 
-	// boneoffsetÀ» ÀúÀåÇÒ ÀÚ·áÇü
+	// boneoffsetì„ ì €ì¥í•  ìë£Œí˜•
 	UINT64 m_CBSize = 0;
 	ComPtr<ID3D12Resource> m_constantBuffer = {};
 	ComPtr<ID3D12DescriptorHeap> m_CBVHeap = {};

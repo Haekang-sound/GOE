@@ -12,7 +12,7 @@ namespace Graphics
 	public:
 		D3D12_VIEWPORT m_viewport = {};
 		RECT m_scissorRect = {};
-		float m_aspectRatio;
+		float m_aspectRatio = 0.f;
 		
 		UINT m_width = 0;
 		UINT m_height = 0;
@@ -26,8 +26,8 @@ namespace Graphics
 		ComPtr<ID3D12DescriptorHeap> m_rtvHeap = nullptr;
 		UINT m_rtvDescriptorSize = 0;
 
-		ComPtr<ID3D12Resource> m_depthStencilBuffer;
-		ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
+		ComPtr<ID3D12Resource> m_depthStencilBuffer = nullptr;
+		ComPtr<ID3D12DescriptorHeap> m_dsvHeap = nullptr;
 
 		// 프로젝션 행렬
 		XMFLOAT4X4 m_proj = {};

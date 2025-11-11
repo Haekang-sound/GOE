@@ -11,15 +11,15 @@
 
 namespace GOE
 {
-	struct MeshData;
+	class MeshData;
 }
 namespace Graphics
 {
-	struct MeshData;
+	class MeshData;
 	class SwapChain;
 }
 
-struct Mesh;
+class Mesh;
 
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;

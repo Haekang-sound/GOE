@@ -1,8 +1,8 @@
 #pragma once
+
 class Texture
 {
 public:
-	// »ı¼ºÀÚ
 	Texture() = default;
 	Texture(size_t hash) : m_id(hash) {}
 
@@ -13,12 +13,12 @@ public:
 
 	~Texture();
 
-private: 
-	std::string m_name = ""; // ¸ğµ¨ ÀÌ¸§
-	const size_t m_id;		// ¸ğµ¨ ID
+private:
+	std::string m_name = ""; // ëª¨ë¸ ì´ë¦„
+	const size_t m_id;		// ëª¨ë¸ ID
 
 	std::unique_ptr<Node> m_rootNode;
 	std::vector<MESH_ID> m_meshIDs;
-	std::unordered_map<MESH_ID, MESH_INDEX> m_meshMap; // ¸Å½¬ ÀÌ¸§°ú ÀÎµ¦½º¸¦ ¸ÅÇÎÇÏ´Â ÇØ½Ã¸Ê
+	std::unordered_map<MESH_ID, MESH_INDEX> m_meshMap; // ë§¤ì‰¬ ì´ë¦„ê³¼ ì¸ë±ìŠ¤ë¥¼ ë§¤í•‘í•˜ëŠ” í•´ì‹œë§µ
 };
 

@@ -1,7 +1,7 @@
 #include "Core_pch.h"
 #include "Model.h"
 
-Model::~Model() = default; // ¼Ò¸êÀÚ ±¸Çö
+Model::~Model() = default; 
 void Model::UpdateHierarchy(Node* node)
 {
 	if (node->GetParent())

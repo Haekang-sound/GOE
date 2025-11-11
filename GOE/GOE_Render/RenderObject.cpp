@@ -12,5 +12,5 @@ RenderObject::RenderObject(RenderObjectData& data)
 	}
 }
 
-RenderObject::~RenderObject() = default; // 소멸자 구현
+RenderObject::~RenderObject() = default;
 

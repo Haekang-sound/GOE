@@ -50,7 +50,6 @@ public:
 	inline std::unordered_map<ComponentID, ComponentIndex>& GetComponentMap() { return m_componentMap; }
 	inline const std::unordered_map<ComponentID, ComponentIndex>& GetComponentMap() const { return m_componentMap; }
 
-	// OwnerID로 컴포넌트를 찾는 함수들을 추가합니다.
 	inline T* GetComponentByOwner(OwnerID ownerID)
 	{
 		auto it = m_ownerMap.find(ownerID);
@@ -73,5 +72,5 @@ public:
 protected:
 	std::vector<T> m_components;
 	std::unordered_map<ComponentID, ComponentIndex> m_componentMap;
-	std::unordered_map<OwnerID, ComponentIndex> m_ownerMap; // OwnerID -> Index 맵 추가
+	std::unordered_map<OwnerID, ComponentIndex> m_ownerMap; 
 };

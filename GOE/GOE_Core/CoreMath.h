@@ -2,12 +2,12 @@
 #include <vector>
 #include <cstdint>
 
-// PI °ª Á¤ÀÇ
+// PI ê°’ ì •ì˜
 #define PI 3.1415926535f
 #define MAX_BONE 4
 #define EPSILON 1e-6f
 
-// Degree¸¦ RadianÀ¸·Î º¯È¯ÇÏ´Â ¸ÅÅ©·Î
+// Degreeë¥¼ Radianìœ¼ë¡œ ë³€í™˜
 #define DEGREE_TO_RAD(degree) ((degree) * PI / 180.0f)
 
 namespace GOE
@@ -28,7 +28,7 @@ namespace GOE
 		};
 
 	public:
-		// ´ÜÀ§ Çà·ÄÀ» ¹İÈ¯ÇÕ´Ï´Ù.
+		// ë‹¨ìœ„ í–‰ë ¬ì„ ë°˜í™˜í•©ë‹ˆë‹¤.
 		static Matrix4x4 Identity()
 		{
 			Matrix4x4 identity = {};
@@ -39,7 +39,7 @@ namespace GOE
 			return identity;
 		}
 
-		// ÀÌµ¿ Çà·ÄÀ» »ı¼ºÇÕ´Ï´Ù.
+		// ì´ë™ í–‰ë ¬ì„ ìƒì„±í•©ë‹ˆë‹¤.
 		static Matrix4x4 Translation(float x, float y, float z)
 		{
 			Matrix4x4 result = Identity();
@@ -49,7 +49,7 @@ namespace GOE
 			return result;
 		}
 
-		// XÃà ±âÁØ È¸Àü Çà·ÄÀ» »ı¼ºÇÕ´Ï´Ù. (¶óµğ¾È °ª »ç¿ë)
+		// Xì¶• ê¸°ì¤€ íšŒì „ í–‰ë ¬ì„ ìƒì„±í•©ë‹ˆë‹¤. (ë¼ë””ì•ˆ ê°’ ì‚¬ìš©)
 		static Matrix4x4 RotationX(float radians)
 		{
 			Matrix4x4 result = Identity();
@@ -60,7 +60,7 @@ namespace GOE
 			return result;
 		}
 
-		// YÃà ±âÁØ È¸Àü Çà·ÄÀ» »ı¼ºÇÕ´Ï´Ù. (¶óµğ¾È °ª »ç¿ë)
+		// Yì¶• ê¸°ì¤€ íšŒì „ í–‰ë ¬ì„ ìƒì„±í•©ë‹ˆë‹¤. (ë¼ë””ì•ˆ ê°’ ì‚¬ìš©)
 		static Matrix4x4 RotationY(float radians)
 		{
 			Matrix4x4 result = Identity();
@@ -71,7 +71,7 @@ namespace GOE
 			return result;
 		}
 
-		// ZÃà ±âÁØ È¸Àü Çà·ÄÀ» »ı¼ºÇÕ´Ï´Ù. (¶óµğ¾È °ª »ç¿ë)
+		// Zì¶• ê¸°ì¤€ íšŒì „ í–‰ë ¬ì„ ìƒì„±í•©ë‹ˆë‹¤. (ë¼ë””ì•ˆ ê°’ ì‚¬ìš©)
 		static Matrix4x4 RotationZ(float radians)
 		{
 			Matrix4x4 result = Identity();
@@ -82,7 +82,7 @@ namespace GOE
 			return result;
 		}
 
-		// Å©±â Á¶Àı Çà·ÄÀ» »ı¼ºÇÕ´Ï´Ù.
+		// í¬ê¸° ì¡°ì ˆ í–‰ë ¬ì„ ìƒì„±í•©ë‹ˆë‹¤.
 		static Matrix4x4 Scaling(float x, float y, float z)
 		{
 			Matrix4x4 result = Identity();
@@ -106,7 +106,7 @@ namespace GOE
 		}
 
 	public:
-		// Çà·Ä °ö¼À ¿¬»êÀÚ
+		// í–‰ë ¬ ê³±ì…ˆ ì—°ì‚°ì
 		Matrix4x4 operator* (const Matrix4x4& other) const
 		{
 			Matrix4x4 result;
@@ -185,7 +185,7 @@ namespace GOE
 			return Matrix4x4::Scaling(x, y, z);
 		}
 
-		// ¿ÀÀÏ·¯ È¸Àü ÀÏ°æ¿ì
+		// ì˜¤ì¼ëŸ¬ íšŒì „ ì¼ê²½ìš°
 		Matrix4x4 ToRotationMatrixEuler() const
 		{
 			return Matrix4x4::RotationX(x) * Matrix4x4::RotationY(y) * Matrix4x4::RotationZ(z);
@@ -264,7 +264,7 @@ namespace GOE
 	public: 
 		Matrix4x4 ToRotationMatrix() const
 		{
-			// ÄõÅÍ´Ï¾ğÀ» È¸Àü Çà·Ä·Î º¯È¯
+			// ì¿¼í„°ë‹ˆì–¸ì„ íšŒì „ í–‰ë ¬ë¡œ ë³€í™˜
 			Matrix4x4 result = Matrix4x4::Identity();
 
 			result._11 = 1 - 2 * (y * y + z * z);
@@ -282,13 +282,13 @@ namespace GOE
 			return result;
 		}
 
-		// ÇïÆÛ ÇÔ¼ö: ³»Àû (Dot Product)
+		// í—¬í¼ í•¨ìˆ˜: ë‚´ì  (Dot Product)
 		float Dot(const FLoatVector4& other) const
 		{
 			return x * other.x + y * other.y + z * other.z + w * other.w;
 		}
 
-		// ÇïÆÛ ÇÔ¼ö: Á¤±ÔÈ­ (Normalize)
+		// í—¬í¼ í•¨ìˆ˜: ì •ê·œí™” (Normalize)
 		void Normalize()
 		{
 			float lenSq = x * x + y * y + z * z + w * w;
@@ -302,46 +302,46 @@ namespace GOE
 			}
 		}
 
-		// Slerp ÇÔ¼ö Á÷Á¢ ±¸Çö
+		// Slerp í•¨ìˆ˜ ì§ì ‘ êµ¬í˜„
 		static FLoatVector4 Slerp(FLoatVector4 a, FLoatVector4 b, float t)
 		{
-			// 1. µÎ ÄõÅÍ´Ï¾ğ »çÀÌÀÇ "°¢µµ"ÀÇ ÄÚ»çÀÎ °ªÀ» °è»êÇÕ´Ï´Ù (³»Àû).
+			// 1. ë‘ ì¿¼í„°ë‹ˆì–¸ ì‚¬ì´ì˜ "ê°ë„"ì˜ ì½”ì‚¬ì¸ ê°’ì„ ê³„ì‚°í•©ë‹ˆë‹¤ (ë‚´ì ).
 			float cosTheta = a.Dot(b);
 
-			// 2."ÃÖ´Ü °æ·Î" º¸Á¤
-			// ¸¸¾à ³»ÀûÀÌ À½¼ö¸é, µÎ ÄõÅÍ´Ï¾ğÀº 180µµ°¡ ³Ñ´Â °æ·Î¿¡ ÀÖ½À´Ï´Ù.
-			// ÇÑÂÊ ÄõÅÍ´Ï¾ğÀ» µÚÁıÀ¸¸é(-b) 180µµ ÀÌ³»ÀÇ "ÃÖ´Ü °æ·Î"·Î º¸°£ÇÒ ¼ö ÀÖ½À´Ï´Ù.
-			// (ÄõÅÍ´Ï¾ğ q¿Í -q´Â µ¿ÀÏÇÑ È¸ÀüÀ» ³ªÅ¸³À´Ï´Ù)
+			// 2."ìµœë‹¨ ê²½ë¡œ" ë³´ì •
+			// ë§Œì•½ ë‚´ì ì´ ìŒìˆ˜ë©´, ë‘ ì¿¼í„°ë‹ˆì–¸ì€ 180ë„ê°€ ë„˜ëŠ” ê²½ë¡œì— ìˆìŠµë‹ˆë‹¤.
+			// í•œìª½ ì¿¼í„°ë‹ˆì–¸ì„ ë’¤ì§‘ìœ¼ë©´(-b) 180ë„ ì´ë‚´ì˜ "ìµœë‹¨ ê²½ë¡œ"ë¡œ ë³´ê°„í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤.
+			// (ì¿¼í„°ë‹ˆì–¸ qì™€ -qëŠ” ë™ì¼í•œ íšŒì „ì„ ë‚˜íƒ€ëƒ…ë‹ˆë‹¤)
 			if (cosTheta < 0.0f)
 			{
-				// b¸¦ µÚÁı°í, ÄÚ»çÀÎ °ªµµ ºÎÈ£¸¦ ¹Ù²ß´Ï´Ù.
+				// bë¥¼ ë’¤ì§‘ê³ , ì½”ì‚¬ì¸ ê°’ë„ ë¶€í˜¸ë¥¼ ë°”ê¿‰ë‹ˆë‹¤.
 				b.x = -b.x; b.y = -b.y; b.z = -b.z; b.w = -b.w;
 				cosTheta = -cosTheta;
 			}
 
-			// 3. (Áß¿ä) "°ÅÀÇ °°Àº" ÄõÅÍ´Ï¾ğ º¸Á¤ (0À¸·Î ³ª´©±â ¹æÁö)
-			// ¸¸¾à cosTheta°¡ 1.0¿¡ ¸Å¿ì °¡±î¿ì¸é (µÎ ÄõÅÍ´Ï¾ğÀÌ °ÅÀÇ °°À½),
-			// sin(theta)°¡ 0ÀÌ µÇ¾î 0À¸·Î ³ª´©±â ¿À·ù°¡ ¹ß»ıÇÕ´Ï´Ù.
-			// ÀÌ °æ¿ì, Slerp ´ë½Å Lerp(¼±Çü º¸°£)¸¦ »ç¿ëÇØµµ ½Ã°¢ÀûÀ¸·Î ¹®Á¦°¡ ¾ø½À´Ï´Ù.
+			// 3. (ì¤‘ìš”) "ê±°ì˜ ê°™ì€" ì¿¼í„°ë‹ˆì–¸ ë³´ì • (0ìœ¼ë¡œ ë‚˜ëˆ„ê¸° ë°©ì§€)
+			// ë§Œì•½ cosThetaê°€ 1.0ì— ë§¤ìš° ê°€ê¹Œìš°ë©´ (ë‘ ì¿¼í„°ë‹ˆì–¸ì´ ê±°ì˜ ê°™ìŒ),
+			// sin(theta)ê°€ 0ì´ ë˜ì–´ 0ìœ¼ë¡œ ë‚˜ëˆ„ê¸° ì˜¤ë¥˜ê°€ ë°œìƒí•©ë‹ˆë‹¤.
+			// ì´ ê²½ìš°, Slerp ëŒ€ì‹  Lerp(ì„ í˜• ë³´ê°„)ë¥¼ ì‚¬ìš©í•´ë„ ì‹œê°ì ìœ¼ë¡œ ë¬¸ì œê°€ ì—†ìŠµë‹ˆë‹¤.
 			if (cosTheta > 1.f-EPSILON)
 			{
 				// Lerp: (1-t)*a + t*b
 				FLoatVector4 result = a * (1.0f - t) + b * t;
-				result.Normalize(); // Lerp °á°ú´Â ±æÀÌ°¡ 1ÀÌ ¾Æ´Ï¹Ç·Î Á¤±ÔÈ­
+				result.Normalize(); // Lerp ê²°ê³¼ëŠ” ê¸¸ì´ê°€ 1ì´ ì•„ë‹ˆë¯€ë¡œ ì •ê·œí™”
 				return result;
 			}
 
-			// 4. ½ÇÁ¦ Slerp °è»ê
-			// °¢µµ(theta)¸¦ ±¸ÇÕ´Ï´Ù.
+			// 4. ì‹¤ì œ Slerp ê³„ì‚°
+			// ê°ë„(theta)ë¥¼ êµ¬í•©ë‹ˆë‹¤.
 			float theta = acos(cosTheta);
-			// sin(theta) °ªÀ» ±¸ÇÕ´Ï´Ù (0ÀÌ ¾Æ´ÔÀÌ º¸ÀåµÊ).
+			// sin(theta) ê°’ì„ êµ¬í•©ë‹ˆë‹¤ (0ì´ ì•„ë‹˜ì´ ë³´ì¥ë¨).
 			float sinTheta = sin(theta);
 
-			// 5. µÎ ÄõÅÍ´Ï¾ğ¿¡ Àû¿ëÇÒ °¡ÁßÄ¡(½ºÄÉÀÏ)¸¦ °è»êÇÕ´Ï´Ù.
+			// 5. ë‘ ì¿¼í„°ë‹ˆì–¸ì— ì ìš©í•  ê°€ì¤‘ì¹˜(ìŠ¤ì¼€ì¼)ë¥¼ ê³„ì‚°í•©ë‹ˆë‹¤.
 			float scaleA = sin((1.0f - t) * theta) / sinTheta;
 			float scaleB = sin(t * theta) / sinTheta;
 
-			// 6. °¡ÁßÄ¡¸¦ Àû¿ëÇÏ¿© ÃÖÁ¾ ÄõÅÍ´Ï¾ğÀ» °è»êÇÕ´Ï´Ù.
+			// 6. ê°€ì¤‘ì¹˜ë¥¼ ì ìš©í•˜ì—¬ ìµœì¢… ì¿¼í„°ë‹ˆì–¸ì„ ê³„ì‚°í•©ë‹ˆë‹¤.
 			FLoatVector4 result;
 			result.x = scaleA * a.x + scaleB * b.x;
 			result.y = scaleA * a.y + scaleB * b.y;
@@ -405,22 +405,22 @@ namespace GOE
 		}
 	};
 
-	// ¿£Áø¿¡¼­ »ç¿ëÇÒ Á¤Á¡ µ¥ÀÌÅÍ ±¸Á¶Ã¼
+	// ì—”ì§„ì—ì„œ ì‚¬ìš©í•  ì •ì  ë°ì´í„° êµ¬ì¡°ì²´
 	struct Vertex
 	{
-		// À§Ä¡, ¹ı¼±, UV µî ÇÊ¿äÇÑ µ¥ÀÌÅÍ¸¦ Á¤ÀÇÇÕ´Ï´Ù.
+		// ìœ„ì¹˜, ë²•ì„ , UV ë“± í•„ìš”í•œ ë°ì´í„°ë¥¼ ì •ì˜í•©ë‹ˆë‹¤.
 		FLoatVector3 position = {};
-		FLoatVector4 color = { 1,1,1,1 }; // »ö»ó (RGBA)
-		FloatVector2 uv = { 0,0 }; // UV ÁÂÇ¥
-		FLoatVector3 normal = { 0,0,0 }; // ¹ı¼± º¤ÅÍ
+		FLoatVector4 color = { 1,1,1,1 }; // ìƒ‰ìƒ (RGBA)
+		FloatVector2 uv = { 0,0 }; // UV ì¢Œí‘œ
+		FLoatVector3 normal = { 0,0,0 }; // ë²•ì„  ë²¡í„°
 		unsigned int boneIndices[MAX_BONE];
 		float boneWeights[MAX_BONE];
 
-		// 16¹ÙÀÌÆ® Á¤·ÄÀ» À§ÇÑ ÆĞµù
+		// 16ë°”ì´íŠ¸ ì •ë ¬ì„ ìœ„í•œ íŒ¨ë”©
 		FloatVector2 padding = {}; 
 	};
 
-	// ¿£Áø¿¡¼­ »ç¿ëÇÒ ¸Ş½Ã µ¥ÀÌÅÍ ±¸Á¶Ã¼
+	// ì—”ì§„ì—ì„œ ì‚¬ìš©í•  ë©”ì‹œ ë°ì´í„° êµ¬ì¡°ì²´
 	struct MeshData
 	{
 		std::vector<Vertex> vertices;

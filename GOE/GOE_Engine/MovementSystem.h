@@ -13,6 +13,6 @@ public:
 	void DebugUpdate(double dTime) override;
 	
 private:
-	float m_moveSpeed = 0.5; // 이동 속도
+	float m_moveSpeed = 0.5;
 };
 

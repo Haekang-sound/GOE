@@ -15,7 +15,7 @@ public:
 	inline void SetAnimationHash(size_t hash) { animationHash = hash; }
 
 protected:
-	bool m_isAnimate = true; // ÀÌµ¿ °¡´É ¿©ºÎ
+	bool m_isAnimate = true; 
 	size_t animationHash = 0;
 
 public:
@@ -24,8 +24,7 @@ public:
 	double m_totalTime = 0.0f;
 	double m_totalTick = 0.0f;
 	double m_normalizedTick = 0.0f;
-	double m_previousNormalizedTick = 0.0f; // ·çÆ® ¸ğ¼Ç °è»ê¿¡ ÇÊ¼ö
-	
+	double m_previousNormalizedTick = 0.0f; // ë£¨íŠ¸ ëª¨ì…˜ ê³„ì‚°ì— í•„ìˆ˜
 };
 
 

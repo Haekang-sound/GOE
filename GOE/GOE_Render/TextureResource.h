@@ -18,19 +18,19 @@ public:
 public:
 	inline void SetTextureDefault(ComPtr<ID3D12Resource>&& resource) { textureDefault = std::move(resource); }
 	inline void SetTextureUpload(ComPtr<ID3D12Resource>&& resource) { textureUpload = std::move(resource); }
-	// µğ½ºÅ©¸³ÅÍ ÈüÀÇ °ü¿¡ °üÇÑ ÀÌÇØ´Â ºÎÁ·ÇÏÁö¸¸ ÀÏ´Ü ÀÌ·¸°Ô Ã³¸®
+	// ë””ìŠ¤í¬ë¦½í„° í™ì˜ ê´€ì— ê´€í•œ ì´í•´ëŠ” ë¶€ì¡±í•˜ì§€ë§Œ ì¼ë‹¨ ì´ë ‡ê²Œ ì²˜ë¦¬
 	inline void SetTextureHeap(ComPtr<ID3D12DescriptorHeap>&& heap) { textureheap = std::move(heap); }
 	inline void SetSRVHandle(const D3D12_CPU_DESCRIPTOR_HANDLE& handle) { srvHandle = handle; }
 
 
 private:
-	std::string m_name; // ÅØ½ºÃ³ ÀÌ¸§
-	const size_t m_id = 0; // ÅØ½ºÃ³ ID
+	std::string m_name; // í…ìŠ¤ì²˜ ì´ë¦„
+	const size_t m_id = 0; // í…ìŠ¤ì²˜ ID
 	
 private:
 	ComPtr<ID3D12Resource> textureDefault = nullptr;
 	ComPtr<ID3D12Resource> textureUpload = nullptr;
 	ComPtr<ID3D12DescriptorHeap> textureheap = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = {};
 };
 

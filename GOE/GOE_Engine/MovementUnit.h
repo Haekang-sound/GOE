@@ -16,6 +16,6 @@ public:
 	inline  void SetMoveable(bool isMoveable) { m_isMoveable = isMoveable; }
 
 private:
-	bool m_isMoveable = true; // 이동 가능 여부
+	bool m_isMoveable = true;
 };
 

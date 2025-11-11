@@ -17,17 +17,17 @@ bool Window::InitInstance()
 	MyRegisterClass(m_hInst);
 
 	m_hWnd = CreateWindowW(
-		m_name.c_str(),			// À©µµ¿ì Å¬·¡½º ÀÌ¸§
-		m_name.c_str(),			// À©µµ¿ì Á¦¸ñ
-		WS_OVERLAPPEDWINDOW,	// À©µµ¿ì ½ºÅ¸ÀÏ (¿À¹ö·¦µÈ Ã¢)
-		CW_USEDEFAULT,			// x À§Ä¡ (±âº»°ª)
-		0,						// y À§Ä¡ (±âº»°ª)
-		m_windowSize.X,			// ³Êºñ (±âº»°ª)
-		m_windowSize.Y,			// ³ôÀÌ (±âº»°ª)
-		nullptr,				// ºÎ¸ð À©µµ¿ì ÇÚµé (¾øÀ¸¸é nullptr)
-		nullptr,				// ¸Þ´º ÇÚµé (¾øÀ¸¸é nullptr)
-		m_hInst,				// ¾ÖÇÃ¸®ÄÉÀÌ¼Ç ÀÎ½ºÅÏ½º ÇÚµé
-		this);					// this¸¦ ³Ö¾î¼­ ³ªÁß¿¡ »ç¿ëÇÒ¿¹Á¤
+		m_name.c_str(),			// ìœˆë„ìš° í´ëž˜ìŠ¤ ì´ë¦„
+		m_name.c_str(),			// ìœˆë„ìš° ì œëª©
+		WS_OVERLAPPEDWINDOW,	// ìœˆë„ìš° ìŠ¤íƒ€ì¼ (ì˜¤ë²„ëž©ëœ ì°½)
+		CW_USEDEFAULT,			// x ìœ„ì¹˜ (ê¸°ë³¸ê°’)
+		0,						// y ìœ„ì¹˜ (ê¸°ë³¸ê°’)
+		m_windowSize.X,			// ë„ˆë¹„ (ê¸°ë³¸ê°’)
+		m_windowSize.Y,			// ë†’ì´ (ê¸°ë³¸ê°’)
+		nullptr,				// ë¶€ëª¨ ìœˆë„ìš° í•¸ë“¤ (ì—†ìœ¼ë©´ nullptr)
+		nullptr,				// ë©”ë‰´ í•¸ë“¤ (ì—†ìœ¼ë©´ nullptr)
+		m_hInst,				// ì• í”Œë¦¬ì¼€ì´ì…˜ ì¸ìŠ¤í„´ìŠ¤ í•¸ë“¤
+		this);					// thisë¥¼ ë„£ì–´ì„œ ë‚˜ì¤‘ì— ì‚¬ìš©í• ì˜ˆì •
 
 	if (!m_hWnd)
 	{
@@ -41,20 +41,20 @@ bool Window::InitInstance()
 }
 ATOM Window::MyRegisterClass(HINSTANCE hInstance)
 {
-	WNDCLASSEXW wcex;                       // À©µµ¿ì Å¬·¡½º Á¤º¸¸¦ ´ã´Â ±¸Á¶Ã¼ (È®ÀåµÈ ¹öÀü)
-	wcex.cbSize = sizeof(WNDCLASSEX);       // ±¸Á¶Ã¼ÀÇ Å©±â ¼³Á¤ (ÇÊ¼ö)
-	wcex.style = CS_HREDRAW | CS_VREDRAW;   // Ã¢ Å©±â º¯°æ ½Ã ÀüÃ¼¸¦ ´Ù½Ã ±×¸®µµ·Ï ¼³Á¤
-	wcex.lpfnWndProc = WndProc;             // À©µµ¿ì ¸Þ½ÃÁö¸¦ Ã³¸®ÇÒ ÄÝ¹é ÇÔ¼ö (À©µµ¿ì ÇÁ·Î½ÃÀú)
-	wcex.cbClsExtra = 0;                    // Å¬·¡½º ¿©ºÐ ¸Þ¸ð¸® (»ç¿ëÇÏÁö ¾ÊÀ¸¸é 0)
-	wcex.cbWndExtra = 0;                    // À©µµ¿ì ÀÎ½ºÅÏ½º ¿©ºÐ ¸Þ¸ð¸® (»ç¿ëÇÏÁö ¾ÊÀ¸¸é 0)
-	wcex.hInstance = m_hInst;				// ¾ÖÇÃ¸®ÄÉÀÌ¼Ç ÀÎ½ºÅÏ½º ÇÚµé
-	wcex.hIcon = LoadIcon(m_hInst, MAKEINTRESOURCE(IDI_GOE)); // Å« ¾ÆÀÌÄÜ ·ÎµåS
-	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);      // ±âº» ¸¶¿ì½º Ä¿¼­ ÁöÁ¤ (È­»ìÇ¥)
-	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);    // ¹è°æ ºê·¯½Ã (±âº» Ã¢ ¹è°æ»ö)
-	wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_GOE);      // ¸®¼Ò½º¿¡ Á¤ÀÇµÈ ¸Þ´º ÀÌ¸§ ÁöÁ¤
-	wcex.lpszClassName = m_name.c_str();                 // ÀÌ À©µµ¿ì Å¬·¡½ºÀÇ ÀÌ¸§
-	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL)); // ÀÛÀº ¾ÆÀÌÄÜ (Å¸ÀÌÆ² ¹Ù¿¡ Ç¥½Ã)
-	return RegisterClassExW(&wcex);                     // ¼³Á¤ÇÑ À©µµ¿ì Å¬·¡½º¸¦ ¿î¿µÃ¼Á¦¿¡ µî·Ï
+	WNDCLASSEXW wcex;                       // ìœˆë„ìš° í´ëž˜ìŠ¤ ì •ë³´ë¥¼ ë‹´ëŠ” êµ¬ì¡°ì²´ (í™•ìž¥ëœ ë²„ì „)
+	wcex.cbSize = sizeof(WNDCLASSEX);       // êµ¬ì¡°ì²´ì˜ í¬ê¸° ì„¤ì • (í•„ìˆ˜)
+	wcex.style = CS_HREDRAW | CS_VREDRAW;   // ì°½ í¬ê¸° ë³€ê²½ ì‹œ ì „ì²´ë¥¼ ë‹¤ì‹œ ê·¸ë¦¬ë„ë¡ ì„¤ì •
+	wcex.lpfnWndProc = WndProc;             // ìœˆë„ìš° ë©”ì‹œì§€ë¥¼ ì²˜ë¦¬í•  ì½œë°± í•¨ìˆ˜ (ìœˆë„ìš° í”„ë¡œì‹œì €)
+	wcex.cbClsExtra = 0;                    // í´ëž˜ìŠ¤ ì—¬ë¶„ ë©”ëª¨ë¦¬ (ì‚¬ìš©í•˜ì§€ ì•Šìœ¼ë©´ 0)
+	wcex.cbWndExtra = 0;                    // ìœˆë„ìš° ì¸ìŠ¤í„´ìŠ¤ ì—¬ë¶„ ë©”ëª¨ë¦¬ (ì‚¬ìš©í•˜ì§€ ì•Šìœ¼ë©´ 0)
+	wcex.hInstance = m_hInst;				// ì• í”Œë¦¬ì¼€ì´ì…˜ ì¸ìŠ¤í„´ìŠ¤ í•¸ë“¤
+	wcex.hIcon = LoadIcon(m_hInst, MAKEINTRESOURCE(IDI_GOE)); // í° ì•„ì´ì½˜ ë¡œë“œS
+	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);      // ê¸°ë³¸ ë§ˆìš°ìŠ¤ ì»¤ì„œ ì§€ì • (í™”ì‚´í‘œ)
+	wcex.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);    // ë°°ê²½ ë¸ŒëŸ¬ì‹œ (ê¸°ë³¸ ì°½ ë°°ê²½ìƒ‰)
+	wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_GOE);      // ë¦¬ì†ŒìŠ¤ì— ì •ì˜ëœ ë©”ë‰´ ì´ë¦„ ì§€ì •
+	wcex.lpszClassName = m_name.c_str();                 // ì´ ìœˆë„ìš° í´ëž˜ìŠ¤ì˜ ì´ë¦„
+	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL)); // ìž‘ì€ ì•„ì´ì½˜ (íƒ€ì´í‹€ ë°”ì— í‘œì‹œ)
+	return RegisterClassExW(&wcex);                     // ì„¤ì •í•œ ìœˆë„ìš° í´ëž˜ìŠ¤ë¥¼ ìš´ì˜ì²´ì œì— ë“±ë¡
 }
 
 bool Window::ProcessMessages()
@@ -63,12 +63,12 @@ bool Window::ProcessMessages()
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 	{
 		if (msg.message == WM_QUIT)
-			return false; // Á¾·á ½ÅÈ£
+			return false; // ì¢…ë£Œ ì‹ í˜¸
 
 		TranslateMessage(&msg);
 		DispatchMessage(&msg);
 	}
-	return true; // °è¼Ó ÁøÇà
+	return true;
 }
 
 LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -86,25 +86,25 @@ LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM 
 		pWindow = reinterpret_cast<Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 	}
 
-	// pWindow Æ÷ÀÎÅÍ°¡ À¯È¿ÇÒ ¶§¸¸ ³»ºÎ ·ÎÁ÷À» Ã³¸®ÇÕ´Ï´Ù.
+	// pWindow í¬ì¸í„°ê°€ ìœ íš¨í•  ë•Œë§Œ ë‚´ë¶€ ë¡œì§ì„ ì²˜ë¦¬í•©ë‹ˆë‹¤.
 	if (pWindow)
 	{
-		// 1. ImGui ÄÝ¹éÀÌ ¸Þ½ÃÁö¸¦ Ã³¸®Çß´ÂÁö ¸ÕÀú È®ÀÎÇÕ´Ï´Ù.
+		// 1. ImGui ì½œë°±ì´ ë©”ì‹œì§€ë¥¼ ì²˜ë¦¬í–ˆëŠ”ì§€ ë¨¼ì € í™•ì¸í•©ë‹ˆë‹¤.
 		if (pWindow->m_imguiCallback && pWindow->m_imguiCallback(hWnd, message, wParam, lParam))
 		{
-			return true; // ImGui°¡ Ã³¸®ÇßÀ¸¸é ¿©±â¼­ Á¾·á
+			return true; // ImGuiê°€ ì²˜ë¦¬í–ˆìœ¼ë©´ ì—¬ê¸°ì„œ ì¢…ë£Œ
 		}
 
-		// 2. Á÷Á¢ Ã³¸®ÇÒ ¸Þ½ÃÁö°¡ ÀÖ´ÂÁö È®ÀÎÇÕ´Ï´Ù.
+		// 2. ì§ì ‘ ì²˜ë¦¬í•  ë©”ì‹œì§€ê°€ ìžˆëŠ”ì§€ í™•ì¸í•©ë‹ˆë‹¤.
 		switch (message)
 		{
 			case WM_DESTROY:
 				PostQuitMessage(0);
-				return 0; // Ã³¸®°¡ ³¡³µÀ¸¹Ç·Î 0À» ¹ÝÈ¯ÇÏ°í ÇÔ¼ö Á¾·á
+				return 0; // ì²˜ë¦¬ê°€ ëë‚¬ìœ¼ë¯€ë¡œ 0ì„ ë°˜í™˜í•˜ê³  í•¨ìˆ˜ ì¢…ë£Œ
 		}
 	}
 
-	// pWindow°¡ ¾ÆÁ÷ À¯È¿ÇÏÁö ¾Ê°Å³ª, À§¿¡¼­ Ã³¸®µÇÁö ¾ÊÀº ¸ðµç ¸Þ½ÃÁö´Â
-	// ±âº» Ã³¸®±â(DefWindowProc)¿¡ ¸Ã±é´Ï´Ù.
+	// pWindowê°€ ì•„ì§ ìœ íš¨í•˜ì§€ ì•Šê±°ë‚˜, ìœ„ì—ì„œ ì²˜ë¦¬ë˜ì§€ ì•Šì€ ëª¨ë“  ë©”ì‹œì§€ëŠ”
+	// ê¸°ë³¸ ì²˜ë¦¬ê¸°(DefWindowProc)ì— ë§¡ê¹ë‹ˆë‹¤.
 	return DefWindowProc(hWnd, message, wParam, lParam);
 }

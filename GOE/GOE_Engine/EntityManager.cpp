@@ -7,14 +7,14 @@ EntityManager::~EntityManager() = default;
 
 Entity* EntityManager::CreateEntity(std::string name)
 {
-	// 1. »õ·Î¿î ¿£Æ¼Æ¼¸¦ »ı¼ºÇÏ°í ¼ÒÀ¯±ÇÀ» unique_ptr·Î °ü¸®ÇÕ´Ï´Ù.
+	// 1. ìƒˆë¡œìš´ ì—”í‹°í‹°ë¥¼ ìƒì„±í•˜ê³  ì†Œìœ ê¶Œì„ unique_ptrë¡œ ê´€ë¦¬í•©ë‹ˆë‹¤.
 	EntityID newID = GOE::FileManager::GetHash(name);
 	auto pNewEntity = std::make_unique<Entity>(newID, name);
 
-	// 2. Á¶È¸¿ë ¸Ê¿¡ ID¿Í size¸¦ Ãß°¡ÇÕ´Ï´Ù.
+	// 2. ì¡°íšŒìš© ë§µì— IDì™€ sizeë¥¼ ì¶”ê°€í•©ë‹ˆë‹¤.
 	m_entityMap[newID] = m_entities.size();
 
-	// 3. ¼ÒÀ¯±ÇÀ» °¡Áø Æ÷ÀÎÅÍ¸¦ º¤ÅÍ¿¡ Ãß°¡ÇÕ´Ï´Ù.
+	// 3. ì†Œìœ ê¶Œì„ ê°€ì§„ í¬ì¸í„°ë¥¼ ë²¡í„°ì— ì¶”ê°€í•©ë‹ˆë‹¤.
 	m_entities.push_back(std::move(pNewEntity));
 
 	return m_entities.back().get();
@@ -25,7 +25,7 @@ Entity* EntityManager::FindEntity(EntityID id)
 	auto it = m_entityMap.find(id);
 	if (it != m_entityMap.end())
 	{
-		return m_entities[it->second].get(); // O(1) ¼Óµµ·Î ¿£Æ¼Æ¼ Æ÷ÀÎÅÍ ¹İÈ¯
+		return m_entities[it->second].get(); 
 	}
 	return nullptr;
 }

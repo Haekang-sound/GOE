@@ -4,19 +4,22 @@ struct VertexWeight
 {
 	VertexWeight() = default;
 	VertexWeight(unsigned int id, float weight)
-		: m_vertexId(id), m_weight(weight){}
-	
+		: m_vertexId(id), m_weight(weight)
+	{
+	}
+
 	unsigned int m_vertexId;
 	float m_weight;
 };
 
-	class Bone
+class Bone
 {
 public:
 	Bone() = default;
 	Bone(const std::string& name, size_t id, size_t meshid)
 		: m_name(name), m_id(id), m_meshID(meshid), m_offsetTM(GOE::Matrix4x4::Identity()), m_rootNodeID(0), m_nodeID(0)
-	{}
+	{
+	}
 	~Bone();
 
 public:
@@ -34,15 +37,15 @@ public:
 	inline void SetBoneIndex(unsigned int index) { m_boneIndex = index; }
 
 private:
-	const std::string m_name; // 노드 이름
-	const size_t m_id; // 노드 ID
-	const size_t m_meshID = 0; // 이 본이 속한 메쉬 ID (필요시 사용)
-	unsigned int m_boneIndex = 0; // 본 인덱스 (쉐이더에서 사용할 용도)
+	const std::string m_name;
+	const size_t m_id;
+	const size_t m_meshID = 0;
+	unsigned int m_boneIndex = 0;
 
 	GOE::Matrix4x4 m_offsetTM;
-	
+
 	size_t m_rootNodeID;
 	size_t m_nodeID;
-	
+
 };
 

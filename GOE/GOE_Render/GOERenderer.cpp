@@ -102,7 +102,7 @@ void GOERenderer::OnUpdate()
 		D3D12_RANGE boneRange = { 0, 0 };
 		ThrowIfFailed(renderObject->GetCBBoneMatrix()->Map(0, &boneRange, &pBoneData));
 		memcpy(pBoneData, &boneMatrix, sizeof(XMFLOAT4X4)*128);
-		renderObject->GetCB()->Unmap(0, nullptr);		
+		renderObject->GetCBBoneMatrix()->Unmap(0, nullptr);
 	}
 }
 

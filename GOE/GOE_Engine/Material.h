@@ -17,6 +17,6 @@ public:
 protected:
 	size_t m_textureID = 0;
 
-	std::string m_name = ""; // 오브젝트 이름
+	std::string m_name = ""; 
 };
 
