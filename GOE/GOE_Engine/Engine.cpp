@@ -72,7 +72,9 @@ void GOE::Engine::OnUpdate(double dTime)
 	m_editor->OnUpdate();
 	m_renderer->OnUpdate();
 
+#if defined(_DEBUG)
 	DebugUpdate();
+#endif
 }
 
 void GOE::Engine::BeginRender()

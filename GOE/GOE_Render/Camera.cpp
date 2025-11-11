@@ -104,7 +104,6 @@ void Camera::OnUpdate()
 	XMStoreFloat4x4(&m_local, XMMatrixInverse(nullptr, world));
 	XMStoreFloat3(&m_position,pos);
 
-
 	DebugManager::GetInstance().PushDebugData(
 		[this]()
 		{

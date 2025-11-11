@@ -6,7 +6,6 @@
 #include <d3dx12/d3dx12.h>
 #include "DirectXTex.h"	
 #include "Camera.h" 
-#include "Cube.h"
 #include "MeshResource.h"
 #include "TextureResource.h"
 #include "RenderObject.h"
@@ -49,9 +48,6 @@ void GOERenderer::OnInit()
 	LoadPipeline();
 
 	m_camera = new Camera(m_hWnd);
-	m_cube = new Cube(m_device, m_aspectRatio);
-	m_cube->m_aspectRatio = m_aspectRatio;
-	m_cube->InitCube();
 
 	LoadAssets();
 	CreateImguiDescriptorHeap();
@@ -60,27 +56,7 @@ void GOERenderer::OnInit()
 void GOERenderer::OnUpdate()
 {
 	m_camera->OnUpdate();
-	m_cube->OnUpdate();
-
-	{ // 큐브는 로딩해서 가져오는게 아니라서 이걸로해야됨
-		Graphics::CB cbData = {};
-		XMMATRIX world = m_cube->GetLocalTransForm();
-		XMMATRIX vp =
-			m_camera->GetViewTransform()
-			* XMLoadFloat4x4(&m_proj);
-		cbData.cameraPosition = m_camera->GetPosition();
-
-		XMStoreFloat4x4(&cbData.world, world);
-		XMStoreFloat4x4(&cbData.viewProjection, vp);
-
-		// CUBE의 CBV에 업로드
-		void* pData = nullptr;
-		D3D12_RANGE readRange = { 0, 0 };
-		ThrowIfFailed(m_cube->m_constantBuffer->Map(0, &readRange, &pData));
-		memcpy(pData, &cbData, sizeof(Graphics::CB));
-		m_cube->m_constantBuffer->Unmap(0, nullptr);
-	}
-
+	
 	// 랜더오브젝트들을 그리는구간
 	// 여긴 콘스탄트 버퍼를 업데이트 하는거임
 	for (const auto& renderObject : m_renderObjects)
@@ -217,7 +193,6 @@ void GOERenderer::OnRender()
 		m_commandList->DrawIndexedInstanced(m_meshResourceMap[renderObject->GetMeshID()]->GetIndexCount(), 1, 0, 0, 0);
 	}
 	// 6. 그리기 전 세팅
-	m_cube->OnRender(m_commandList.Get());
 }
 
 /// <summary>
@@ -265,7 +240,6 @@ void GOERenderer::OnDestroy()
 {
 	WaitForFence(m_fenceValue);
 	CloseHandle(m_fenceEvent);
-	delete m_cube;
 	delete m_camera;
 }
 
@@ -365,7 +339,6 @@ void GOERenderer::LoadAssets()
 	CompileShaders();
 	CreatePipelineState();
 	CreateCommandList();
-	m_cube->LoadCube();
 
 	CreateFence();
 }
@@ -1180,8 +1153,6 @@ void GOERenderer::CopyUploadHeapToDefault()
 	m_commandAllocator->Reset();
 	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
 	m_commandList->Reset(m_commandAllocator.Get(), m_pipelineState.Get());
-
-	m_cube->CopyUploadHeapToDefault(m_commandList);
 
 	// 모델 리소스의 메쉬 리소스를 순회하며 업로드 힙에서 디폴트 힙으로 복사합니다.
 	// 큐브는 모델을 로드해서 그리는게 아니야

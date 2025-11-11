@@ -18,7 +18,6 @@ namespace GOE
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
 
-class Cube;
 class Camera;
 class UIInitInfo;
 class UILoopInfo;
@@ -122,9 +121,7 @@ public:
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
 	HRESULT CompileShaderFromFile(const WCHAR* fileName, const WCHAR* entryPoint, const WCHAR* targetProfile, ID3DBlob** ppShaderBlob);
 
-/// <summary>
-///  텍스처가 이상하게 나오는 원인이라고 생각되는 뎁스스텐실
-/// </summary>
+private:
 	ComPtr<ID3D12Resource> m_depthStencilBuffer;
 	ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
 
@@ -141,7 +138,6 @@ private:
 
 public:
 	Camera* m_camera;
-	Cube* m_cube;
 
 private:
 	UINT m_width = 0;
