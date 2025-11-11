@@ -53,6 +53,8 @@
     </ClInclude>
     <ClInclude Include="GraphicsDevice.h" />
     <ClInclude Include="SwapChain.h" />
+    <ClInclude Include="ResourceManager.h" />
+    <ClInclude Include="PSOManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GOERenderer.cpp">
@@ -84,6 +86,8 @@
     </ClCompile>
     <ClCompile Include="GraphicsDevice.cpp" />
     <ClCompile Include="SwapChain.cpp" />
+    <ClCompile Include="ResourceManager.cpp" />
+    <ClCompile Include="PSOManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

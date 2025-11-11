@@ -41,7 +41,7 @@ public:
 	inline void SetVBView(const D3D12_VERTEX_BUFFER_VIEW& view) { m_vertexBufferView = view; }
 
 	inline void SetIBSize(UINT size) { m_IBSize = size; }
-	inline void Setm_IndexCount(UINT num) { m_IndexCount = num; }
+	inline void SetIndexCount(UINT num) { m_IndexCount = num; }
 	inline void SetIBUpload(ComPtr<ID3D12Resource>&& uploadBuffer) { m_indexBufferUpload = std::move(uploadBuffer); }
 	inline void SetIBDefault(ComPtr<ID3D12Resource>&& defaultBuffer) { m_indexBufferDefault = std::move(defaultBuffer); }
 	inline void SetIBView(const D3D12_INDEX_BUFFER_VIEW& view) { m_indexBufferView = view; }

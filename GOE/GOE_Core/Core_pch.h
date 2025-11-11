@@ -16,6 +16,8 @@
 #include <vector>
 #include <iostream> 
 #include <unordered_map>
+#include <memory>
+#include <filesystem>
 
 #include "Window.h"
 #include "CoreMath.h"

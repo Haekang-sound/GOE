@@ -1,8 +1,6 @@
 #pragma once
 #include "ID3DRenderer.h"
 #include <d3d12.h>
-#include <dxgi1_6.h>
-#include <DirectXMath.h>
 
 #include <wrl.h>
 #include <windows.h>
@@ -17,6 +15,7 @@ namespace Graphics
 {
 	struct MeshData;
 	class SwapChain;
+	class PSOManager;
 }
 
 class Mesh;
@@ -41,6 +40,7 @@ class GOERenderer : public GOE::ID3DRenderer
 {
 protected: 
 	std::unique_ptr<Graphics::SwapChain> m_swapChain = nullptr;
+	std::unique_ptr<Graphics::PSOManager> m_PSOManager= nullptr;
 
 public:
 	GOERenderer(const HWND hWnd);
@@ -70,14 +70,8 @@ public:
 public:
 	std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() override { return m_renderObjects; }
 
-protected:
-	void LoadAssets();
-
 public:
 	void CreateCommandAllocator();
-	void CreateRootSignature();
-	void CompileShaders();
-	void CreatePipelineState();
 	void CreateCommandList();
 
 protected:
@@ -100,7 +94,6 @@ public:
 	void CreateRenderObjectCBResource(
 		RenderObject* render_object,
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
-	HRESULT CompileShaderFromFile(const WCHAR* fileName, const WCHAR* entryPoint, const WCHAR* targetProfile, ID3DBlob** ppShaderBlob);
 
 
 
@@ -123,11 +116,6 @@ private:
 
 private:
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;
-	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
-	ComPtr<ID3DBlob> m_vertexShader = nullptr;
-	ComPtr<ID3DBlob> m_pixelShader = nullptr;
-	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[6] = {};
-	ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
 	ComPtr<ID3D12GraphicsCommandList> m_commandList = nullptr;
 
 	/// <summary>

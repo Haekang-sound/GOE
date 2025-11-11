@@ -30,10 +30,12 @@
     <ClInclude Include="MeshResource.h" />
     <ClInclude Include="ModelResource.h" />
     <ClInclude Include="PIX.h" />
+    <ClInclude Include="PSOManager.h" />
     <ClInclude Include="Renderer_pch.h" />
     <ClInclude Include="ID3DRenderer.h" />
     <ClInclude Include="Kuramon.h" />
     <ClInclude Include="RenderObject.h" />
+    <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="TextureResource.h" />
   </ItemGroup>
@@ -45,6 +47,7 @@
     <ClCompile Include="Kuramon.cpp" />
     <ClCompile Include="MeshResource.cpp" />
     <ClCompile Include="ModelResource.cpp" />
+    <ClCompile Include="PSOManager.cpp" />
     <ClCompile Include="Renderer_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -52,6 +55,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="RenderObject.cpp" />
+    <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="TextureResource.cpp" />
   </ItemGroup>
@@ -210,7 +214,7 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d12.lib;dxcompiler.lib;dxil.lib;DirectXdTex.lib;dxcompiler.lib;dxil.lib</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;d3d12.lib;dxcompiler.lib;dxil.lib;dxgi.lib;DirectXdTex.lib;dxcompiler.lib;dxil.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <FxCompile>
@@ -251,7 +255,7 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
 </Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d12.lib;dxcompiler.lib;dxil.lib;DirectXTex.lib;dxcompiler.lib;dxil.lib</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;d3d12.lib;dxcompiler.lib;dxil.lib;dxgi.lib;DirectXTex.lib;dxcompiler.lib;dxil.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

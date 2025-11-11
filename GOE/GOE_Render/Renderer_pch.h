@@ -12,7 +12,6 @@
 #include <dxgi1_6.h>
 #include <DirectXMath.h>
 
-
 // 랜더러 핵심기능
 #include "ID3DRenderer.h"
 #include "GraphicsDevice.h"
