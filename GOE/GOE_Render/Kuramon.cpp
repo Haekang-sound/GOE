@@ -87,7 +87,7 @@ void Kuramon::OnRender(const ComPtr<ID3D12GraphicsCommandList>& commadList)
 	commadList->SetGraphicsRootConstantBufferView(0, m_kuramonConstantBuffer->GetGPUVirtualAddress());
 
 	// 7. 그리기 명령
-	commadList->DrawIndexedInstanced(indexArray.size(), 1, 0, 0, 0);
+	commadList->DrawIndexedInstanced(static_cast<UINT>(indexArray.size()), 1, 0, 0, 0);
 }
 
 void Kuramon::CreateConstantBuffer()

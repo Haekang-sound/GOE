@@ -1,4 +1,4 @@
-﻿#include "Core_pch.h"
+#include "Core_pch.h"
 #include "BoneAnimation.h"
 
 BoneAnimation::~BoneAnimation() = default;
@@ -12,21 +12,21 @@ GOE::Matrix4x4 BoneAnimation::InterpolateScale(double normaliedTime)
 	int indexA = FindKeyIndex<VectorKeyFrame>(normaliedTime, m_scales);
 	int indexB = indexA + 1;
 
-	float timeA = m_scales[indexA].time;
-	float timeB = m_scales[indexB].time;
-	float timeSpan = timeB - timeA;
+	double timeA = m_scales[indexA].time;
+	double timeB = m_scales[indexB].time;
+	double timeSpan = timeB - timeA;
 
 	if (timeSpan <= 0.0f)
 	{
 		return m_scales[indexA].value.ToScaleMatrix();
 	}
 
-	float factor = (normaliedTime - timeA) / timeSpan;
+	double factor = (normaliedTime - timeA) / timeSpan;
 
 	GOE::FLoatVector3 scaleA = m_scales[indexA].value;
 	GOE::FLoatVector3 scaleB = m_scales[indexB].value;
 	GOE::FLoatVector3 finalScale = scaleA;
-	finalScale += (scaleB - scaleA) * factor;
+	finalScale += (scaleB - scaleA) * static_cast<float>(factor);
 	return finalScale.ToScaleMatrix();
 
 
@@ -41,22 +41,22 @@ GOE::Matrix4x4 BoneAnimation::InterpolatePosition(double normaliedTime)
 	int indexA = FindKeyIndex<VectorKeyFrame>(normaliedTime, m_positions);
 	int indexB = indexA + 1;
 
-	float timeA = m_positions[indexA].time;
-	float timeB = m_positions[indexB].time;
-	float timeSpan = timeB - timeA;
+	double timeA = m_positions[indexA].time;
+	double timeB = m_positions[indexB].time;
+	double timeSpan = timeB - timeA;
 
 	if (timeSpan <= 0.0f)
 	{
 		return m_positions[indexA].value.ToTranslationMatrix();
 	}
 
-	float factor = (normaliedTime - timeA) / timeSpan;
+	double factor = (normaliedTime - timeA) / timeSpan;
 
 	GOE::FLoatVector3 posA = m_positions[indexA].value;
 	GOE::FLoatVector3 posB = m_positions[indexB].value;
 	GOE::FLoatVector3 finalPos = posA;
 
-	finalPos += (posB - posA) * factor;
+	finalPos += (posB - posA) * static_cast<float>(factor);
 
 	return finalPos.ToTranslationMatrix();
 }
@@ -71,22 +71,22 @@ GOE::Matrix4x4 BoneAnimation::InterpolateQuatanion(double normaliedTime)
 	int indexA = FindKeyIndex<QuatKeyFrame>(normaliedTime, m_quatanions);
 	int indexB = indexA + 1;
 
-	float timeA = m_quatanions[indexA].time;
-	float timeB = m_quatanions[indexB].time;
-	float timeSpan = timeB - timeA;
+	double timeA = m_quatanions[indexA].time;
+	double timeB = m_quatanions[indexB].time;
+	double timeSpan = timeB - timeA;
 
 	if (timeSpan <= 0.0f)
 	{
 		return m_quatanions[indexA].value.ToRotationMatrix();
 	}
 
-	float factor = (normaliedTime - timeA) / timeSpan;
+	double factor = (normaliedTime - timeA) / timeSpan;
 
 	GOE::FLoatVector4 quatA = m_quatanions[indexA].value;
 	GOE::FLoatVector4 quatB = m_quatanions[indexB].value;
 
 	// Lerp 대신 Slerp 호출
-	GOE::FLoatVector4 finalQuat = GOE::FLoatVector4::Slerp(quatA, quatB, factor);
+	GOE::FLoatVector4 finalQuat = GOE::FLoatVector4::Slerp(quatA, quatB, static_cast<float>(factor));
 
 	// ✅ FIX 2: 올바른 함수 이름 사용
 	return finalQuat.ToRotationMatrix();

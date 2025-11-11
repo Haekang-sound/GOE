@@ -178,7 +178,7 @@ namespace Graphics
 
 	public:
 		std::vector<Vertex> vertices; // 버텍스 정보
-		std::vector<UINT32> indices; // 인덱스 정보
+		std::vector<UINT> indices; // 인덱스 정보
 		std::vector<XMFLOAT4X4> boneOffsets;
 
 	public:

@@ -1,15 +1,15 @@
-﻿#pragma once
+#pragma once
 
 struct VectorKeyFrame
 {
-	float time = 0.0f;
+	double time = 0.0f;
 	GOE::FLoatVector3 value = {};
 	VectorKeyFrame(double time, GOE::FLoatVector3 value) : time(time), value(value) {}
 };
 
 struct QuatKeyFrame
 {
-	float time = 0.0f;
+	double time = 0.0f;
 	GOE::FLoatVector4 value = {};
 	QuatKeyFrame(double time, GOE::FLoatVector4 value) : time(time), value(value) {}
 };

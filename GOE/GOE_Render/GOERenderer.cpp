@@ -864,8 +864,8 @@ void GOERenderer::LoadTexture(std::string filepath)
 	// ScratchImage로부터 얻은 메타데이터로 리소스 속성을 정의합니다.
 	D3D12_RESOURCE_DESC textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(
 		metadata.format,
-		metadata.width,
-		metadata.height,
+		static_cast<UINT64>(metadata.width),
+		static_cast<UINT>(metadata.height),
 		static_cast<UINT16>(metadata.arraySize),
 		static_cast<UINT16>(metadata.mipLevels));
 
@@ -885,6 +885,7 @@ void GOERenderer::LoadTexture(std::string filepath)
 	}
 
 	// 3. 업로드 힙 생성
+	// UINT64 자료형을 사용해야한다.
 	const UINT64 uploadBufferSize = GetRequiredIntermediateSize(textureDefault.Get(), 0, 1);
 	CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
 	CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
@@ -1016,7 +1017,7 @@ void GOERenderer::CreateMeshResource(MeshResource* mesh_resource, Graphics::Mesh
 void GOERenderer::CreateVBResource(MeshResource* mesh_resource, const Graphics::MeshData& mesh_data, const D3D12_RESOURCE_STATES& state)
 {
 	/// 채워야 할 리소스
-	size_t vertexBufferSize = sizeof(Graphics::Vertex) * mesh_data.vertices.size();
+	UINT vertexBufferSize = static_cast<UINT>(sizeof(Graphics::Vertex) * mesh_data.vertices.size());
 	ComPtr<ID3D12Resource> vertexBufferDefault = nullptr;
 	ComPtr<ID3D12Resource> vertexBufferUpload = nullptr;
 	D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
@@ -1107,8 +1108,8 @@ void GOERenderer::CreateVBResource(MeshResource* mesh_resource, const Graphics::
 	// 이후 DrawCall 시 이 정보를 넘김
 	// 이 뷰는 GPU가 정점 데이터를 읽을 때 사용됩니다.
 	vertexBufferView.BufferLocation = vertexBufferDefault->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
-	vertexBufferView.StrideInBytes = sizeof(Graphics::Vertex);		// 정점버퍼 전체 크기(바이트 단위)
-	vertexBufferView.SizeInBytes = vertexBufferSize;	// 정점 하나당 크기(바이트 단위)
+	vertexBufferView.StrideInBytes = static_cast<UINT>(sizeof(Graphics::Vertex));		// 정점버퍼 전체 크기(바이트 단위)
+	vertexBufferView.SizeInBytes = static_cast<UINT>(vertexBufferSize);	// 정점 하나당 크기(바이트 단위)
 
 	mesh_resource->SetVBSize(vertexBufferSize); // 정점 버퍼 크기 설정
 	mesh_resource->SetVBDefault(vertexBufferDefault.Get()); // 디폴트 힙 리소스 설정
@@ -1118,7 +1119,7 @@ void GOERenderer::CreateVBResource(MeshResource* mesh_resource, const Graphics::
 
 void GOERenderer::CreateIBResource(MeshResource* mesh_resource, const Graphics::MeshData& mesh_data, const D3D12_RESOURCE_STATES& state)
 {
-	UINT64 indexBufferSize = sizeof(UINT32) * mesh_data.indices.size();
+	UINT indexBufferSize = static_cast<UINT>(sizeof(UINT) * mesh_data.indices.size());
 	ComPtr<ID3D12Resource> indexBufferDefault = nullptr;
 	ComPtr<ID3D12Resource> indexBufferUpload = nullptr;
 	D3D12_INDEX_BUFFER_VIEW indexBufferView = {};
@@ -1245,7 +1246,7 @@ void GOERenderer::CreateCBResource(MeshResource* mesh_resource, const Graphics::
 	{
 		boneMatrix[i] = mesh_data.boneOffsets[i];
 	}
-	for (int i = mesh_data.boneOffsets.size(); i < 128; ++i)
+	for (size_t i = mesh_data.boneOffsets.size(); i < 128; ++i)
 	{
 		DirectX::XMStoreFloat4x4(&boneMatrix[i], /*XMMatrixTranspose(*/DirectX::XMMatrixIdentity());
 	}

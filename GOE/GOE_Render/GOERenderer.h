@@ -11,11 +11,11 @@
 
 namespace GOE
 {
-	class MeshData;
+	struct MeshData;
 }
 namespace Graphics
 {
-	class MeshData;
+	struct MeshData;
 	class SwapChain;
 }
 
@@ -25,8 +25,8 @@ using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
 
 class Camera;
-class UIInitInfo;
-class UILoopInfo;
+struct UIInitInfo;
+struct UILoopInfo;
 class ModelResource;
 class MeshResource;
 class TextureResource;

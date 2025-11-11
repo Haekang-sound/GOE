@@ -1,4 +1,4 @@
-﻿#include "Engine_pch.h"
+#include "Engine_pch.h"
 #include "RenderSystem.h"
 
 #include "Scene.h"
@@ -45,7 +45,7 @@ void RenderSystem::Update(double dTime)
 		{
 			renderobj->SetLocalTM(GetScene()->GetTransformManager()->GetComponent(renderobj->GetID())->GetLocalTM());
 			
-			int bones = m_context->assetCore->GetMesh(renderobj.get()->GetMeshID())->GetBones().size();
+			size_t bones = m_context->assetCore->GetMesh(renderobj.get()->GetMeshID())->GetBones().size();
 			for (int i = 0; i < bones; ++i)
 			{
 				size_t nodeid = m_context->assetCore->GetMesh(renderobj.get()->GetMeshID())->GetBones()[i].get()->GetNode();

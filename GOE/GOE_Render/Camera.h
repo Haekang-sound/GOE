@@ -18,13 +18,13 @@ private:
 	// 스케일, 회전(라디안), 위치
 	XMVECTOR m_quat = XMQuaternionIdentity();
 
-	float m_rollSpeed = 0.01;
+	double m_rollSpeed = 0.01;
 	float wheelValue = 0;
 	int prev_wheelValue = 0;
 
-	XMFLOAT3 m_position = {0, 15, -36};
-	XMFLOAT3 m_rotation = {0.22,0,0};
-	XMFLOAT3 m_scale = {1,1,1};
+	XMFLOAT3 m_position = {0.f, 15.f, -36.f};
+	XMFLOAT3 m_rotation = {0.22f,0.f,0.f};
+	XMFLOAT3 m_scale = {1.f,1.f,1.f};
 
 	float m_moveSpeed = 0.25f;
 	bool isAccelerate = false;

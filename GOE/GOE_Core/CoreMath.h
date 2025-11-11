@@ -413,8 +413,8 @@ namespace GOE
 		FLoatVector4 color = { 1,1,1,1 }; // 색상 (RGBA)
 		FloatVector2 uv = { 0,0 }; // UV 좌표
 		FLoatVector3 normal = { 0,0,0 }; // 법선 벡터
-		unsigned int boneIndices[MAX_BONE];
-		float boneWeights[MAX_BONE];
+		unsigned int boneIndices[MAX_BONE] = {};
+		float boneWeights[MAX_BONE] = {};
 
 		// 16바이트 정렬을 위한 패딩
 		FloatVector2 padding = {}; 

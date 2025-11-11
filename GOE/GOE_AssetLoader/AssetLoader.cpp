@@ -275,7 +275,7 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		}
 
 		// 본을 순회한다.
-		for (size_t i = 0; i < mesh->mNumBones; ++i)
+		for (unsigned int i = 0; i < mesh->mNumBones; ++i)
 		{
 			meshData.get()->boneOffsets.push_back(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix));// .Transpose()));
 			// 현재 본이 영향을 주는 버텍스의 수만큼 순회한다.

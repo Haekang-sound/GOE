@@ -5,6 +5,7 @@ namespace Graphics
 	struct Matrix4x4;
 
 }
+
 struct RenderObjectData;
 
 /// <summary>
@@ -62,7 +63,7 @@ public:
 
 	inline void SetLocalTM(const GOE::Matrix4x4& localTM) { m_localTM = localTM; }
 	inline void SetWorldTM(const GOE::Matrix4x4& worldTM) { m_worldTM = worldTM; }
-	inline void SetBoneTM(int idx, GOE::Matrix4x4 matrix)
+	inline void SetBoneTM(size_t idx, GOE::Matrix4x4 matrix)
 	{
 		m_boneTM[idx] = matrix;// .Transpose();
 	}
