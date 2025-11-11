@@ -7,7 +7,7 @@ namespace GOE
 class Bone;
 
 /// <summary>
-/// ¹öÅØ½º¿Í ÀÎµ¦½ºÁ¤º¸¸¦ °®°í ÀÖ´Â ¸Å½¬
+/// ë²„í…ìŠ¤ì™€ ì¸ë±ìŠ¤ì •ë³´ë¥¼ ê°–ê³  ìˆëŠ” ë§¤ì‰¬
 /// 
 /// ohk 2025.07.29
 /// </summary>
@@ -30,9 +30,9 @@ public:
 		auto it = m_boneMap.find(boneID);
 		if (it != m_boneMap.end())
 		{
-			return it->second; // Ã£¾ÒÀ¸¸é º»ÀÇ raw pointer ¹İÈ¯
+			return it->second; // ì°¾ì•˜ìœ¼ë©´ ë³¸ì˜ raw pointer ë°˜í™˜
 		}
-		return nullptr; // ¸ø Ã£¾ÒÀ¸¸é nullptr ¹İÈ¯
+		return nullptr; // ëª» ì°¾ì•˜ìœ¼ë©´ nullptr ë°˜í™˜
 	}
 	inline const GOE::Matrix4x4* GetBoneOffsetsByIndex(int index) const	{return m_boneOffsets[index];}
 	inline const std::vector<GOE::Matrix4x4*> GetBoneOffsets() const { return m_boneOffsets; }
@@ -47,14 +47,14 @@ public:
 	inline void SetBoneOffsetByIndex(unsigned int index, GOE::Matrix4x4* boneOffest) { m_boneOffsets[index] = boneOffest; }
 
 private:
-	const std::string m_name; // ¸Å½¬ ÀÌ¸§
-	const size_t m_id; // ¸Å½¬ ID
-	size_t m_modelID = 0; // ¸ğµ¨ ID (Ãß°¡ ÇÊ¿ä½Ã »ç¿ë)
-	size_t m_meshIndex = 0; // ¸Å½¬ ÀÎµ¦½º (Ãß°¡ ÇÊ¿ä½Ã »ç¿ë)
+	const std::string m_name; // ë§¤ì‰¬ ì´ë¦„
+	const size_t m_id; // ë§¤ì‰¬ ID
+	size_t m_modelID = 0; // ëª¨ë¸ ID (ì¶”ê°€ í•„ìš”ì‹œ ì‚¬ìš©)
+	size_t m_meshIndex = 0; // ë§¤ì‰¬ ì¸ë±ìŠ¤ (ì¶”ê°€ í•„ìš”ì‹œ ì‚¬ìš©)
 	
 	std::vector<std::unique_ptr<Bone>> m_bones;
-	std::unordered_map<size_t, Bone*> m_boneMap; // º» ÇØ½¬¸Ê
+	std::unordered_map<size_t, Bone*> m_boneMap; // ë³¸ í•´ì‰¬ë§µ
 	std::vector<GOE::Matrix4x4*> m_boneOffsets = {};
-	std::unique_ptr<GOE::MeshData> m_meshData; // ¸Å½¬ µ¥ÀÌÅÍ Æ÷ÀÎÅÍ
+	std::unique_ptr<GOE::MeshData> m_meshData; // ë§¤ì‰¬ ë°ì´í„° í¬ì¸í„°
 };
 

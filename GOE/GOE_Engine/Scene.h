@@ -23,7 +23,7 @@ class MovementSystem;
 class AnimationSystem;
 
 /// <summary>
-/// ¾ÀÀÇ ³»¿ëÀÌ ±â·ÏµÇ´Â Scene 
+/// ì”¬ì˜ ë‚´ìš©ì´ ê¸°ë¡ë˜ëŠ” Scene 
 /// 
 /// </summary>
 class Scene
@@ -33,8 +33,8 @@ public:
 	~Scene();
 
 	/// <summary>
-	///  ÇöÀç ¾À¿¡ Á¸ÀçÇÏ´Â ¶óÀÌÇÁ»çÀÌÅ¬ ÇÔ¼ö´Â 
-	///  ³ªÁß¿¡ Scenemanager¼±¿¡¼­ °ü¸®µÇ¾î¾ß ÇÑ´Ù.
+	///  í˜„ì¬ ì”¬ì— ì¡´ì¬í•˜ëŠ” ë¼ì´í”„ì‚¬ì´í´ í•¨ìˆ˜ëŠ” 
+	///  ë‚˜ì¤‘ì— Scenemanagerì„ ì—ì„œ ê´€ë¦¬ë˜ì–´ì•¼ í•œë‹¤.
 	/// </summary>
 public:
 	void Initialize(GOE::EngineContext* context);
@@ -62,13 +62,13 @@ public:
 	inline ComponentManager<AnimationUnit>* GetAnimationUnitManager() { return m_animationUnitManager.get(); }
 
 private:
-	void Script();// ¾ÀÀ» Àû´Â °÷ÀÌ ÀÖ¾î¾ßÇÑ´Ù.
+	void Script();// ì”¬ì„ ì ëŠ” ê³³ì´ ìˆì–´ì•¼í•œë‹¤.
 
 private:
 	GOE::EngineContext* m_context = nullptr;
 
 private:
-	// ÄÄÆ÷³ÍÆ®µéÀ» ÀÏ°ıÃ³¸®ÇÒ systemµéÀÌ ÇÊ¿äÇÔ
+	// ì»´í¬ë„ŒíŠ¸ë“¤ì„ ì¼ê´„ì²˜ë¦¬í•  systemë“¤ì´ í•„ìš”í•¨
 	std::unique_ptr<EntityManager> m_entityManager;
 	std::unique_ptr<ComponentManager<Transform>> m_transformManager;
 	std::unique_ptr<ComponentManager<MeshRenderer>> m_meshRendererManager;

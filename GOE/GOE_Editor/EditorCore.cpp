@@ -37,12 +37,12 @@ void EditorCore::Initialize(UIInitInfo* uiInfo)
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 
-	/// ÆùÆ®¼³Á¤
+	/// í°íŠ¸ì„¤ì •
 	{
-		const char* font_path = "..\\Fonts\\D2Coding.ttc"; // .ttc ÆÄÀÏ °æ·Î
+		const char* font_path = "..\\Fonts\\D2Coding.ttc"; // .ttc íŒŒì¼ ê²½ë¡œ
 		float font_size = 16.0f;
 
-		// ÇÑ±Û ¹üÀ§ ÁöÁ¤
+		// í•œê¸€ ë²”ìœ„ ì§€ì •
 		static const ImWchar korean_ranges[] =
 		{
 			0x0020, 0x007E, // Basic Latin
@@ -51,17 +51,17 @@ void EditorCore::Initialize(UIInitInfo* uiInfo)
 			0,
 		};
 
-		// 1. ÆùÆ® ¼³Á¤À» À§ÇÑ °´Ã¼ »ý¼º
+		// 1. í°íŠ¸ ì„¤ì •ì„ ìœ„í•œ ê°ì²´ ìƒì„±
 		ImFontConfig font_config;
 
-		// 2. .ttc ÆÄÀÏ ³»¿¡¼­ »ç¿ëÇÒ ÆùÆ®ÀÇ ÀÎµ¦½º¸¦ ÁöÁ¤ (0 = Ã¹ ¹øÂ° ÆùÆ®)
-		// D2Coding.ttcÀÇ °æ¿ì º¸Åë 0¹øÀÌ ÀÏ¹Ý(Regular) ±½±âÀÔ´Ï´Ù.
+		// 2. .ttc íŒŒì¼ ë‚´ì—ì„œ ì‚¬ìš©í•  í°íŠ¸ì˜ ì¸ë±ìŠ¤ë¥¼ ì§€ì • (0 = ì²« ë²ˆì§¸ í°íŠ¸)
+		// D2Coding.ttcì˜ ê²½ìš° ë³´í†µ 0ë²ˆì´ ì¼ë°˜(Regular) êµµê¸°ìž…ë‹ˆë‹¤.
 		font_config.FontNo = 0;
 
-		// 3. ¼³Á¤ °´Ã¼¿Í ÇÔ²² ÆùÆ® ·Îµå
+		// 3. ì„¤ì • ê°ì²´ì™€ í•¨ê»˜ í°íŠ¸ ë¡œë“œ
 		io.Fonts->AddFontFromFileTTF(font_path, font_size, &font_config, korean_ranges);
 
-		// ÆùÆ® ÅØ½ºÃ³ ºôµå´Â ¹é¿£µå°¡ ÀÚµ¿À¸·Î Ã³¸®ÇØÁÝ´Ï´Ù.
+		// í°íŠ¸ í…ìŠ¤ì²˜ ë¹Œë“œëŠ” ë°±ì—”ë“œê°€ ìžë™ìœ¼ë¡œ ì²˜ë¦¬í•´ì¤ë‹ˆë‹¤.
 	}
 
 	Editor::g_io = io;

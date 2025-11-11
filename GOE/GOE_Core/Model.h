@@ -11,15 +11,15 @@ class Mesh;
 class Bone;
 
 /// <summary>
-/// ¸ğµ¨¸µ¿¡ ÇÊ¿äÇÑ 
-/// Á¤º¸¸¦ °®°í ÀÖ´Â Å¬·¡½º
+/// ëª¨ë¸ë§ì— í•„ìš”í•œ 
+/// ì •ë³´ë¥¼ ê°–ê³  ìˆëŠ” í´ë˜ìŠ¤
 /// 
 /// ohk 2025.07.29
 /// </summary>
 class Model
 {
 public:
-	// »ı¼ºÀÚ
+	// ìƒì„±ì
 	Model() = default;
 	Model(size_t hash) : m_id(hash) {}
 
@@ -40,9 +40,9 @@ public:
 		auto it = m_nodeMap.find(id);
 		if (it != m_nodeMap.end())
 		{
-			return it->second; // Ã£¾ÒÀ¸¸é ³ëµåÀÇ raw pointer ¹İÈ¯
+			return it->second; // ì°¾ì•˜ìœ¼ë©´ ë…¸ë“œì˜ raw pointer ë°˜í™˜
 		}
-		return nullptr; // ¸ø Ã£¾ÒÀ¸¸é nullptr ¹İÈ¯
+		return nullptr; // ëª» ì°¾ì•˜ìœ¼ë©´ nullptr ë°˜í™˜
 	}
 	inline const std::vector<MESH_ID>& GetMeshIDs() const { return m_meshIDs; }
 
@@ -56,7 +56,7 @@ public:
 	inline void AddMeshID(MESH_ID id) { m_meshIDs.push_back(id); }
 	inline void AddMeshToMap(MESH_ID id, MESH_INDEX index)
 	{
-		m_meshMap[id] = index; // ¸Å½¬ ID¿Í ÀÎµ¦½º¸¦ ÇØ½Ã¸Ê¿¡ Ãß°¡
+		m_meshMap[id] = index; // ë§¤ì‰¬ IDì™€ ì¸ë±ìŠ¤ë¥¼ í•´ì‹œë§µì— ì¶”ê°€
 	}
 	
 public: 
@@ -64,14 +64,14 @@ public:
 	void UpdateHierarchy(Node* node);
 
 private:
-	std::string m_name = ""; // ¸ğµ¨ ÀÌ¸§
-	const size_t m_id;		// ¸ğµ¨ ID
+	std::string m_name = ""; // ëª¨ë¸ ì´ë¦„
+	const size_t m_id;		// ëª¨ë¸ ID
 
 	std::unique_ptr<Node> m_rootNode; 
 	std::vector<Node*> m_nodes;
 	std::unordered_map<size_t, Node*> m_nodeMap;
 
 	std::vector<MESH_ID> m_meshIDs;
-	std::unordered_map<MESH_ID, MESH_INDEX> m_meshMap; // ¸Å½¬ ÀÌ¸§°ú ÀÎµ¦½º¸¦ ¸ÅÇÎÇÏ´Â ÇØ½Ã¸Ê
+	std::unordered_map<MESH_ID, MESH_INDEX> m_meshMap; // ë§¤ì‰¬ ì´ë¦„ê³¼ ì¸ë±ìŠ¤ë¥¼ ë§¤í•‘í•˜ëŠ” í•´ì‹œë§µ
 };
 

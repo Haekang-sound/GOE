@@ -51,6 +51,8 @@
     <ClInclude Include="TextureResource.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
+    <ClInclude Include="GraphicsDevice.h" />
+    <ClInclude Include="SwapChain.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GOERenderer.cpp">
@@ -80,6 +82,8 @@
     <ClCompile Include="TextureResource.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
+    <ClCompile Include="GraphicsDevice.cpp" />
+    <ClCompile Include="SwapChain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

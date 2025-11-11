@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Editor_pch.h"
 #include "../Imgui/imgui.h"
 #include "../Imgui/imgui_impl_dx12.h"

@@ -1,4 +1,4 @@
-﻿#include "Engine_pch.h"
+#include "Engine_pch.h"
 #include "AnimationSystem.h"
 
 #include "Scene.h"

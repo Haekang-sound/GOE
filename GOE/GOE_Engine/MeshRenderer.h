@@ -23,12 +23,12 @@ public:
 	void SetVisible(bool isVisible) { m_isVisible = isVisible; }
 	
 protected:
-	/// ÀÌ°É°¡Á®°¡¼­ 
-	size_t m_meshID = 0; // ¸Ş½¬ ID
-	size_t m_meshIndex = 0; // ¸Ş½¬ index (Ãß°¡ ÇÊ¿ä½Ã »ç¿ë)
-	size_t m_modelID = 0; // ¸ğµ¨ ID (Ãß°¡ ÇÊ¿ä½Ã »ç¿ë)
-	bool m_isVisible = true; // ·»´õ¸µ ¿©ºÎ
+	/// ì´ê±¸ê°€ì ¸ê°€ì„œ 
+	size_t m_meshID = 0; // ë©”ì‰¬ ID
+	size_t m_meshIndex = 0; // ë©”ì‰¬ index (ì¶”ê°€ í•„ìš”ì‹œ ì‚¬ìš©)
+	size_t m_modelID = 0; // ëª¨ë¸ ID (ì¶”ê°€ í•„ìš”ì‹œ ì‚¬ìš©)
+	bool m_isVisible = true; // ë Œë”ë§ ì—¬ë¶€
 
-	std::string m_name = ""; // ¿ÀºêÁ§Æ® ÀÌ¸§
+	std::string m_name = ""; // ì˜¤ë¸Œì íŠ¸ ì´ë¦„
 };
 

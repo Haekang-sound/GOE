@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include<memory>
 #include <Windows.h>
 #include "IEngine.h"

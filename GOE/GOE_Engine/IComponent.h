@@ -1,12 +1,12 @@
 #pragma once
 /// <summary>
-/// ÄÄÆ÷³ÍÆ®µéÀÇ ÃÖ»óÀ§ ÀÎÅÍÆäÀÌ½º
+/// ì»´í¬ë„ŒíŠ¸ë“¤ì˜ ìµœìƒìœ„ ì¸í„°í˜ì´ìŠ¤
 /// </summary>
 class IComponent
 {
 public:
 	/// <summary>
-	/// ÀÚ½Å°ú ¿ÀºêÁ§Æ®ÀÇ ¾ÆÀÌµğ´Â ÇÊ¼ö
+	/// ìì‹ ê³¼ ì˜¤ë¸Œì íŠ¸ì˜ ì•„ì´ë””ëŠ” í•„ìˆ˜
 	/// </summary>
 	/// <param name="ownerID">Entity ID</param>
 	/// <param name="id">ComponentID</param>
@@ -26,5 +26,5 @@ protected:
 	const size_t m_id;
 	const size_t m_ownerID; // entity ID
 
-	bool isActive = true; // È°¼ºÈ­ ¿©ºÎ
+	bool isActive = true; // í™œì„±í™” ì—¬ë¶€
 };

@@ -1,22 +1,22 @@
 #include "AssetLoader_pch.h"
 #include "AssetLoader.h"
 
-AssetLoader::~AssetLoader() = default; // ¼Ò¸êÀÚ ±¸Çö
+AssetLoader::~AssetLoader() = default; // ì†Œë©¸ì êµ¬í˜„
 
-// ¸ŞÀÎ ·Îµå ÇÔ¼ö
+// ë©”ì¸ ë¡œë“œ í•¨ìˆ˜
 bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 {
-	// hasher °´Ã¼¸¦ ÇÔ¼öÃ³·³ È£ÃâÇÏ¿© filePathÀÇ ÇØ½Ã °ªÀ» °è»êÇÕ´Ï´Ù.
+	// hasher ê°ì²´ë¥¼ í•¨ìˆ˜ì²˜ëŸ¼ í˜¸ì¶œí•˜ì—¬ filePathì˜ í•´ì‹œ ê°’ì„ ê³„ì‚°í•©ë‹ˆë‹¤.
 	size_t pathHash = GOE::FileManager::GetHash(filePath);
 
-	m_models[pathHash] = std::make_unique<Model>(pathHash); // ¸ğµ¨À» ÇØ½Ã¸Ê¿¡ Ãß°¡
+	m_models[pathHash] = std::make_unique<Model>(pathHash); // ëª¨ë¸ì„ í•´ì‹œë§µì— ì¶”ê°€
 
 	// Create an instance of the Importer class
 	Assimp::Importer importer;
 
-	// DirectX È£È¯À» À§ÇÑ ÇÃ·¡±× ¼³Á¤
+	// DirectX í˜¸í™˜ì„ ìœ„í•œ í”Œë˜ê·¸ ì„¤ì •
 	const unsigned int modelFlags =
-		aiProcess_LimitBoneWeights |   // ÃÖ´ë 4°³ º» Á¦ÇÑ
+		aiProcess_LimitBoneWeights |   // ìµœëŒ€ 4ê°œ ë³¸ ì œí•œ
 		aiProcess_MakeLeftHanded |
 		aiProcess_FlipUVs |
 		aiProcess_FlipWindingOrder |
@@ -38,22 +38,22 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 	// If the import failed, report it
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		// ¿¡·¯ Ã³¸®: ¾À ·Îµù ½ÇÆĞ
+		// ì—ëŸ¬ ì²˜ë¦¬: ì”¬ ë¡œë”© ì‹¤íŒ¨
 		return false;
 	}
 
-	// ³ëµå¸¦ Ã³¸®ÇÑ´Ù.
+	// ë…¸ë“œë¥¼ ì²˜ë¦¬í•œë‹¤.
 	if (scene->HasMeshes())
 	{
-		// ¿©±â¼­ ³ëµå¸¦ Æ®¸®ÇüÅÂ·Î ÀúÀåÇÏ°í
+		// ì—¬ê¸°ì„œ ë…¸ë“œë¥¼ íŠ¸ë¦¬í˜•íƒœë¡œ ì €ì¥í•˜ê³ 
 		aiNode* rootNode = scene->mRootNode;
-		rootNode->mName.C_Str(); // ³ëµå ÀÌ¸§À» °¡Á®¿É´Ï´Ù.
+		rootNode->mName.C_Str(); // ë…¸ë“œ ì´ë¦„ì„ ê°€ì ¸ì˜µë‹ˆë‹¤.
 		m_models[pathHash].get()->AddRootNode(ProcessNode(rootNode));
-		// Æ®¸®·Î ÀúÀåµÈ ³ëµåµéÀ» ¼øÈ¸ÇÏ¸é¼­ º¤ÅÍ¿¡´ãÀ¸¸é¼­ ÀÎµ¦½º¸¦ ºÎ¿©ÇÑ´Ù.
-		// µ¿½Ã¿¡ ÇØ½¬-³ëµå ÇüÅÂ·Î ÀúÀåÇÑ´Ù.
+		// íŠ¸ë¦¬ë¡œ ì €ì¥ëœ ë…¸ë“œë“¤ì„ ìˆœíšŒí•˜ë©´ì„œ ë²¡í„°ì—ë‹´ìœ¼ë©´ì„œ ì¸ë±ìŠ¤ë¥¼ ë¶€ì—¬í•œë‹¤.
+		// ë™ì‹œì— í•´ì‰¬-ë…¸ë“œ í˜•íƒœë¡œ ì €ì¥í•œë‹¤.
 		Node* start = m_models[pathHash].get()->GetRootNode().get();
 
-		///dfs¸¦ »ç¿ëÇØ¼­ Æ®¸®Å½»ö
+		///dfsë¥¼ ì‚¬ìš©í•´ì„œ íŠ¸ë¦¬íƒìƒ‰
 		std::vector<Node*> nodeStack;
 		nodeStack.push_back(start);
 		while (nodeStack.size() > 0)
@@ -74,14 +74,14 @@ bool AssetLoader::LoadModelFromFile(const std::string& filePath)
 
 		for (int i = 0; i < scene->mNumMeshes; i++)
 		{
-			// ÇöÀç ¸Ş½¬¸¦ °¡Á®¿É´Ï´Ù.
+			// í˜„ì¬ ë©”ì‰¬ë¥¼ ê°€ì ¸ì˜µë‹ˆë‹¤.
 			aiMesh* mesh = scene->mMeshes[i];
 
-			// ¸Ş½¬ µ¥ÀÌÅÍ¸¦ Ã³¸®ÇÕ´Ï´Ù.
-			/// ÁøÁ¤ ¸Ş½¬Á¤º¸´Â ¸Ş½¬·£´õ·¯°¡ °®´Â°Ô ¸Â´Ù. ¸ğµ¨Àº ¸Ş½¬¿ÍÀÇ °ü°è¸¦ ¼ÒÀ¯ÇÑ´Ù.
+			// ë©”ì‰¬ ë°ì´í„°ë¥¼ ì²˜ë¦¬í•©ë‹ˆë‹¤.
+			/// ì§„ì • ë©”ì‰¬ì •ë³´ëŠ” ë©”ì‰¬ëœë”ëŸ¬ê°€ ê°–ëŠ”ê²Œ ë§ë‹¤. ëª¨ë¸ì€ ë©”ì‰¬ì™€ì˜ ê´€ê³„ë¥¼ ì†Œìœ í•œë‹¤.
 			m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())] = ProcessMesh(mesh, scene);
-			m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->SetModelID(pathHash); // ¸Ş½¬¿¡ ¸ğµ¨ ID ¼³Á¤
-			m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->SetMeshIndex(static_cast<std::size_t>(i)); // ¸Ş½¬ ÀÎµ¦½º ¼³Á¤
+			m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->SetModelID(pathHash); // ë©”ì‰¬ì— ëª¨ë¸ ID ì„¤ì •
+			m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->SetMeshIndex(static_cast<std::size_t>(i)); // ë©”ì‰¬ ì¸ë±ìŠ¤ ì„¤ì •
 			m_models[pathHash].get()->AddMeshID(m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->GetID());
 			m_models[pathHash].get()->AddMeshToMap(m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->GetID(),
 				m_meshes[GOE::FileManager::GetHash(mesh->mName.C_Str())].get()->GetMeshIndex());
@@ -97,27 +97,27 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 	Assimp::Importer importer;
 
 	const unsigned int animFlags =
-		aiProcess_MakeLeftHanded |     // DX ÁÂÇ¥°è ¸ÂÃã
-		aiProcess_FlipUVs |            // UV µÚÁı±â (ÇÊ¿ä ½Ã)
-		aiProcess_FlipWindingOrder |   // ÀÎµ¦½º ½Ã°è¹æÇâ µÚÁı±â
-		aiProcess_Triangulate |        // »ï°¢ÇüÈ­ (º» ¸ÅÇÎ¿ë)
+		aiProcess_MakeLeftHanded |     // DX ì¢Œí‘œê³„ ë§ì¶¤
+		aiProcess_FlipUVs |            // UV ë’¤ì§‘ê¸° (í•„ìš” ì‹œ)
+		aiProcess_FlipWindingOrder |   // ì¸ë±ìŠ¤ ì‹œê³„ë°©í–¥ ë’¤ì§‘ê¸°
+		aiProcess_Triangulate |        // ì‚¼ê°í˜•í™” (ë³¸ ë§¤í•‘ìš©)
 		aiProcess_JoinIdenticalVertices |
 		aiProcess_SortByPType |
-		aiProcess_LimitBoneWeights |   // Á¤Á¡´ç º» 4°³ Á¦ÇÑ
-		//aiProcess_GlobalScale |        // FBX/Collada ´ÜÀ§°è º¸Á¤ -> ÀÌ°Å Àß¸ø»ç¿ëÇÏ¸é¸ÁÇÔ;
-		aiProcess_ValidateDataStructure; // µ¥ÀÌÅÍ ±¸Á¶ °ËÁõ
+		aiProcess_LimitBoneWeights |   // ì •ì ë‹¹ ë³¸ 4ê°œ ì œí•œ
+		//aiProcess_GlobalScale |        // FBX/Collada ë‹¨ìœ„ê³„ ë³´ì • -> ì´ê±° ì˜ëª»ì‚¬ìš©í•˜ë©´ë§í•¨;
+		aiProcess_ValidateDataStructure; // ë°ì´í„° êµ¬ì¡° ê²€ì¦
 
 	const aiScene* scene = importer.ReadFile(filePath, animFlags);
 
 	// If the import failed, report it
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
-		// ¿¡·¯ Ã³¸®: ¾À ·Îµù ½ÇÆĞ
+		// ì—ëŸ¬ ì²˜ë¦¬: ì”¬ ë¡œë”© ì‹¤íŒ¨
 		return false;
 	}
 
 
-	/// ¾Ö´Ï¸ŞÀÌ¼Ç Å¬·¡½º¸¦ Ã¤¿ì°í º¸°üÇÑ´Ù.
+	/// ì• ë‹ˆë©”ì´ì…˜ í´ë˜ìŠ¤ë¥¼ ì±„ìš°ê³  ë³´ê´€í•œë‹¤.
 	if (scene->HasAnimations())
 	{
 		for (int i = 0; i < scene->mNumAnimations; ++i)
@@ -175,7 +175,7 @@ bool AssetLoader::LoadAnimiationFromFile(const std::string& filePath)
 
 std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node, Node* parent)
 {
-	/// ³ëµåÀÌ¸§À» ÇØ½¬·Î ÀúÀåÁß-> ÀÌ°É·Î ÃæºĞÇÑÁö´Â ÀÇ¹®
+	/// ë…¸ë“œì´ë¦„ì„ í•´ì‰¬ë¡œ ì €ì¥ì¤‘-> ì´ê±¸ë¡œ ì¶©ë¶„í•œì§€ëŠ” ì˜ë¬¸
 	std::unique_ptr<Node> currentNode = std::make_unique<Node>(node->mName.C_Str(), GOE::FileManager::GetHash(node->mName.C_Str()));
 
 	currentNode.get()->SetLocalTM(aiMatrix4x4ToCoreMtrix(node->mTransformation));
@@ -183,32 +183,32 @@ std::unique_ptr<Node> AssetLoader::ProcessNode(aiNode* node, Node* parent)
 		node->mTransformation.a4,
 		node->mTransformation.b4,
 		node->mTransformation.c4);
-	currentNode.get()->SetParent(parent); // ºÎ¸ğ³ëµå ¼³Á¤
+	currentNode.get()->SetParent(parent); // ë¶€ëª¨ë…¸ë“œ ì„¤ì •
 
 	
 	for (unsigned int i = 0; i < node->mNumMeshes; i++)
 	{
 		unsigned int meshIndex = node->mMeshes[i];
-		currentNode.get()->AddMeshIndex(meshIndex); // ÇöÀç ³ëµå°¡ ÂüÁ¶ÇÏ´Â ¸Ş½¬ ÀÎµ¦½º¸¦ Ãß°¡ÇÕ´Ï´Ù.
+		currentNode.get()->AddMeshIndex(meshIndex); // í˜„ì¬ ë…¸ë“œê°€ ì°¸ì¡°í•˜ëŠ” ë©”ì‰¬ ì¸ë±ìŠ¤ë¥¼ ì¶”ê°€í•©ë‹ˆë‹¤.
 	}
 
-	// 2. ÀÌ ³ëµåÀÇ *ÀÚ½Ä ³ëµå*µéÀ» Àç±ÍÀûÀ¸·Î Ã³¸®ÇÕ´Ï´Ù.
+	// 2. ì´ ë…¸ë“œì˜ *ìì‹ ë…¸ë“œ*ë“¤ì„ ì¬ê·€ì ìœ¼ë¡œ ì²˜ë¦¬í•©ë‹ˆë‹¤.
 	for (unsigned int i = 0; i < node->mNumChildren; i++)
 	{
-		// ÇöÀç ³ëµåÀÇ ÀÚ½Ä ³ëµå¸¦ °¡Á®¿É´Ï´Ù.
+		// í˜„ì¬ ë…¸ë“œì˜ ìì‹ ë…¸ë“œë¥¼ ê°€ì ¸ì˜µë‹ˆë‹¤.
 		aiNode* childNode = node->mChildren[i];
-		// ÀÚ½Ä ³ëµå¸¦ Àç±ÍÀûÀ¸·Î Ã³¸®ÇÕ´Ï´Ù.
+		// ìì‹ ë…¸ë“œë¥¼ ì¬ê·€ì ìœ¼ë¡œ ì²˜ë¦¬í•©ë‹ˆë‹¤.
 		currentNode.get()->AddChild(ProcessNode(childNode, currentNode.get()));
 	}
 
-	return currentNode; // ÇöÀç ³ëµå¿¡ ´ëÇÑ Ã³¸®°¡ ³¡³µÀ¸¹Ç·Î ºó ³ëµå¸¦ ¹İÈ¯ÇÕ´Ï´Ù.
+	return currentNode; // í˜„ì¬ ë…¸ë“œì— ëŒ€í•œ ì²˜ë¦¬ê°€ ëë‚¬ìœ¼ë¯€ë¡œ ë¹ˆ ë…¸ë“œë¥¼ ë°˜í™˜í•©ë‹ˆë‹¤.
 }
 
 std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scene)
 {
 	std::unique_ptr<Mesh> currentMesh = std::make_unique<Mesh>(mesh->mName.C_Str(), GOE::FileManager::GetHash(mesh->mName.C_Str()));
 
-	// Á¤Á¡(Vertex) µ¥ÀÌÅÍ ÃßÃâ
+	// ì •ì (Vertex) ë°ì´í„° ì¶”ì¶œ
 	std::unique_ptr<GOE::MeshData> meshData = std::make_unique<GOE::MeshData>();
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
@@ -220,13 +220,13 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 
 		if (mesh->HasTextureCoords(0))
 		{
-			meshData.get()->vertices.back().uv.x = mesh->mTextureCoords[0][i].x; // UV ÁÂÇ¥ X
-			meshData.get()->vertices.back().uv.y = mesh->mTextureCoords[0][i].y; // UV ÁÂÇ¥ Y
+			meshData.get()->vertices.back().uv.x = mesh->mTextureCoords[0][i].x; // UV ì¢Œí‘œ X
+			meshData.get()->vertices.back().uv.y = mesh->mTextureCoords[0][i].y; // UV ì¢Œí‘œ Y
 		}
 		else
 		{
-			meshData.get()->vertices.back().uv.x = 0.0f; // UV ÁÂÇ¥ X
-			meshData.get()->vertices.back().uv.y = 0.0f; // UV ÁÂÇ¥ Y
+			meshData.get()->vertices.back().uv.x = 0.0f; // UV ì¢Œí‘œ X
+			meshData.get()->vertices.back().uv.y = 0.0f; // UV ì¢Œí‘œ Y
 		}
 
 		if (mesh->HasNormals())
@@ -253,17 +253,17 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 		}
 	}
 
-	// º»À» Ãß°¡ÇÑ´Ù.
+	// ë³¸ì„ ì¶”ê°€í•œë‹¤.
 	if (mesh->HasBones())
 	{
 		for (size_t i = 0; i < mesh->mNumBones; ++i)
 		{
-			// º»À» Ã¤¿î´Ù.
+			// ë³¸ì„ ì±„ìš´ë‹¤.
 			std::unique_ptr<Bone> currentBone
 				= std::make_unique<Bone>(mesh->mBones[i]->mName.C_Str(),
 					GOE::FileManager::GetHash(mesh->mBones[i]->mName.C_Str()),
 					currentMesh.get()->GetID());
-			currentBone.get()->SetBoneIndex(i); // º» ÀÎµ¦½º ¼³Á¤
+			currentBone.get()->SetBoneIndex(i); // ë³¸ ì¸ë±ìŠ¤ ì„¤ì •
 			currentBone.get()->SetBoneOffset(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix));//.Transpose()));
 			currentBone.get()->SetNode(GOE::FileManager::GetHash(mesh->mBones[i]->mNode->mName.C_Str()));
 			currentBone.get()->SetRootNode(GOE::FileManager::GetHash(mesh->mBones[i]->mArmature->mName.C_Str()));
@@ -274,50 +274,50 @@ std::unique_ptr<Mesh> AssetLoader::ProcessMesh(aiMesh* mesh, const aiScene* scen
 
 		}
 
-		// º»À» ¼øÈ¸ÇÑ´Ù.
+		// ë³¸ì„ ìˆœíšŒí•œë‹¤.
 		for (size_t i = 0; i < mesh->mNumBones; ++i)
 		{
 			meshData.get()->boneOffsets.push_back(aiMatrix4x4ToCoreMtrix(mesh->mBones[i]->mOffsetMatrix));// .Transpose()));
-			// ÇöÀç º»ÀÌ ¿µÇâÀ» ÁÖ´Â ¹öÅØ½ºÀÇ ¼ö¸¸Å­ ¼øÈ¸ÇÑ´Ù.
+			// í˜„ì¬ ë³¸ì´ ì˜í–¥ì„ ì£¼ëŠ” ë²„í…ìŠ¤ì˜ ìˆ˜ë§Œí¼ ìˆœíšŒí•œë‹¤.
 			for (unsigned int j = 0; j < mesh->mBones[i]->mNumWeights; ++j)
 			{
-				// º»ÀÌ ¿µÇâÀ»ÁÖ´Â ¹öÅØ½º¾ÆÀÌµğ¿Í °¡ÁßÄ¡¸¦ °¡Á®¿Â´Ù.
+				// ë³¸ì´ ì˜í–¥ì„ì£¼ëŠ” ë²„í…ìŠ¤ì•„ì´ë””ì™€ ê°€ì¤‘ì¹˜ë¥¼ ê°€ì ¸ì˜¨ë‹¤.
 				unsigned int vertexId = mesh->mBones[i]->mWeights[j].mVertexId;
 				float weight = mesh->mBones[i]->mWeights[j].mWeight;
 
-				/// Á¤Á¡¿¡ º»µ¥ÀÌÅÍ¸¦ ÀÔ·ÂÇÏ´Â °úÁ¤ÀÌ ÇÊ¿äÇÔ
+				/// ì •ì ì— ë³¸ë°ì´í„°ë¥¼ ì…ë ¥í•˜ëŠ” ê³¼ì •ì´ í•„ìš”í•¨
 				if (weight >= EPSILON)
 				{
-					// ºó ½½·ÔÀ» Ã£¾Æ¼­ º» ÀÎµ¦½º¿Í °¡ÁßÄ¡¸¦ ¼³Á¤
+					// ë¹ˆ ìŠ¬ë¡¯ì„ ì°¾ì•„ì„œ ë³¸ ì¸ë±ìŠ¤ì™€ ê°€ì¤‘ì¹˜ë¥¼ ì„¤ì •
 					for (int k = 0; k < MAX_BONE; ++k)
 					{
-						// °¡ÁßÄ¡°¡ EPSILONº¸´ÙÀÛÀ¸¸é ¾ÆÁ÷ ºó ½½·ÔÀÌ¹Ç·Î ¿©±â¿¡ º» Á¤º¸ ÀÔ·Â
+						// ê°€ì¤‘ì¹˜ê°€ EPSILONë³´ë‹¤ì‘ìœ¼ë©´ ì•„ì§ ë¹ˆ ìŠ¬ë¡¯ì´ë¯€ë¡œ ì—¬ê¸°ì— ë³¸ ì •ë³´ ì…ë ¥
 						if (meshData.get()->vertices[vertexId].boneWeights[k] < EPSILON)
 						{
 							meshData.get()->vertices[vertexId].boneIndices[k] = i;
 							meshData.get()->vertices[vertexId].boneWeights[k] = weight;
 							break;
-							// ºó ½½·ÔÀ» Ã£¾ÒÀ¸¹Ç·Î ·çÇÁ Á¾·á
-							// ¿©±â¼­ Á¾·áÇÏÁö ¾ÊÀ¸¸é µ¿ÀÏ º»ÀÌ ¿©·¯ ½½·Ô¿¡ µé¾î°¥ ¼ö ÀÖÀ½
+							// ë¹ˆ ìŠ¬ë¡¯ì„ ì°¾ì•˜ìœ¼ë¯€ë¡œ ë£¨í”„ ì¢…ë£Œ
+							// ì—¬ê¸°ì„œ ì¢…ë£Œí•˜ì§€ ì•Šìœ¼ë©´ ë™ì¼ ë³¸ì´ ì—¬ëŸ¬ ìŠ¬ë¡¯ì— ë“¤ì–´ê°ˆ ìˆ˜ ìˆìŒ
 						}
 					}
 				}
 			}
 		}
 
-		// º»°¡ÁßÄ¡ Á¤±ÔÈ­
+		// ë³¸ê°€ì¤‘ì¹˜ ì •ê·œí™”
 		for (size_t i = 0; i < meshData->vertices.size(); ++i)
 		{
 			float totalWeight = 0.0f;
-			// °¡ÁßÄ¡ÀÇ ÇÕÀ» ±¸ÇÑ´Ù.
+			// ê°€ì¤‘ì¹˜ì˜ í•©ì„ êµ¬í•œë‹¤.
 			for (int j = 0; j < MAX_BONE; ++j)
 			{
 				totalWeight += meshData->vertices[i].boneWeights[j];
 			}
-			// °¡ÁßÄ¡ÀÇ ÇÕÀÌ EPSILONº¸´Ù Å©¸é Á¤±ÔÈ­ ¼öÇà
+			// ê°€ì¤‘ì¹˜ì˜ í•©ì´ EPSILONë³´ë‹¤ í¬ë©´ ì •ê·œí™” ìˆ˜í–‰
 			if (totalWeight > EPSILON)
 			{
-				// °¢ °¡ÁßÄ¡¸¦ ÇÕÀ¸·Î ³ª´©¾î Á¤±ÔÈ­
+				// ê° ê°€ì¤‘ì¹˜ë¥¼ í•©ìœ¼ë¡œ ë‚˜ëˆ„ì–´ ì •ê·œí™”
 				for (int j = 0; j < MAX_BONE; ++j)
 				{
 					meshData->vertices[i].boneWeights[j] /= totalWeight;

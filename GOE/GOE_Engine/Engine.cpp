@@ -1,6 +1,6 @@
-﻿#include "Engine_pch.h"
+#include "Engine_pch.h"
 #include "Engine.h"
-#include "../GOE_Editor/DebugManager.h"
+#include "DebugManager.h"
 #include "SceneManager.h"
 
 GOE::Engine::Engine(HINSTANCE hInst, int nCmdShow)
@@ -40,14 +40,14 @@ void GOE::Engine::Initialize()
 
 	/// 로드된 매쉬중 원하는 메쉬를 이름으로 골라서
 	/// 그래픽스 리소스를 생성합니다.
-	// 메쉬 리소스생성
+	// 메쉬 리소스생성 
 	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("Ch03")));
 	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_0")));
 	m_renderer->CreateOneMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_1")));
 	// 애니매이션 리소스 생성
 	m_renderer->CopyUploadHeapToDefault();
 
-	//// 에디터 초기화
+	// 에디터 초기화
 	m_editor = std::make_unique<EditorCore>(m_winCore->GetHWND());
 	m_editor->Initialize(m_renderer.get()->GetUIInfo());
 

@@ -7,24 +7,24 @@ GOE::FileManager::~FileManager() = default;
 
 
 /// <summary>
-/// °æ·Î¸¦ ÀÔ·Â¹Ş°í
-/// ÇØ´ç Æú´õÀÇ ¸ğµçÆÄÀÏÀÇ ÀÌ¸§À» °¡Á®¿É´Ï´Ù.
+/// ê²½ë¡œë¥¼ ì…ë ¥ë°›ê³ 
+/// í•´ë‹¹ í´ë”ì˜ ëª¨ë“ íŒŒì¼ì˜ ì´ë¦„ì„ ê°€ì ¸ì˜µë‹ˆë‹¤.
 /// </summary>
-/// <param name="folderPath">Æú´õ °æ·Î</param>
+/// <param name="folderPath">í´ë” ê²½ë¡œ</param>
 /// <returns></returns>
 std::vector<std::wstring> GOE::FileManager::GetFileNamesInFolder(std::wstring folderPath)
 {
-	// º¤ÅÍÀÇ Å¸ÀÔµµ std::wstringÀ¸·Î º¯°æÇÕ´Ï´Ù.
+	// ë²¡í„°ì˜ íƒ€ì…ë„ std::wstringìœ¼ë¡œ ë³€ê²½í•©ë‹ˆë‹¤.
 	std::vector<std::wstring> fileNames;
 
-	// ÁöÁ¤µÈ °æ·Î¿¡ ÀÖ´Â ¸ğµç ÆÄÀÏ/Æú´õ¸¦ ¼øÈ¸ÇÕ´Ï´Ù.
+	// ì§€ì •ëœ ê²½ë¡œì— ìˆëŠ” ëª¨ë“  íŒŒì¼/í´ë”ë¥¼ ìˆœíšŒí•©ë‹ˆë‹¤.
 	for (const auto& entry : std::filesystem::directory_iterator(folderPath))
 	{
-		// entry°¡ µğ·ºÅÍ¸®°¡ ¾Æ´Ñ ÀÏ¹İ ÆÄÀÏÀÏ °æ¿ì¿¡¸¸ Ã³¸®ÇÕ´Ï´Ù.
+		// entryê°€ ë””ë ‰í„°ë¦¬ê°€ ì•„ë‹Œ ì¼ë°˜ íŒŒì¼ì¼ ê²½ìš°ì—ë§Œ ì²˜ë¦¬í•©ë‹ˆë‹¤.
 		if (entry.is_regular_file())
 		{
-			// wstring °´Ã¼¸¦ º¤ÅÍ¿¡ push_back ÇÕ´Ï´Ù.
-			// ¿©±â¼­ »ı¼ºµÈ ÀÓ½Ã wstring °´Ã¼ÀÇ ³»¿ëÀÌ º¤ÅÍ ³»ºÎÀÇ »õ·Î¿î wstring °´Ã¼·Î 'ÀÌµ¿(move)'µÇ¾î È¿À²ÀûÀÔ´Ï´Ù.
+			// wstring ê°ì²´ë¥¼ ë²¡í„°ì— push_back í•©ë‹ˆë‹¤.
+			// ì—¬ê¸°ì„œ ìƒì„±ëœ ì„ì‹œ wstring ê°ì²´ì˜ ë‚´ìš©ì´ ë²¡í„° ë‚´ë¶€ì˜ ìƒˆë¡œìš´ wstring ê°ì²´ë¡œ 'ì´ë™(move)'ë˜ì–´ íš¨ìœ¨ì ì…ë‹ˆë‹¤.
 			fileNames.push_back(entry.path().filename().wstring());
 		}
 	}
@@ -33,11 +33,11 @@ std::vector<std::wstring> GOE::FileManager::GetFileNamesInFolder(std::wstring fo
 }
 
 /// <summary>
-/// °æ·Î¿Í È®ÀåÀÚ¸¦ ÀÔ·Â¹Ş°í ÇØ´çÆú´õ¿¡¼­
-/// Æ¯Á¤È®ÀåÀÚ¸¦ °¡Áø ÆÄÀÏÀÇ ÀÌ¸§À» °¡Á®¿É´Ï´Ù.
+/// ê²½ë¡œì™€ í™•ì¥ìë¥¼ ì…ë ¥ë°›ê³  í•´ë‹¹í´ë”ì—ì„œ
+/// íŠ¹ì •í™•ì¥ìë¥¼ ê°€ì§„ íŒŒì¼ì˜ ì´ë¦„ì„ ê°€ì ¸ì˜µë‹ˆë‹¤.
 /// </summary>
-/// <param name="folderPath">Æú´õ°æ·Î</param>
-/// <param name="extension">È®ÀåÀÚ</param>
+/// <param name="folderPath">í´ë”ê²½ë¡œ</param>
+/// <param name="extension">í™•ì¥ì</param>
 /// <returns></returns>
 std::vector<std::wstring> GOE::FileManager::GetThisFileNamesInFolder(std::wstring folderPath, const std::wstring& extension)
 {
@@ -47,7 +47,7 @@ std::vector<std::wstring> GOE::FileManager::GetThisFileNamesInFolder(std::wstrin
 	{
 		for (const auto& entry : std::filesystem::directory_iterator(folderPath))
 		{
-			// ÀÏ¹İ ÆÄÀÏÀÌ¸é¼­, È®ÀåÀÚ°¡ ÀÏÄ¡ÇÏ´Â °æ¿ì¿¡¸¸ Ã³¸®ÇÕ´Ï´Ù.
+			// ì¼ë°˜ íŒŒì¼ì´ë©´ì„œ, í™•ì¥ìê°€ ì¼ì¹˜í•˜ëŠ” ê²½ìš°ì—ë§Œ ì²˜ë¦¬í•©ë‹ˆë‹¤.
 			if (entry.is_regular_file() && entry.path().extension() == extension)
 			{
 				fileNames.push_back(entry.path().filename().wstring());
@@ -63,7 +63,7 @@ std::vector<std::wstring> GOE::FileManager::GetThisFileNamesInFolder(std::wstrin
 }
 
 /// <summary>
-/// ¹®ÀÚ¿­À» ÀÔ·Â¹Ş°í ÇØ½¬·Î ¸¸µé¾îÁİ´Ï´Ù.
+/// ë¬¸ìì—´ì„ ì…ë ¥ë°›ê³  í•´ì‰¬ë¡œ ë§Œë“¤ì–´ì¤ë‹ˆë‹¤.
 /// </summary>
 /// <param name="path"></param>
 /// <returns></returns>

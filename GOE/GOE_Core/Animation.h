@@ -3,7 +3,7 @@
 
 class BoneAnimation;
 
-/// ¾Ö´Ï¸ŞÀÌ¼Ç Á¤º¸¸¦ ´ãÀ» Å¬·¡½º ¾Ö´Ï¸ŞÀÌ¼Ç
+/// ì• ë‹ˆë©”ì´ì…˜ ì •ë³´ë¥¼ ë‹´ì„ í´ë˜ìŠ¤ ì• ë‹ˆë©”ì´ì…˜
 /// 
 class Animation
 {
@@ -34,7 +34,7 @@ private:
 	double m_Duration = 0.0;
 	double m_TicksPerSecond = 0.0;
 
-	// º»Æ®·£½ºÆûÀ» ´ã´Â boneanimation
+	// ë³¸íŠ¸ëœìŠ¤í¼ì„ ë‹´ëŠ” boneanimation
 	std::vector<std::unique_ptr<BoneAnimation>> m_BoneAnimations;
 
 };

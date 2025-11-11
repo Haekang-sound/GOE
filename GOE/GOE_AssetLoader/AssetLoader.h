@@ -16,7 +16,7 @@ struct aiScene;
 struct aiMaterial;
 
 /// <summary>
-/// ¸®¼Ò½º¸¦ ·ÎµåÇÏ´Â Å¬·¡½º
+/// ë¦¬ì†ŒìŠ¤ë¥¼ ë¡œë“œí•˜ëŠ” í´ë˜ìŠ¤
 /// 
 /// </summary>
 class AssetLoader
@@ -29,9 +29,9 @@ public:
 	bool LoadModelFromFile(const std::string& filePath);
 
 	/// <summary>
-	/// ¾Ö´Ï¸ŞÀÌ¼ÇÀ» ·ÎµåÇÏ´Â ÇÔ¼ö
+	/// ì• ë‹ˆë©”ì´ì…˜ì„ ë¡œë“œí•˜ëŠ” í•¨ìˆ˜
 	/// </summary>
-	/// <param name="filePath">ÆÄÀÏ°æ·Î</param>
+	/// <param name="filePath">íŒŒì¼ê²½ë¡œ</param>
 	/// <returns></returns>
 	bool LoadAnimiationFromFile(const std::string& filePath);
 	
@@ -41,19 +41,19 @@ public:
 		auto it = m_models.find(hash);
 		if (it != m_models.end())
 		{
-			return it->second.get(); // Ã£¾ÒÀ¸¸é ¸ğµ¨ÀÇ raw pointer ¹İÈ¯
+			return it->second.get(); // ì°¾ì•˜ìœ¼ë©´ ëª¨ë¸ì˜ raw pointer ë°˜í™˜
 		}
-		return nullptr; // ¸ø Ã£¾ÒÀ¸¸é nullptr ¹İÈ¯
+		return nullptr; // ëª» ì°¾ì•˜ìœ¼ë©´ nullptr ë°˜í™˜
 	}
 
 	const std::unordered_map<std::size_t, std::unique_ptr<Model>>& GetModels() const
 	{
-		return m_models; // ¸ğµ¨ ¸Ê ¹İÈ¯
+		return m_models; // ëª¨ë¸ ë§µ ë°˜í™˜
 	}
 
 	const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& GetMeshes() const
 	{
-		return m_meshes; // ¸Ş½¬ ¸Ê ¹İÈ¯
+		return m_meshes; // ë©”ì‰¬ ë§µ ë°˜í™˜
 	}
 
 	const Mesh* GetMesh(size_t hash)
@@ -61,9 +61,9 @@ public:
 		auto it = m_meshes.find(hash);
 		if (it != m_meshes.end())
 		{
-			return it->second.get(); // Ã£¾ÒÀ¸¸é ¸Ş½¬ÀÇ raw pointer ¹İÈ¯
+			return it->second.get(); // ì°¾ì•˜ìœ¼ë©´ ë©”ì‰¬ì˜ raw pointer ë°˜í™˜
 		}
-		return nullptr; // ¸ø Ã£¾ÒÀ¸¸é nullptr ¹İÈ¯
+		return nullptr; // ëª» ì°¾ì•˜ìœ¼ë©´ nullptr ë°˜í™˜
 	}
 
 

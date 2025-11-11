@@ -8,9 +8,9 @@ namespace Graphics
 struct RenderObjectData;
 
 /// <summary>
-/// ·£´õ¸µ¿¡ ÇÊ¿äÇÑ 
-/// ¿ÀºêÁ§Æ®ÀÇ °íÀ¯¸®¼Ò½º¸¦ ´ã°íÀÖ´Â 
-/// ·£´õ¿ÀºêÁ§Æ®
+/// ëœë”ë§ì— í•„ìš”í•œ 
+/// ì˜¤ë¸Œì íŠ¸ì˜ ê³ ìœ ë¦¬ì†ŒìŠ¤ë¥¼ ë‹´ê³ ìˆëŠ” 
+/// ëœë”ì˜¤ë¸Œì íŠ¸
 /// 
 /// </summary>
 class RenderObject
@@ -67,19 +67,19 @@ public:
 		m_boneTM[idx] = matrix;// .Transpose();
 	}
 private:
-	const size_t m_id = 0; // ¿ÀºêÁ§Æ® ID
-	size_t m_meshID = 0; // ¸Ş½¬ ID
-	size_t m_meshIndex = 0; // ¸Ş½¬ index 
-	size_t m_textureID = 0; // ÅØ½ºÃ³ ID 
-	size_t m_modelID = 0; // ¸ğµ¨ ID 
+	const size_t m_id = 0; // ì˜¤ë¸Œì íŠ¸ ID
+	size_t m_meshID = 0; // ë©”ì‰¬ ID
+	size_t m_meshIndex = 0; // ë©”ì‰¬ index 
+	size_t m_textureID = 0; // í…ìŠ¤ì²˜ ID 
+	size_t m_modelID = 0; // ëª¨ë¸ ID 
 	
 	Graphics::Matrix4x4 m_localTM = GOE::Matrix4x4::Identity();
 	Graphics::Matrix4x4 m_worldTM = GOE::Matrix4x4::Identity();
 	Graphics::Matrix4x4 m_boneTM[128];
 
-	std::string m_name = ""; // ¿ÀºêÁ§Æ® ÀÌ¸§
-	bool m_isVisible = false; // ¿ÀºêÁ§Æ®°¡ º¸ÀÌ´ÂÁö ¿©ºÎ
-	bool m_isAnimated = false; // ¾Ö´Ï¸ŞÀÌ¼Ç Àû¿ë ¿©ºÎ
+	std::string m_name = ""; // ì˜¤ë¸Œì íŠ¸ ì´ë¦„
+	bool m_isVisible = false; // ì˜¤ë¸Œì íŠ¸ê°€ ë³´ì´ëŠ”ì§€ ì—¬ë¶€
+	bool m_isAnimated = false; // ì• ë‹ˆë©”ì´ì…˜ ì ìš© ì—¬ë¶€
 
 private:
 	// CB

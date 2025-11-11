@@ -26,6 +26,7 @@
     <ClInclude Include="D3DMath.h" />
     <ClInclude Include="DirectXTex.h" />
     <ClInclude Include="GOERenderer.h" />
+    <ClInclude Include="GraphicsDevice.h" />
     <ClInclude Include="MeshResource.h" />
     <ClInclude Include="ModelResource.h" />
     <ClInclude Include="PIX.h" />
@@ -33,12 +34,14 @@
     <ClInclude Include="ID3DRenderer.h" />
     <ClInclude Include="Kuramon.h" />
     <ClInclude Include="RenderObject.h" />
+    <ClInclude Include="SwapChain.h" />
     <ClInclude Include="TextureResource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="GOERenderer.cpp" />
+    <ClCompile Include="GraphicsDevice.cpp" />
     <ClCompile Include="Kuramon.cpp" />
     <ClCompile Include="MeshResource.cpp" />
     <ClCompile Include="ModelResource.cpp" />
@@ -49,6 +52,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="RenderObject.cpp" />
+    <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="TextureResource.cpp" />
   </ItemGroup>
   <ItemGroup>

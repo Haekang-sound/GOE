@@ -18,13 +18,13 @@ public:
 	Kuramon(ComPtr<ID3D12Device> device, float aspectRatio);
 	~Kuramon();
 
-	// º¹»ç»ı¼ºÀÚ
+	// ë³µì‚¬ìƒì„±ì
 	Kuramon(const Kuramon&) = delete;
-	// º¹»ç ´ëÀÔ ¿¬»êÀÚ
+	// ë³µì‚¬ ëŒ€ì… ì—°ì‚°ì
 	Kuramon& operator=(const Kuramon&) = delete;
-	// ÀÌµ¿»ı¼ºÀÚ
+	// ì´ë™ìƒì„±ì
 	Kuramon(Kuramon&&) = delete;
-	// ÀÌµ¿ ´ëÀÔ ¿¬»êÀÚ
+	// ì´ë™ ëŒ€ì… ì—°ì‚°ì
 	Kuramon& operator=(Kuramon&&) = delete;
 
 	void InitKuramon();
@@ -41,23 +41,23 @@ public:
 	// device
 	ComPtr<ID3D12Device> m_device = nullptr;
 	float m_aspectRatio = 0.f;
-	// ¿ùµå ¸ÅÆ®¸¯½º
+	// ì›”ë“œ ë§¤íŠ¸ë¦­ìŠ¤
 	XMFLOAT4X4 m_local = {};
 
 	XMFLOAT3 m_position = { 0,0,0 };
 	XMFLOAT3 m_rotation = { 0,0,0 };
 	XMFLOAT3 m_scale = { 1,1,1 };
 
-	float m_moveSpeed = 0.25f; // ÀÌµ¿ ¼Óµµ
-	float m_angle = 0.f; // È¸Àü °¢µµ
+	float m_moveSpeed = 0.25f; // ì´ë™ ì†ë„
+	float m_angle = 0.f; // íšŒì „ ê°ë„
 	
 public:
-	size_t modelID = 0; // ¸ğµ¨ ID
+	size_t modelID = 0; // ëª¨ë¸ ID
 
 public:
 	/// <summary>
-	/// ¿À·ù¸¦ Àâ±âÀ§ÇØ ÀÓ½Ã·Î ¸¸µé¾îµĞ º¯¼ö2°³
-	/// »ç¿ëÇÏ°í ÀÖÁö¸¸ º¯°æµÇ¾î¾ßÇÔ
+	/// ì˜¤ë¥˜ë¥¼ ì¡ê¸°ìœ„í•´ ì„ì‹œë¡œ ë§Œë“¤ì–´ë‘” ë³€ìˆ˜2ê°œ
+	/// ì‚¬ìš©í•˜ê³  ìˆì§€ë§Œ ë³€ê²½ë˜ì–´ì•¼í•¨
 	/// 
 	/// </summary>
 	std::vector<Graphics::Vertex> vertexArray;
@@ -76,7 +76,7 @@ public:
 	D3D12_CPU_DESCRIPTOR_HANDLE m_kuramonCBVHandle = {};
 	ComPtr<ID3D12Resource> m_kuramonConstantBuffer = {};
 
-	// ÀÎµ¦½º
+	// ì¸ë±ìŠ¤
 	UINT m_kuramonIndexBufferSize = 0;
 	ComPtr<ID3D12Resource> m_kuramonIndexBufferUpload = nullptr;
 	ComPtr<ID3D12Resource> m_kuramonIndexBufferDefault = nullptr;

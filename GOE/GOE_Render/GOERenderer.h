@@ -2,7 +2,6 @@
 #include "ID3DRenderer.h"
 #include <d3d12.h>
 #include <dxgi1_6.h>
-#include <D3Dcompiler.h>
 #include <DirectXMath.h>
 
 #include <wrl.h>
@@ -14,6 +13,13 @@ namespace GOE
 {
 	struct MeshData;
 }
+namespace Graphics
+{
+	struct MeshData;
+	class SwapChain;
+}
+
+struct Mesh;
 
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
@@ -33,8 +39,11 @@ class RenderObject;
 /// </summary>
 class GOERenderer : public GOE::ID3DRenderer
 {
+protected: 
+	std::unique_ptr<Graphics::SwapChain> m_swapChain = nullptr;
+
 public:
-	GOERenderer(const HWND& hWnd);
+	GOERenderer(const HWND hWnd);
 	~GOERenderer();
 	GOERenderer(const GOERenderer&) = delete;
 	GOERenderer(GOERenderer&&) = delete;
@@ -61,46 +70,18 @@ public:
 public:
 	std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() override { return m_renderObjects; }
 
-public:
-	inline ID3D12Device* GetDevice() { return m_device.Get(); }
-	inline ID3D12CommandQueue* GetCommandQueue() { return m_commandQueue.Get(); }
-	inline int GetFrameCount() { return m_frameBufferCount; }
-	inline ID3D12DescriptorHeap* GetDescriptorHeap() { return m_imguiDescriptorHeap.Get(); }
-	inline ID3D12GraphicsCommandList* GetCommandList() { return m_commandList.Get(); }
-	inline ID3D12Resource* GetCurrentRendertarget() { return m_renderTargets[m_frameIndex].Get(); }
-
-#pragma region Init
-private:
-	void SetViewport();
-	void LoadPipeline();
+protected:
 	void LoadAssets();
 
 public:
-	void ActiveDebugLayer(const bool& isOn);
-	void CreateDXGIFactory();
-	bool GetHardwareAdapter();
-	void CreateDevice(const bool& hardwareAdapter);
-	void CreateCommandQueue();
-	void CreateSwapChain();
-	void CreateRTVHeap();
-	void CreateRenderTargets();
-	void CreateDepthStencilBuffer();
 	void CreateCommandAllocator();
 	void CreateRootSignature();
 	void CompileShaders();
 	void CreatePipelineState();
 	void CreateCommandList();
 
-public:
-	void CreateFence();	
-
-private:
-	void SignalFence(const UINT64& fenceValue);
-	void WaitForFence(const UINT64& fenceValue);
-
-private:
+protected:
 	void CreateImguiDescriptorHeap();
-#pragma endregion
 
 public:
 	void CreateMeshResource(MeshResource* mesh_resource, Graphics::MeshData& mesh_data);
@@ -121,14 +102,12 @@ public:
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
 	HRESULT CompileShaderFromFile(const WCHAR* fileName, const WCHAR* entryPoint, const WCHAR* targetProfile, ID3DBlob** ppShaderBlob);
 
-private:
-	ComPtr<ID3D12Resource> m_depthStencilBuffer;
-	ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
 
-/// <summary>
-/// renderer는 너무 많은 리소스를 직접 소유하고 있다.
-/// 그래픽스단위의 리소스매니저가 필요하다
-/// </summary>
+
+	/// <summary>
+	/// renderer는 너무 많은 리소스를 직접 소유하고 있다.
+	/// 그래픽스단위의 리소스매니저가 필요하다
+	/// </summary>
 private:
 	std::vector<std::unique_ptr<MeshResource>> m_meshResources;
 	std::unordered_map<size_t, MeshResource*> m_meshResourceMap;
@@ -140,41 +119,16 @@ public:
 	Camera* m_camera;
 
 private:
-	UINT m_width = 0;
-	UINT m_height = 0;
 	HWND m_hWnd;
 
 private:
-	D3D12_VIEWPORT m_viewport = {};
-	RECT m_scissorRect = {};
-	float m_aspectRatio;
-	// 프로젝션 행렬
-	XMFLOAT4X4 m_proj = {};
-
-private:
-	UINT m_dxgiFactoryFlags = 0;
-	ComPtr<IDXGIFactory6> m_dxgiFactory = nullptr;
-	bool m_useWarpDevice = false;
-	ComPtr<IDXGIAdapter1> m_adpter = nullptr;
-	ComPtr<ID3D12Device> m_device = nullptr;
-	static const UINT m_frameBufferCount = 2;
-	UINT m_frameIndex = 0;
-	ComPtr<IDXGISwapChain3> m_swapChain = nullptr;
-	ComPtr<ID3D12Resource> m_renderTargets[m_frameBufferCount] = {};
-	ComPtr<ID3D12DescriptorHeap> m_rtvHeap = nullptr;
-	UINT m_rtvDescriptorSize = 0;
 	ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;
-	ComPtr<ID3D12CommandQueue> m_commandQueue = nullptr;
 	ComPtr<ID3D12RootSignature> m_rootSignature = nullptr;
 	ComPtr<ID3DBlob> m_vertexShader = nullptr;
 	ComPtr<ID3DBlob> m_pixelShader = nullptr;
 	D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[6] = {};
 	ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
 	ComPtr<ID3D12GraphicsCommandList> m_commandList = nullptr;
-	HANDLE m_fenceEvent = nullptr;
-	ComPtr<ID3D12Fence> m_fence = nullptr;
-	// 프레임마다 동기화를 위한 fece값을 갖는다.
-	UINT64 m_fenceValue = 0;
 
 	/// <summary>
 	/// imgui를 위한 디스크립터힙

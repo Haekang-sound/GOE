@@ -10,10 +10,17 @@
 // directX
 #include <d3d12.h>
 #include <dxgi1_6.h>
+#include <DirectXMath.h>
 
+
+// 랜더러 핵심기능
 #include "ID3DRenderer.h"
-#include "D3DMath.h"
+#include "GraphicsDevice.h"
 
+// 랜더러 기본자료형
+#include "D3DMath.h"
+// 너무 기니까 줄인다.
+using GD = Graphics::GraphicsDevice;
 using namespace DirectX;
 
 struct RenderObjectData

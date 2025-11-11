@@ -16,7 +16,7 @@ void SceneManager::Initialize(GOE::EngineContext* context)
 }
 
 /// <summary>
-///  ½Ã½ºÅÛÀÇ ¾÷µ¥ÀÌÆ®°¡ ÀÏ¾î³ª¾ßÇÑ´Ù.
+///  ì‹œìŠ¤í…œì˜ ì—…ë°ì´íŠ¸ê°€ ì¼ì–´ë‚˜ì•¼í•œë‹¤.
 /// </summary>
 /// <param name="dTime"></param>
 void SceneManager::OnUpdate(double dTime)

@@ -4,7 +4,7 @@
 namespace GOE
 {
 	/// <summary>
-	/// Æú´õ¸¦ ¼øÈ¸ÇÏ°í ÇØ½¬°ªÀ» ¹İÈ¯ÇÏ´Â ÆÄÀÏ¸Å´ÏÀú
+	/// í´ë”ë¥¼ ìˆœíšŒí•˜ê³  í•´ì‰¬ê°’ì„ ë°˜í™˜í•˜ëŠ” íŒŒì¼ë§¤ë‹ˆì €
 	/// </summary>
 	class FileManager : public SingletonBase<FileManager>
 	{

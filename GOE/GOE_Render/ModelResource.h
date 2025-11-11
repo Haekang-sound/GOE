@@ -9,10 +9,10 @@
 class MeshResource;
 
 /// <summary>
-/// ·»´õ·¯¿¡¼­ °®°í ÀÖÀ» ¸ğµ¨Á¤º¸ Å¬·¡½º
+/// ë Œë”ëŸ¬ì—ì„œ ê°–ê³  ìˆì„ ëª¨ë¸ì •ë³´ í´ë˜ìŠ¤
 /// 
-/// ¾î½ÉÇÁ ±¸Á¶¿¡¼­ ¸Ş½¬ÀÇ »óÀ§±¸Á¶¶ó ¸¸µé¾úÁö¸¸
-/// Çö½ÃÁ¡¿¡¼± ÇÊ¿ä¾ø´Â ÀÚ·áÇü
+/// ì–´ì‹¬í”„ êµ¬ì¡°ì—ì„œ ë©”ì‰¬ì˜ ìƒìœ„êµ¬ì¡°ë¼ ë§Œë“¤ì—ˆì§€ë§Œ
+/// í˜„ì‹œì ì—ì„  í•„ìš”ì—†ëŠ” ìë£Œí˜•
 /// 
 /// </summary>
 class ModelResource
@@ -39,9 +39,9 @@ public:
 	inline void AddMeshResource(std::string name, size_t id) { m_meshResourceMap.push_back(std::make_unique<MeshResource>(name, id)); }
 
 private:
-	const std::string m_name = ""; // ¸ğµ¨ ÀÌ¸§
-	const size_t m_id = 0; // ¸ğµ¨ ID
-	bool isVisible = false; // ¸ğµ¨ÀÌ º¸ÀÌ´ÂÁö ¿©ºÎ
+	const std::string m_name = ""; // ëª¨ë¸ ì´ë¦„
+	const size_t m_id = 0; // ëª¨ë¸ ID
+	bool isVisible = false; // ëª¨ë¸ì´ ë³´ì´ëŠ”ì§€ ì—¬ë¶€
 
-	std::vector<std::unique_ptr<MeshResource>> m_meshResourceMap; // ¸Ş½¬ ¸®¼Ò½ºµé
+	std::vector<std::unique_ptr<MeshResource>> m_meshResourceMap; // ë©”ì‰¬ ë¦¬ì†ŒìŠ¤ë“¤
 };

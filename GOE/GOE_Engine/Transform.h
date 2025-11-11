@@ -4,8 +4,8 @@
 class Entitiy;
 
 /// <summary>
-/// IComponent¸¦ »ó¼Ó¹ŞÀº
-/// Transform ÄÄÆ÷³ÍÆ® Æ®·»½ºÆû Á¤º¸¸¦ °®°í ÀÖ´Ù.
+/// IComponentë¥¼ ìƒì†ë°›ì€
+/// Transform ì»´í¬ë„ŒíŠ¸ íŠ¸ë ŒìŠ¤í¼ ì •ë³´ë¥¼ ê°–ê³  ìˆë‹¤.
 /// 
 /// </summary>
 class Transform : public IComponent

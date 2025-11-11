@@ -9,7 +9,7 @@ namespace Graphics
 	struct Matrix4x4
 	{
 	public:
-		XMFLOAT4X4 matrix; // 64¹ÙÀÌÆ®(Çà·Ä)
+		XMFLOAT4X4 matrix; // 64ë°”ì´íŠ¸(í–‰ë ¬)
 	public:
 		Matrix4x4() = default;
 		Matrix4x4(GOE::Matrix4x4 core_matrix)
@@ -39,17 +39,17 @@ namespace Graphics
 
 
 	/// <summary>z
-	/// ¹öÅØ½º ±¸Á¶Ã¼
+	/// ë²„í…ìŠ¤ êµ¬ì¡°ì²´
 	/// </summary>
 	struct Vertex
 	{
 		XMFLOAT3 position = {};
 		XMFLOAT4 color = { 1,1,1,1 };
-		XMFLOAT2 uv = { 0,0 }; // UV ÁÂÇ¥
-		XMFLOAT3 normal = { 0,0,0 }; // ¹ı¼± º¤ÅÍ
+		XMFLOAT2 uv = { 0,0 }; // UV ì¢Œí‘œ
+		XMFLOAT3 normal = { 0,0,0 }; // ë²•ì„  ë²¡í„°
 		XMUINT4 boneIndices = {};
 		XMFLOAT4 boneWeights = {};
-		// 16¹ÙÀÌÆ® Á¤·ÄÀ» À§ÇÑ ÆĞµù
+		// 16ë°”ì´íŠ¸ ì •ë ¬ì„ ìœ„í•œ íŒ¨ë”©
 		XMFLOAT2 padding = {};
 
 	public:
@@ -58,8 +58,8 @@ namespace Graphics
 		{
 			position = pos;
 			color = col;
-			uv = { 0, 0 }; // UV ÁÂÇ¥ ÃÊ±âÈ­
-			normal = { 0, 0, 0 }; // ¹ı¼± º¤ÅÍ ÃÊ±âÈ­
+			uv = { 0, 0 }; // UV ì¢Œí‘œ ì´ˆê¸°í™”
+			normal = { 0, 0, 0 }; // ë²•ì„  ë²¡í„° ì´ˆê¸°í™”
 		}
 
 		Vertex(const GOE::Vertex& other)
@@ -128,8 +128,8 @@ namespace Graphics
 
 
 	/// <summary>
-	/// ¹öÅØ½º¿Í ÀÎµ¦½º Á¤º¸¸¦ °®°í ÀÖ´Â 
-	/// ¸Ş½¬ ±¸Á¶Ã¼
+	/// ë²„í…ìŠ¤ì™€ ì¸ë±ìŠ¤ ì •ë³´ë¥¼ ê°–ê³  ìˆëŠ” 
+	/// ë©”ì‰¬ êµ¬ì¡°ì²´
 	/// 
 	/// </summary>
 	struct MeshData
@@ -177,8 +177,8 @@ namespace Graphics
 		}
 
 	public:
-		std::vector<Vertex> vertices; // ¹öÅØ½º Á¤º¸
-		std::vector<UINT32> indices; // ÀÎµ¦½º Á¤º¸
+		std::vector<Vertex> vertices; // ë²„í…ìŠ¤ ì •ë³´
+		std::vector<UINT32> indices; // ì¸ë±ìŠ¤ ì •ë³´
 		std::vector<XMFLOAT4X4> boneOffsets;
 
 	public:
@@ -230,16 +230,16 @@ namespace Graphics
 		XMFLOAT4X4 world = {};
 		XMFLOAT4X4 viewProjection = {};
 		XMFLOAT3   cameraPosition = {};
-		float      padding = 0.f; // 16¹ÙÀÌÆ® Á¤·ÄÀ» À§ÇÑ ÆĞµù
+		float      padding = 0.f; // 16ë°”ì´íŠ¸ ì •ë ¬ì„ ìœ„í•œ íŒ¨ë”©
 	};
 
 	struct SkinningCB
 	{
-		XMFLOAT4X4 boneTransforms[128]; // ÃÖ´ë 128°³ÀÇ º» º¯È¯ Çà·Ä
+		XMFLOAT4X4 boneTransforms[128]; // ìµœëŒ€ 128ê°œì˜ ë³¸ ë³€í™˜ í–‰ë ¬
 	};
 
 	struct BoneOffsetCB
 	{
-		XMFLOAT4X4 offsetTransforms[128]; // ÃÖ´ë 128°³ÀÇ º» ¿ÀÇÁ¼Â Çà·Ä
+		XMFLOAT4X4 offsetTransforms[128]; // ìµœëŒ€ 128ê°œì˜ ë³¸ ì˜¤í”„ì…‹ í–‰ë ¬
 	};
 }

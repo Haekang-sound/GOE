@@ -8,7 +8,7 @@ namespace GOE
 class Scene;
 
 /// <summary>
-/// ¾ÀÀ» ¹Ş¾Æ¼­ µ¹¸®´Â ¾À¸Å´ÏÀú
+/// ì”¬ì„ ë°›ì•„ì„œ ëŒë¦¬ëŠ” ì”¬ë§¤ë‹ˆì €
 /// </summary>
 class SceneManager
 {

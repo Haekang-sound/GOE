@@ -8,8 +8,8 @@ using EntityIndex = size_t;
 
 class Entity;
 /// <summary>
-/// ¿£Æ¼Æ¼ »ı¼º°ü¸®ÀÇ 
-/// Ã¥ÀÓÀ» ¸Ã´Â ¿£Æ¼Æ¼¸Å´ÏÀú
+/// ì—”í‹°í‹° ìƒì„±ê´€ë¦¬ì˜ 
+/// ì±…ì„ì„ ë§¡ëŠ” ì—”í‹°í‹°ë§¤ë‹ˆì €
 /// 
 /// </summary>
 class EntityManager
@@ -23,13 +23,13 @@ public:
 	Entity* FindEntity(EntityID id);
 
 	/// <summary>
-	///  ¿£Æ¼Æ¼¸¦ ÆÄ±«ÇÏ´ÂÇÔ¼ö (±¸Çö¿¡Á¤)
+	///  ì—”í‹°í‹°ë¥¼ íŒŒê´´í•˜ëŠ”í•¨ìˆ˜ (êµ¬í˜„ì—ì •)
 	/// </summary>
 	/// <param name="id"></param>
 	void DestroyEntity(EntityID id) {};
 
 public:
-	// ¸ğµç ¿£Æ¼Æ¼¿¡ ´ëÇÑ ºü¸¥ ¼øÈ¸ Á¢±Ù
+	// ëª¨ë“  ì—”í‹°í‹°ì— ëŒ€í•œ ë¹ ë¥¸ ìˆœíšŒ ì ‘ê·¼
 	const std::vector<std::unique_ptr<Entity>>& GetAllEntities() const { return m_entities; }
 
 private:
