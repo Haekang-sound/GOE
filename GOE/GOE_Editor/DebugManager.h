@@ -21,7 +21,7 @@ public:
 	// update에서 정보를 받아오고 나서 실행하야 하니까 
 	// 일반적인 업데이트와 실행순서가 구분되어야 한다.
 	// lateupdate와도 완전히 구분, 게임로직에 영향을 주면 안된다.
-	void OnDebugUpdate();
+	void OnDebugUpdate(double dTime);
 	void OnRender();
 
 public: 

@@ -14,8 +14,14 @@ namespace GOE
 namespace Graphics
 {
 	struct MeshData;
+	struct RenderContext;
+
+	class GraphicsDevice;
 	class SwapChain;
 	class PSOManager;
+	class CommandContext;
+	class UIManager;
+	class ResourceManager;
 }
 
 class Mesh;
@@ -28,7 +34,7 @@ struct UIInitInfo;
 struct UILoopInfo;
 class ModelResource;
 class MeshResource;
-class TextureResource;
+//class TextureResource;
 class RenderObject;
 
 /// <summary>
@@ -39,8 +45,13 @@ class RenderObject;
 class GOERenderer : public GOE::ID3DRenderer
 {
 protected: 
+	std::unique_ptr<Graphics::RenderContext> m_renderContext = nullptr;
+	std::unique_ptr<Graphics::GraphicsDevice> m_graphicsDevice = nullptr;
 	std::unique_ptr<Graphics::SwapChain> m_swapChain = nullptr;
 	std::unique_ptr<Graphics::PSOManager> m_PSOManager= nullptr;
+	std::unique_ptr<Graphics::ResourceManager> m_resourceManager = nullptr;
+	std::unique_ptr<Graphics::CommandContext> m_commandContext = nullptr;
+	std::unique_ptr<Graphics::UIManager> m_UIManager = nullptr;
 
 public:
 	GOERenderer(const HWND hWnd);
@@ -52,30 +63,23 @@ public:
 
 public:
 	void OnInit() override;
-	void OnUpdate() override;
+	void OnUpdate(double dTime) override;
 	void BeginRender() override;
 	void OnRender() override;
 	void EndRender() override;
 	void OnDestroy() override;
 
 public:
-	void LoadTexture(std::string filepath) override;
 	void CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes) override;
 	void CreateOneMeshResource(const Mesh* core_mesh) override;
 	void CopyUploadHeapToDefault() override;
 	UIInitInfo* GetUIInfo() override;
 	UILoopInfo* GetUILoopInfo() override;
 	void AddRenderObejct(RenderObjectData& data) override;
+	void LoadTexture(std::string filepath) override;
 
 public:
 	std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() override { return m_renderObjects; }
-
-public:
-	void CreateCommandAllocator();
-	void CreateCommandList();
-
-protected:
-	void CreateImguiDescriptorHeap();
 
 public:
 	void CreateMeshResource(MeshResource* mesh_resource, Graphics::MeshData& mesh_data);
@@ -95,8 +99,6 @@ public:
 		RenderObject* render_object,
 		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
 
-
-
 	/// <summary>
 	/// renderer는 너무 많은 리소스를 직접 소유하고 있다.
 	/// 그래픽스단위의 리소스매니저가 필요하다
@@ -104,8 +106,7 @@ public:
 private:
 	std::vector<std::unique_ptr<MeshResource>> m_meshResources;
 	std::unordered_map<size_t, MeshResource*> m_meshResourceMap;
-	std::vector<std::unique_ptr<TextureResource>> m_textureResources;
-	std::unordered_map<size_t, TextureResource*> m_textureResourceMap;
+	
 	std::vector<std::unique_ptr<RenderObject>> m_renderObjects;
 
 public:
@@ -114,15 +115,4 @@ public:
 private:
 	HWND m_hWnd;
 
-private:
-	ComPtr<ID3D12CommandAllocator> m_commandAllocator = nullptr;
-	ComPtr<ID3D12GraphicsCommandList> m_commandList = nullptr;
-
-	/// <summary>
-	/// imgui를 위한 디스크립터힙
-	/// </summary>
-private:
-	ComPtr<ID3D12DescriptorHeap> m_imguiDescriptorHeap = nullptr;
-	std::unique_ptr<UILoopInfo> m_UILoopInfo;
-	std::unique_ptr<UIInitInfo> m_UIInitInfo;
 };

@@ -39,7 +39,7 @@ namespace GOE
 		void Release();
 
 	private:
-		void DebugUpdate();
+		void DebugUpdate(double dTime);
 		void InputUpdate();
 
 	private:

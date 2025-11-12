@@ -14,8 +14,9 @@ Graphics::SwapChain::SwapChain(const HWND hWnd, const UINT frameBufferCount)
 
 Graphics::SwapChain::~SwapChain() = default;
 
-void Graphics::SwapChain::Initialize()
+void Graphics::SwapChain::Initialize(RenderContext* renderContext)
 {
+	m_renderContext = renderContext;
 	SetViewport();
 	CreateSwapChain();
 	CreateRTVHeap();
@@ -24,6 +25,7 @@ void Graphics::SwapChain::Initialize()
 }
 void Graphics::SwapChain::CreateSwapChain()
 {
+	const auto device = m_renderContext->m_graphicsDevice;
 	// DXGI_SWAP_CHAIN_DESC1
 	// : 스왑체인의 속성을 정의하는 구조체입니다.
 	// BufferCount	: 스왑체인에 포함될 백버퍼의 수
@@ -53,8 +55,8 @@ void Graphics::SwapChain::CreateSwapChain()
 
 	//  CreateSwapChainForHwnd()
 	// : 이 메서드는 HWND에 대한 스왑체인을 생성합니다.
-	ThrowIfFailed(GD::GetInstance().m_dxgiFactory->CreateSwapChainForHwnd(
-		GD::GetInstance().m_commandQueue.Get(),
+	ThrowIfFailed(device->m_dxgiFactory->CreateSwapChainForHwnd(
+		device->m_commandQueue.Get(),
 		m_hWnd,
 		&swapChainDesc,
 		nullptr,
@@ -67,7 +69,7 @@ void Graphics::SwapChain::CreateSwapChain()
 	// DXGI_MWA_NO_ALT_ENTER을 이용한 전체화면 비활성화는
 	// [alt + Enter] 키의 입력만 차단합니다.
 	// 다른 옵션을 통한 전체화면은 가능합니다.
-	ThrowIfFailed(GD::GetInstance().m_dxgiFactory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER));
+	ThrowIfFailed(device->m_dxgiFactory->MakeWindowAssociation(m_hWnd, DXGI_MWA_NO_ALT_ENTER));
 
 
 	// IDXGISwapChain1로 생성해서
@@ -85,6 +87,7 @@ void Graphics::SwapChain::CreateSwapChain()
 /// <returns></returns>
 void Graphics::SwapChain::CreateRTVHeap()
 {
+	const auto device = m_renderContext->m_graphicsDevice;
 	// D3D12_DESCRIPTOR_HEAP_DESC
 	// : 디스크립터 힙의 속성을 정의하는 구조체입니다.
 	// NumDescriptors : 디스크립터 힙에 포함될 디스크립터의 수
@@ -97,9 +100,7 @@ void Graphics::SwapChain::CreateRTVHeap()
 
 	// CreateDescriptorHeap()
 	// : 디스크립터 힙을 생성하는 메서드입니다.
-	ThrowIfFailed(GD::GetInstance().m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
-
-
+	ThrowIfFailed(device->m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
 }
 
 /// <summary>
@@ -109,10 +110,11 @@ void Graphics::SwapChain::CreateRTVHeap()
 /// <returns></returns>
 void Graphics::SwapChain::CreateRenderTargets()
 {
+	const auto device = m_renderContext->m_graphicsDevice;
 	// GetDescriptorHandleIncrementSize() 
 	// : 디스크립터 "하나"의 크기(바이트 수)를 리턴
 	// 이 값은 일반적으로 올바른 양만큼 설명자 배열로 핸들을 증분하는 데 사용됩니다.
-	m_rtvDescriptorSize = GD::GetInstance().m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	m_rtvDescriptorSize = device->m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
 
@@ -121,7 +123,7 @@ void Graphics::SwapChain::CreateRenderTargets()
 	{
 		// 스왑체인의 버퍼를 가져옵니다.
 		ThrowIfFailed(m_swapChain->GetBuffer(i, IID_PPV_ARGS(&m_renderTargets[i])));
-		GD::GetInstance().m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
+		device->m_device->CreateRenderTargetView(m_renderTargets[i].Get(), nullptr, rtvHandle);
 
 		// rtvHandle을 다음 디스크립터로 이동합니다.
 		// 핸들을 이동시켜주지 않으면 같은 주소에 rtv를 덮어쓰게 됩니다.
@@ -132,6 +134,8 @@ void Graphics::SwapChain::CreateRenderTargets()
 
 void Graphics::SwapChain::CreateDepthStencilBuffer()
 {
+	const auto device = m_renderContext->m_graphicsDevice;
+
 	/// 깊이 스텐실 버퍼 생성
 	// 설명구조체 만들고
 	D3D12_RESOURCE_DESC depthStencilDesc = CD3DX12_RESOURCE_DESC::Tex2D(
@@ -149,7 +153,7 @@ void Graphics::SwapChain::CreateDepthStencilBuffer()
 	clearValue.DepthStencil.Stencil = 0;
 
 	auto heapProperties = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT);
-	ThrowIfFailed(GD::GetInstance().m_device->CreateCommittedResource(
+	ThrowIfFailed(device->m_device->CreateCommittedResource(
 		&heapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&depthStencilDesc,
@@ -163,10 +167,10 @@ void Graphics::SwapChain::CreateDepthStencilBuffer()
 	dsvHeapDesc.NumDescriptors = 1;
 	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	ThrowIfFailed(GD::GetInstance().m_device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_dsvHeap)));
+	ThrowIfFailed(device->m_device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_dsvHeap)));
 
 	// DSV 생성
-	GD::GetInstance().m_device->CreateDepthStencilView(m_depthStencilBuffer.Get(), nullptr, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
+	device->m_device->CreateDepthStencilView(m_depthStencilBuffer.Get(), nullptr, m_dsvHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 void Graphics::SwapChain::SetViewport()

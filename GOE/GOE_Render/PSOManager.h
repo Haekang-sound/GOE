@@ -2,13 +2,14 @@
 #include <d3d12.h>
 namespace Graphics
 {
+	struct RenderContext;
 	class PSOManager
 	{
 	public:
 		PSOManager() = default;
 		~PSOManager();
 
-		void Initialize();
+		void Initialize(RenderContext* renderContext);
 
 		void CreateRootSignature();
 		void CompileShaders();
@@ -20,6 +21,8 @@ namespace Graphics
 		ComPtr<ID3DBlob> m_pixelShader = nullptr;
 		D3D12_INPUT_ELEMENT_DESC m_inputElementDescs[6] = {};
 		ComPtr<ID3D12PipelineState> m_pipelineState = nullptr;
+
+		RenderContext* m_renderContext = nullptr;
 	};
 }
 

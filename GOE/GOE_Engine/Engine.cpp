@@ -69,11 +69,11 @@ void GOE::Engine::OnUpdate(double dTime)
 
 	m_sceneManager.get()->OnUpdate(dTime);
 
-	m_editor->OnUpdate();
-	m_renderer->OnUpdate();
+	m_editor->OnUpdate(dTime);
+	m_renderer->OnUpdate(dTime);
 
 #if defined(_DEBUG)
-	DebugUpdate();
+	DebugUpdate(dTime);
 #endif
 }
 
@@ -100,10 +100,10 @@ void GOE::Engine::EndRender()
 void GOE::Engine::Release() {}
 
 
-void GOE::Engine::DebugUpdate()
+void GOE::Engine::DebugUpdate(double dTime)
 {
-	m_sceneManager.get()->DebugUpdate();
-	DebugManager::GetInstance().OnDebugUpdate();
+	m_sceneManager.get()->DebugUpdate(dTime);
+	DebugManager::GetInstance().OnDebugUpdate(dTime);
 }
 
 /// 창부수기! 

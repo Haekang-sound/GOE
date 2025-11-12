@@ -104,7 +104,7 @@ void EditorCore::Initialize(UIInitInfo* uiInfo)
 }
 
 
-void EditorCore::OnUpdate()
+void EditorCore::OnUpdate(double dTime)
 {
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();

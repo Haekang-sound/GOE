@@ -64,7 +64,7 @@ public:
 
 public: 
 	void Initialize(UIInitInfo* uiInfo);
-	void OnUpdate();
+	void OnUpdate(double dTIme);
 	void OnRender(UILoopInfo* uiInfo);
 
 	inline std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> GetImguiWndHandler()

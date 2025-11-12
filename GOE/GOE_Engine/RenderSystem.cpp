@@ -54,7 +54,7 @@ void RenderSystem::Update(double dTime)
 
 				renderobj.get()->SetBoneTM(boneidx, temp);
 			}
-			for (int i = bones; i < 128; ++i)
+			for (size_t i = bones; i < 128; ++i)
 			{
 				renderobj.get()->SetBoneTM(i, GOE::Matrix4x4::Identity());
 			}

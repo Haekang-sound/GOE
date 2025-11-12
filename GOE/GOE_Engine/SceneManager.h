@@ -28,7 +28,7 @@ public:
 	void Release();
 
 	void InputUpdate();
-	void DebugUpdate();
+	void DebugUpdate(double dTime);
 
 private:
 	std::unique_ptr<Scene> currentScene;

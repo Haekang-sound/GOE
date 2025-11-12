@@ -6,8 +6,9 @@
 
 Graphics::PSOManager::~PSOManager() = default;
 
-void Graphics::PSOManager::Initialize()
+void Graphics::PSOManager::Initialize(RenderContext* renderContext)
 {
+	m_renderContext = renderContext;
 	CreateRootSignature();
 	CompileShaders();
 	CreatePipelineState();
@@ -21,6 +22,7 @@ void Graphics::PSOManager::Initialize()
 /// <returns></returns>
 void Graphics::PSOManager::CreateRootSignature()
 {
+	const auto device = m_renderContext->m_graphicsDevice;
 	// 루트시그니처는
 	// 셰이더가 사용하는 리소스(버퍼, 텍스처 등)의 바인딩을 정의합니다.
 	// 셰이더마다 구성이 다를 경우
@@ -102,7 +104,7 @@ void Graphics::PSOManager::CreateRootSignature()
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 	D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-	ThrowIfFailed(GD::GetInstance().m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
+	ThrowIfFailed(device->m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
 
 }
 
@@ -290,6 +292,7 @@ void Graphics::PSOManager::CompileShaders()
 /// <returns></returns>
 void Graphics::PSOManager::CreatePipelineState()
 {
+	const auto device = m_renderContext->m_graphicsDevice;
 	// D3D12_INPUT_ELEMENT_DESC
 	// : 입력 어셈블러 단계에서 사용되는 입력 레이아웃을 정의합니다.
 	D3D12_INPUT_ELEMENT_DESC iaDesc;
@@ -439,5 +442,5 @@ void Graphics::PSOManager::CreatePipelineState()
 
 		// CreateGraphicsPipelineState()
 		// : 그래픽스 파이프라인 상태 객체(PSO)를 생성합니다.
-	ThrowIfFailed(GD::GetInstance().m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
+	ThrowIfFailed(device->m_device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_pipelineState)));
 }

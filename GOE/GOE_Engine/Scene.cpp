@@ -50,12 +50,12 @@ void Scene::OnUpdate(double dTime)
 	m_renderSystem.get()->Update(dTime);
 }
 
-void Scene::DebugUpdate()
+void Scene::DebugUpdate(double dTime)
 {
-	m_movementSystem.get()->DebugUpdate(0);
-	m_transfromSystem.get()->DebugUpdate(0);
-	m_animationSystem.get()->DebugUpdate(0);
-	m_renderSystem.get()->DebugUpdate(0);
+	m_movementSystem.get()->DebugUpdate(dTime);
+	m_transfromSystem.get()->DebugUpdate(dTime);
+	m_animationSystem.get()->DebugUpdate(dTime);
+	m_renderSystem.get()->DebugUpdate(dTime);
 }
 
 /// <summary>

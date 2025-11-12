@@ -51,10 +51,23 @@
     <ClInclude Include="TextureResource.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="GraphicsDevice.h" />
-    <ClInclude Include="SwapChain.h" />
-    <ClInclude Include="ResourceManager.h" />
-    <ClInclude Include="PSOManager.h" />
+    <ClInclude Include="CommandContext.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GraphicsDevice.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PSOManager.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ResourceManager.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SwapChain.h">
+      <Filter>00_Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="UIManager.h" />
+    <ClInclude Include="RenderContext.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GOERenderer.cpp">
@@ -84,10 +97,23 @@
     <ClCompile Include="TextureResource.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
-    <ClCompile Include="GraphicsDevice.cpp" />
-    <ClCompile Include="SwapChain.cpp" />
-    <ClCompile Include="ResourceManager.cpp" />
-    <ClCompile Include="PSOManager.cpp" />
+    <ClCompile Include="CommandContext.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="GraphicsDevice.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="PSOManager.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ResourceManager.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="SwapChain.cpp">
+      <Filter>00_Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="UIManager.cpp" />
+    <ClCompile Include="RenderContext.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

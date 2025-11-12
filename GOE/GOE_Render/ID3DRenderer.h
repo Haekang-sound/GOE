@@ -19,7 +19,7 @@ namespace GOE
 		virtual ~ID3DRenderer() = default;
 
 		virtual void OnInit() = 0;
-		virtual void OnUpdate() = 0;
+		virtual void OnUpdate(double dTime) = 0;
 		virtual void BeginRender() = 0;
 		virtual void OnRender() = 0;
 		virtual void EndRender() = 0;

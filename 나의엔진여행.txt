@@ -17,3 +17,230 @@ pdb를 pix로 전달해야 원본 셰이더 코드로 디버깅이 가능함
 본과 오프셋 가중치 평균을 구할때 나오는 행렬은 열우선
 계산을 해도 계속 열우선으로 계산되기때문에
 cb가 입력되기전에 모두 열우선으로 고쳐주는 작업이 필요할 것 같다
+--- 대화 기록 시작 (2025년 11월 13일 목요일) ---
+
+사용자: 프로젝트를 분석해서 다이어그램으로 보여줘
+
+[AI 응답: 프로젝트 아키텍처 분석 및 Mermaid 다이어그램 제공]
+프로젝트는 여러 모듈(정적 라이브러리)로 구성된 게임 엔진이며, 각 모듈이 결합하여 최종 실행 파일을 만드는 구조입니다.
+
+아래는 프로젝트의 아키텍처를 나타내는 다이어그램 코드입니다. 이 코드는 Mermaid Live Editor와 같은 다이어그램 렌더링 도구에 붙여넣으면 시각적인 다이어그램으로 볼 수 있습니다.
+
+### 프로젝트 아키텍처 다이어그램 (Mermaid)
+
+```mermaid
+graph TD
+    subgraph "Final Application"
+        GOE_App("GOE.exe")
+    end
+
+    subgraph "Core Engine"
+        GOE_Engine("GOE_Engine (Aggregator)")
+    end
+
+    subgraph "High-Level Modules"
+        GOE_Editor("GOE_Editor (UI)")
+        GOE_Render("GOE_Render (DX12)")
+        GOE_AssetLoader("GOE_AssetLoader (Assets)")
+    end
+
+    subgraph "Foundation Layer"
+        GOE_Core("GOE_Core (Base Utilities)")
+    end
+    
+    subgraph "Asset Files"
+        Shaders("HLSL Shaders")
+    end
+
+    %% Dependencies
+    GOE_App --> GOE_Engine
+    GOE_Engine --> GOE_Editor
+    GOE_Engine --> GOE_Render
+    GOE_Engine --> GOE_AssetLoader
+    
+    GOE_Editor --> GOE_Render
+    GOE_AssetLoader --> GOE_Core
+    GOE_Render --> GOE_Core
+
+    GOE_Render -.-> Shaders
+```
+
+### 각 모듈의 역할
+
+*   **GOE.exe**: 모든 엔진 모듈을 하나로 합쳐 실행하는 최종 애플리케이션입니다.
+*   **GOE_Engine**: 렌더링, 에디터, 에셋 로딩 등 상위 모듈들을 총괄하고 조정하는 핵심 엔진 라이브러리입니다.
+*   **GOE_Editor**: ImGui를 사용하여 디버깅 및 에디터 UI를 제공합니다.
+*   **GOE_Render**: DirectX 12를 사용한 렌더링을 담당합니다.
+*   **GOE_AssetLoader**: Assimp 라이브러리를 통해 3D 모델과 같은 에셋을 불러옵니다.
+*   **GOE_Core**: 다른 모듈들이 공통으로 사용하는 핵심 자료구조, 수학 함수 등을 제공하는 기반 라이브러리입니다.
+*   **HLSL Shaders**: 렌더링에 사용되는 셰이더 파일들입니다. (컴파일 타임 의존성)
+
+사용자: 랜더러를 위한 리소스매니저를 만들 계획인데 가이드라인 알려줘
+
+[AI 응답: 렌더러 리소스 매니저 가이드라인 제공]
+렌더러를 위한 리소스 매니저를 만드는 것은 좋은 생각입니다. 리소스 관리를 중앙화하여 중복 로딩을 방지하고, 메모리 관리를 효율적으로 할 수 있습니다.
+
+아래에 `GOE_Render` 프로젝트를 위한 리소스 매니저 설계 및 구현 가이드라인을 제시합니다.
+
+### **1. 리소스 매니저의 목표**
+
+*   **중앙화**: 텍스처, 메쉬, 셰이더 등 모든 렌더링 리소스의 생성, 저장, 접근을 한 곳에서 관리합니다.
+*   **중복 방지**: 동일한 리소스가 여러 번 로드되는 것을 막습니다. (예: 동일한 텍스처 파일을 두 번 로드하지 않음)
+*   **수명 관리**: 리소스가 더 이상 필요 없을 때 GPU 메모리에서 안전하게 해제되도록 관리합니다.
+*   **비동기 로딩 (선택 사항)**: 대용량 리소스를 로드할 때 렌더링이 멈추지 않도록 백그라운드 스레드에서 로딩을 지원합니다.
+
+### **2. 설계 가이드라인**
+
+#### **위치**
+*   리소스 매니저는 `ID3D12Device`에 직접 접근하여 GPU 리소스를 생성해야 하므로, `GOE_Render` 프로젝트 내에 `ResourceManager` 클래스를 만드는 것이 가장 적합합니다.
+
+#### **디자인 패턴**
+*   **싱글턴 (Singleton)**: 프로젝트 전반에서 리소스 매니저에 쉽게 접근할 수 있도록 싱글턴 패턴을 적용하는 것이 편리합니다. `GOE_Core`에 이미 `SingletonBase.h`가 있으므로 이를 활용할 수 있습니다.
+*   **핸들/ID 기반 시스템**: 리소스를 원시 포인터 대신 고유 ID(예: 파일 경로 문자열, 해시 값)로 식별하고 관리합니다.
+    ```cpp
+    // Example
+    auto texture = ResourceManager::Get().GetTexture("Assets/textures/my_texture.png");
+    ```
+
+#### **핵심 구조**
+*   **리소스 캐시(Cache)**: 각 리소스 타입별로 `std::unordered_map`과 같은 해시 맵을 사용하여 로드된 리소스를 저장합니다. 키는 리소스의 고유 ID, 값은 리소스 객체에 대한 스마트 포인터입니다.
+    ```cpp
+    // ResourceManager.h
+    #include <unordered_map>
+    #include <string>
+    #include <memory>
+    #include "Texture.h" // GOE_Core의 Texture 클래스
+
+    class ResourceManager
+    {
+    private:
+        std::unordered_map<std::string, std::shared_ptr<goe::Texture>> m_TextureCache;
+        // ... 다른 리소스 타입 캐시 ...
+    };
+    ```
+*   **스마트 포인터 활용**: `std::shared_ptr`를 사용하여 리소스의 수명을 자동으로 관리합니다. 해당 리소스를 사용하는 모든 객체가 사라지면 참조 카운트가 0이 되어 메모리가 자동으로 해제됩니다.
+
+### **3. 구현 단계 (텍스처부터 시작)**
+
+가장 일반적인 리소스인 텍스처부터 시작하여 점진적으로 확장하는 것을 추천합니다.
+
+**1단계: `ResourceManager` 클래스 파일 생성**
+*   `GOE_Render` 프로젝트에 `ResourceManager.h`와 `ResourceManager.cpp` 파일을 추가합니다.
+
+**2단계: `ResourceManager.h` 기본 구조 작성**
+```cpp
+// GOE_Render/ResourceManager.h
+#pragma once
+#include "SingletonBase.h" // GOE_Core의 싱글턴 베이스
+#include "Commons.h"       // GOE_Core의 공용 헤더
+#include <string>
+#include <memory>
+#include <unordered_map>
+
+// Forward declarations
+struct ID3D12Device;
+namespace goe { class Texture; }
+
+class ResourceManager : public SingletonBase<ResourceManager>
+{
+    friend class SingletonBase<ResourceManager>;
+
+private:
+    ResourceManager() = default;
+    ~ResourceManager() = default;
+
+public:
+    void Initialize(ID3D12Device* device);
+    void Finalize();
+
+    // 텍스처 로드/가져오기 함수
+    std::shared_ptr<goe::Texture> GetTexture(const std::string& filePath);
+
+private:
+    // DX12 디바이스 포인터
+    ID3D12Device* m_pDevice = nullptr;
+
+    // 텍스처 리소스 캐시
+    std::unordered_map<std::string, std::shared_ptr<goe::Texture>> m_textureCache;
+};
+```
+
+**3단계: `ResourceManager.cpp` 구현**
+```cpp
+// GOE_Render/ResourceManager.cpp
+#include "ResourceManager.h"
+#include "Texture.h" // GOE_Core의 Texture
+#include "AssetLoader.h" // GOE_AssetLoader의 로더 사용 (가정)
+
+void ResourceManager::Initialize(ID3D12Device* device)
+{
+    m_pDevice = device;
+}
+
+void ResourceManager::Finalize()
+{
+    // 모든 리소스 캐시 클리어
+    m_textureCache.clear();
+}
+
+std::shared_ptr<goe::Texture> ResourceManager::GetTexture(const std::string& filePath)
+{
+    // 1. 캐시에서 파일 경로(ID)를 찾아본다.
+    auto it = m_textureCache.find(filePath);
+    if (it != m_textureCache.end())
+    {
+        return it->second; // 2. 찾았으면 캐시된 리소스를 반환한다.
+    }
+
+    // 3. 캐시에 없으면 새로 로드한다.
+    // AssetLoader를 사용해 이미지 파일을 로드하고 DX12 텍스처 리소스를 생성합니다.
+    // (이 부분은 기존 텍스처 로딩 코드를 재활용하거나 새로 작성해야 합니다)
+    auto newTexture = std::make_shared<goe::Texture>();
+    if (newTexture->Load(m_pDevice, filePath)) // Load 함수는 DX12 리소스 생성 로직 포함
+    {
+        // 4. 로드에 성공하면 캐시에 저장하고 반환한다.
+        m_textureCache[filePath] = newTexture;
+        return newTexture;
+    }
+
+    // 5. 로드 실패 시 nullptr 반환
+    // (또는 기본 에러 텍스처를 반환하는 것도 좋은 방법입니다)
+    return nullptr;
+}
+```
+
+**4단계: 엔진에 통합**
+1.  엔진 초기화 시점에서 `ResourceManager::Get().Initialize(device);`를 호출합니다.
+2.  엔진 종료 시점에서 `ResourceManager::Get().Finalize();`를 호출합니다.
+3.  기존 코드에서 텍스처를 개별적으로 로드하던 부분을 모두 `ResourceManager::Get().GetTexture(...)` 호출로 변경합니다.
+
+### **4. 다음 단계**
+
+텍스처 관리가 성공적으로 구현되면, 동일한 패턴을 **메쉬(Mesh)**, **셰이더(Shader)**, **머티리얼(Material)**, **PSO(Pipeline State Object)** 등 다른 리소스 타입으로 확장해 나갈 수 있습니다. 특히 PSO와 같이 생성 비용이 비싼 객체를 캐싱하면 성능 향상에 큰 도움이 됩니다.
+
+--- 대화 기록 끝 (2025년 11월 13일 목요일) ---
+--- 대화 기록 시작 (2025년 11월 13일 목요일) ---
+
+[AI 요약: `ResourceManager`와 `PSOManager` 설계를 시작으로, 싱글턴 패턴의 단점을 피하기 위한 아키텍처 개선에 대한 심도 깊은 논의를 진행함.]
+
+**주요 논의 내용:**
+
+1.  **싱글턴 패턴의 대안**:
+    *   사용자가 싱글턴 남용에 대한 우려를 표함.
+    *   이에 대한 해결책으로, 모든 렌더링 관련 시스템(매니저)들의 포인터를 담는 중앙 허브 역할의 `RenderContext` 구조체(서비스 로케이터 패턴)를 제안함.
+    *   이 방식은 전역 상태를 없애고, 시스템 간의 의존성을 명확히 하며, 초기화 순서를 완벽하게 제어할 수 있는 장점이 있음.
+
+2.  **`RenderContext` 아키텍처 정립**:
+    *   **소유권 모델**: `GOERenderer` 클래스가 `ResourceManager`, `PSOManager` 등 모든 하위 매니저들을 `std::unique_ptr`로 소유하고, `RenderContext`는 이 매니저들에 대한 non-owning 포인터를 담는 접근점으로 사용하기로 함. 이는 RAII 원칙과 캡슐화를 잘 따르는 좋은 설계임.
+    *   **정의 위치**: `RenderContext` 구조체는 `GOE_Render` 프로젝트 내에 `RenderContext.h`라는 별도의 헤더 파일로 만드는 것이 가장 깔끔하다고 결론 내림.
+    *   **이름 결정**: 사용자의 취향에 따라 `RenderServices` 대신 `RenderContext`라는 이름을 사용하기로 함.
+
+3.  **구현 디테일**:
+    *   **긴 호출 체인 문제**: `m_renderContext.get()->m_manager->Function()`과 같은 긴 호출은 가독성이 떨어지므로, 함수 내에서 `auto& context = *m_renderContext;` 와 같이 지역 참조를 사용해 코드를 간결하게 만들기로 함.
+    *   **퍼사드 패턴**: `GOERenderer`가 `LoadTexture` 같은 함수를 직접 가지고 내부적으로 `ResourceManager`를 호출하는 방식(퍼사드 패턴)에 대한 고민을 나눔. 이는 렌더링 시스템의 복잡성을 외부에 숨기고 API를 단순하게 유지하는 좋은 장기적 설계라는 점에 동의함.
+
+4.  **오류 디버깅**:
+    *   사용자가 `m_renderContext.get()->m_UIManager` 호출 시 발생하는 오류에 대해 질문함.
+    *   가장 유력한 원인으로 `RenderContext` 구조체 내의 `m_UIManager` 포인터가 할당되지 않은(nullptr) 상태일 가능성을 지적함. `GOERenderer` 초기화 시점에 `UIManager` 인스턴스를 생성하고, 그 포인터를 `RenderContext`에 명시적으로 넣어주는 해결책을 제시함.
+
+--- 대화 기록 끝 (2025년 11월 13일 목요일) ---

@@ -22,6 +22,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="CommandContext.h" />
     <ClInclude Include="Cube.h" />
     <ClInclude Include="D3DMath.h" />
     <ClInclude Include="DirectXTex.h" />
@@ -31,6 +32,7 @@
     <ClInclude Include="ModelResource.h" />
     <ClInclude Include="PIX.h" />
     <ClInclude Include="PSOManager.h" />
+    <ClInclude Include="RenderContext.h" />
     <ClInclude Include="Renderer_pch.h" />
     <ClInclude Include="ID3DRenderer.h" />
     <ClInclude Include="Kuramon.h" />
@@ -38,9 +40,11 @@
     <ClInclude Include="ResourceManager.h" />
     <ClInclude Include="SwapChain.h" />
     <ClInclude Include="TextureResource.h" />
+    <ClInclude Include="UIManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="CommandContext.cpp" />
     <ClCompile Include="Cube.cpp" />
     <ClCompile Include="GOERenderer.cpp" />
     <ClCompile Include="GraphicsDevice.cpp" />
@@ -48,6 +52,7 @@
     <ClCompile Include="MeshResource.cpp" />
     <ClCompile Include="ModelResource.cpp" />
     <ClCompile Include="PSOManager.cpp" />
+    <ClCompile Include="RenderContext.cpp" />
     <ClCompile Include="Renderer_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -58,6 +63,7 @@
     <ClCompile Include="ResourceManager.cpp" />
     <ClCompile Include="SwapChain.cpp" />
     <ClCompile Include="TextureResource.cpp" />
+    <ClCompile Include="UIManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="DirectXTex.inl" />

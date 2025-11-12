@@ -9,7 +9,7 @@ DebugManager::~DebugManager()
 {
 }
 
-void DebugManager::OnDebugUpdate()
+void DebugManager::OnDebugUpdate(double dTime)
 {
 	while(!m_debugQueue.empty())
 	{

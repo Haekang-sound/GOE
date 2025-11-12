@@ -2,6 +2,7 @@
 
 namespace Graphics
 {
+	struct RenderContext;
 	class SwapChain
 	{
 	public:
@@ -33,7 +34,7 @@ namespace Graphics
 		XMFLOAT4X4 m_proj = {};
 
 	public:
-		void Initialize();
+		void Initialize(RenderContext* renderContext);
 
 	private:
 		void CreateSwapChain();
@@ -44,6 +45,8 @@ namespace Graphics
 
 	private:
 		HWND m_hWnd;
+		RenderContext* m_renderContext = nullptr;
+		
 
 	};
 }

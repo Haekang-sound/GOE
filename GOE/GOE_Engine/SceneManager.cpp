@@ -49,7 +49,7 @@ void SceneManager::InputUpdate()
 
 }
 
-void SceneManager::DebugUpdate()
+void SceneManager::DebugUpdate(double dTime)
 {
-	currentScene.get()->DebugUpdate();
+	currentScene.get()->DebugUpdate(dTime);
 }

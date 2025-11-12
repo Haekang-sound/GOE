@@ -47,7 +47,7 @@ public:
 
 	void Release();
 
-	void DebugUpdate();
+	void DebugUpdate(double dTime);
 	void InputUpdate();
 
 public:

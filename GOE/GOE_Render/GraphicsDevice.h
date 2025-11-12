@@ -1,5 +1,4 @@
 #pragma once
-#include "SingletonBase.h"
 #include <wrl.h>
 
 namespace Graphics
@@ -10,7 +9,7 @@ namespace Graphics
 	/// 
 	/// ohk
 	/// </summary>
-	class GraphicsDevice : public SingletonBase<GraphicsDevice>
+	class GraphicsDevice
 	{
 	public:
 		GraphicsDevice() = default;
