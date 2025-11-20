@@ -34,6 +34,7 @@ public:
 	inline const std::string& GetName() const { return m_name; }
 
 	inline ID3D12Resource* GetCB() const { return m_constantBuffer.Get(); }
+	inline ID3D12Resource* GetCB() { return m_constantBuffer.Get(); }
 	inline ID3D12DescriptorHeap* GetCBVHeap() const { return m_CBVHeap.Get(); }
 	inline const D3D12_CPU_DESCRIPTOR_HANDLE& GetCBVHandle() const { return m_CBVHandle; }
 
@@ -42,6 +43,7 @@ public:
 	inline const D3D12_CPU_DESCRIPTOR_HANDLE& SetCBVoneMatrixHandle() const { return m_boneMatrixHandle; }
 
 	inline Graphics::Matrix4x4& GetBoneTM(int i) { return m_boneTM[i]; }
+	inline Graphics::Matrix4x4* GetBoneTMBegin() { return m_boneTM; }
 
 public:
 	inline void SetVisible(bool visible) { m_isVisible = visible; }

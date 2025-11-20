@@ -237,9 +237,10 @@ void Graphics::GraphicsDevice::CreateFence()
 /// 
 /// </summary>
 /// <param name="fenceValue">신호를 보낼 펜스 값입니다.</param>
-void Graphics::GraphicsDevice::SignalFence(const UINT64& fenceValue)
+void Graphics::GraphicsDevice::SignalFence()
 {
-	m_commandQueue->Signal(m_fence.Get(), fenceValue);
+	
+	m_commandQueue->Signal(m_fence.Get(), ++m_fenceValue);
 }
 
 /// <summary>
@@ -248,11 +249,11 @@ void Graphics::GraphicsDevice::SignalFence(const UINT64& fenceValue)
 /// 
 /// </summary>
 /// <param name="fenceValue">대기할 목표 펜스 값입니다.</param>
-void Graphics::GraphicsDevice::WaitForFence(const UINT64& fenceValue)
+void Graphics::GraphicsDevice::WaitForFence()
 {
- 	if (m_fence.Get()->GetCompletedValue() < fenceValue)
+ 	if (m_fence.Get()->GetCompletedValue() < m_fenceValue)
 	{
-		m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent);
+		m_fence->SetEventOnCompletion(m_fenceValue, m_fenceEvent);
 		WaitForSingleObject(m_fenceEvent, INFINITE);
 	}
 }

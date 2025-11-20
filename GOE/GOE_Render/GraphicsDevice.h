@@ -30,8 +30,8 @@ namespace Graphics
 
 		void CreateFence();
 
-		void SignalFence(const UINT64& fenceValue);
-		void WaitForFence(const UINT64& fenceValue);
+		void SignalFence();
+		void WaitForFence();
 
 	
 		UINT m_dxgiFactoryFlags = 0;

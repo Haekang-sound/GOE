@@ -70,43 +70,18 @@ public:
 	void OnDestroy() override;
 
 public:
-	void CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes) override;
-	void CreateOneMeshResource(const Mesh* core_mesh) override;
-	void CopyUploadHeapToDefault() override;
+	void CreateMeshResource(const Mesh* core_mesh) override;
+	
+	// 텍스처 관련
+	void LoadTexture(std::string filepath) override;
 	UIInitInfo* GetUIInfo() override;
 	UILoopInfo* GetUILoopInfo() override;
-	void AddRenderObejct(RenderObjectData& data) override;
-	void LoadTexture(std::string filepath) override;
 
-public:
+	// 렌더오브젝트 처리는 추가적인 고민이 필요함
+	void AddRenderObejct(RenderObjectData& data) override;
 	std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() override { return m_renderObjects; }
 
 public:
-	void CreateMeshResource(MeshResource* mesh_resource, Graphics::MeshData& mesh_data);
-	void CreateVBResource(
-		MeshResource* mesh_resource,
-		const Graphics::MeshData& mesh_data,
-		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
-	void CreateIBResource(
-		MeshResource* mesh_resource,
-		const Graphics::MeshData& mesh_data,
-		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
-	void CreateCBResource(
-		MeshResource* mesh_resource,
-		const Graphics::MeshData& mesh_data,
-		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
-	void CreateRenderObjectCBResource(
-		RenderObject* render_object,
-		const D3D12_RESOURCE_STATES& state = D3D12_RESOURCE_STATE_GENERIC_READ);
-
-	/// <summary>
-	/// renderer는 너무 많은 리소스를 직접 소유하고 있다.
-	/// 그래픽스단위의 리소스매니저가 필요하다
-	/// </summary>
-private:
-	std::vector<std::unique_ptr<MeshResource>> m_meshResources;
-	std::unordered_map<size_t, MeshResource*> m_meshResourceMap;
-	
 	std::vector<std::unique_ptr<RenderObject>> m_renderObjects;
 
 public:

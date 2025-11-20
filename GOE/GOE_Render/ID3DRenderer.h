@@ -27,9 +27,7 @@ namespace GOE
 	public:
 		// DirectX
 		virtual void LoadTexture(std::string filepath) {};
-		virtual void CreateAllMeshResources(const std::unordered_map<std::size_t, std::unique_ptr<Mesh>>& core_meshes) {}
-		virtual void CreateOneMeshResource(const Mesh* core_mesh) {};
-		virtual void CopyUploadHeapToDefault() = 0;
+		virtual void CreateMeshResource(const Mesh* core_mesh) {};
 		virtual UIInitInfo* GetUIInfo() = 0;
 		virtual UILoopInfo* GetUILoopInfo() = 0;
 	public:

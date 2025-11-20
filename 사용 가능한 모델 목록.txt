@@ -1,0 +1,68 @@
+[환경 변수 설정 완료]
+🔍 사용 가능한 모델 목록 (전체 출력)
+--------------------------------------------------
+ • modelsembedding-gecko-001
+ • modelsgemini-2.5-pro-preview-03-25
+ • modelsgemini-2.5-flash
+ • modelsgemini-2.5-pro-preview-05-06
+ • modelsgemini-2.5-pro-preview-06-05
+ • modelsgemini-2.5-pro
+ • modelsgemini-2.0-flash-exp
+ • modelsgemini-2.0-flash
+ • modelsgemini-2.0-flash-001
+ • modelsgemini-2.0-flash-exp-image-generation
+ • modelsgemini-2.0-flash-lite-001
+ • modelsgemini-2.0-flash-lite
+ • modelsgemini-2.0-flash-lite-preview-02-05
+ • modelsgemini-2.0-flash-lite-preview
+ • modelsgemini-2.0-pro-exp
+ • modelsgemini-2.0-pro-exp-02-05
+ • modelsgemini-exp-1206
+ • modelsgemini-2.0-flash-thinking-exp-01-21
+ • modelsgemini-2.0-flash-thinking-exp
+ • modelsgemini-2.0-flash-thinking-exp-1219
+ • modelsgemini-2.5-flash-preview-tts
+ • modelsgemini-2.5-pro-preview-tts
+ • modelslearnlm-2.0-flash-experimental
+ • modelsgemma-3-1b-it
+ • modelsgemma-3-4b-it
+ • modelsgemma-3-12b-it
+ • modelsgemma-3-27b-it
+ • modelsgemma-3n-e4b-it
+ • modelsgemma-3n-e2b-it
+ • modelsgemini-flash-latest
+ • modelsgemini-flash-lite-latest
+ • modelsgemini-pro-latest
+ • modelsgemini-2.5-flash-lite
+ • modelsgemini-2.5-flash-image-preview
+ • modelsgemini-2.5-flash-image
+ • modelsgemini-2.5-flash-preview-09-2025
+ • modelsgemini-2.5-flash-lite-preview-09-2025
+ • modelsgemini-3-pro-preview
+ • modelsgemini-robotics-er-1.5-preview
+ • modelsgemini-2.5-computer-use-preview-10-2025
+ • modelsembedding-001
+ • modelstext-embedding-004
+ • modelsgemini-embedding-exp-03-07
+ • modelsgemini-embedding-exp
+ • modelsgemini-embedding-001
+ • modelsaqa
+ • modelsimagen-4.0-generate-preview-06-06
+ • modelsimagen-4.0-ultra-generate-preview-06-06
+ • modelsimagen-4.0-generate-001
+ • modelsimagen-4.0-ultra-generate-001
+ • modelsimagen-4.0-fast-generate-001
+ • modelsveo-2.0-generate-001
+ • modelsveo-3.0-generate-001
+ • modelsveo-3.0-fast-generate-001
+ • modelsveo-3.1-generate-preview
+ • modelsveo-3.1-fast-generate-preview
+ • modelsgemini-2.0-flash-live-001
+ • modelsgemini-live-2.5-flash-preview
+ • modelsgemini-2.5-flash-live-preview
+ • modelsgemini-2.5-flash-native-audio-latest
+ • modelsgemini-2.5-flash-native-audio-preview-09-2025
+--------------------------------------------------
+위 목록 중에서 'gemini-1.5-pro' 또는 'gemini-1.5-flash'와
+비슷한 이름을 찾아보세요.
+Press any key to continue . . .
