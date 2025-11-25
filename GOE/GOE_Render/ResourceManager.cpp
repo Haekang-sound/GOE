@@ -4,7 +4,8 @@
 #include <d3dx12/d3dx12.h>
 #include "DirectXTex.h"	
 
-#include "CommandContext.h"
+#include "CopyCommandContext.h"
+#include "RenderCommandContext.h"
 #include "PSOManager.h"
 
 // 리소스자료형
@@ -19,12 +20,62 @@ void Graphics::ResourceManager::Initialize(RenderContext* renderContext)
 	m_renderContext = renderContext;
 }
 
-void Graphics::ResourceManager::LoadTexture(std::string filepath, CommandContext& commandContext)
+/// <summary>
+/// 리소스 상태를 확인, 전환하는 함수
+/// 
+/// </summary>
+void Graphics::ResourceManager::UpdateResourceStates()
 {
-	const auto commandAllocator = m_renderContext->m_commandContext->m_commandAllocator;
-	const auto commandList = m_renderContext->m_commandContext->m_commandList;
-	const auto PSOManager = m_renderContext->m_PSOManager;
 	const auto device = m_renderContext->m_graphicsDevice;
+	const UINT64 completedFenceValue = device->GetCompletedCopyFenceValue();
+	
+	auto textureIt = std::remove_if
+	(m_loadingTextures.begin(), m_loadingTextures.end(),
+		[completedFenceValue](const auto& pair)
+		{
+			if (pair.first <= completedFenceValue)
+			{
+				if(auto textureResource = pair.second.lock())
+				{
+					textureResource->SetState(Graphics::ResourceState::READY);
+				}
+				return true; 
+			}
+			return false;
+		});
+	m_loadingTextures.erase(textureIt, m_loadingTextures.end());
+
+	auto meshIt = std::remove_if
+	(m_loadingMeshes.begin(), m_loadingMeshes.end(),
+		[completedFenceValue](const auto& pair)
+		{
+			if (pair.first <= completedFenceValue)
+			{
+				if(auto meshResource = pair.second.lock())
+				{
+					meshResource->SetState(Graphics::ResourceState::READY);
+				}
+				return true; 
+			}
+			return false;
+		});
+	m_loadingMeshes.erase(meshIt, m_loadingMeshes.end());
+
+	if (m_loadingTextures.empty() && m_loadingMeshes.empty())
+	{
+		uploadBuffers.clear();
+	}
+
+
+}
+
+void Graphics::ResourceManager::LoadTexture(std::string filepath)
+{
+	const auto device = m_renderContext->m_graphicsDevice;
+	const auto commandContext = m_renderContext->m_copyCommandContext;
+	commandContext->Reset();
+	const auto commandList = m_renderContext->m_copyCommandContext->GetCommandList();
+	const auto PSOManager = m_renderContext->m_PSOManager;
 
 	// 파일경로를 통해 텍스처를 로드합니다.
 	WIC_FLAGS wicFlags = WIC_FLAGS_NONE;
@@ -63,7 +114,7 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath, CommandContext
 		&defaultHeapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&textureDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST, // 데이터를 복사 받을 상태로 생성
+		D3D12_RESOURCE_STATE_COMMON, // 데이터를 복사 받을 상태로 생성
 		nullptr,
 		IID_PPV_ARGS(&textureDefault)); // 멤버 변수 m_texture에 저장
 
@@ -75,15 +126,8 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath, CommandContext
 	// 3. 업로드 힙 생성
 	// UINT64 자료형을 사용해야한다.
 	const UINT64 uploadBufferSize = GetRequiredIntermediateSize(textureDefault.Get(), 0, 1);
+	textureUpload = CreateUploadBuffer(nullptr, uploadBufferSize); // 빈 업로드 버퍼 생성
 	CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
-	CD3DX12_HEAP_PROPERTIES uploadHeapProperties(D3D12_HEAP_TYPE_UPLOAD);
-	hr = device->m_device->CreateCommittedResource(
-		&uploadHeapProperties,
-		D3D12_HEAP_FLAG_NONE,
-		&uploadBufferDesc,
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&textureUpload)); // 멤버 변수 m_textureUploadHeap에 저장
 
 	if (FAILED(hr))
 	{
@@ -96,23 +140,11 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath, CommandContext
 	subresourceData.RowPitch = data.GetImage(0, 0, 0)->rowPitch; // 한 줄의 바이트 크기
 	subresourceData.SlicePitch = data.GetImage(0, 0, 0)->slicePitch; // 전체 이미지의 바이트 크기
 
-
-	commandAllocator->Reset();
-	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
-	commandList->Reset(commandAllocator.Get(), PSOManager->m_pipelineState.Get());
-
 	// 내부적으로 map과 unmap을 호출합니다.
 	// 커맨드 리스트에 복사 명령을 기록합니다.
-	UpdateSubresources(commandList.Get(), textureDefault.Get(), textureUpload.Get(), 0, 0, 1, &subresourceData);
+	UpdateSubresources(commandList, textureDefault.Get(), textureUpload.Get(), 0, 0, 1, &subresourceData);
 
-	// --- 5. 텍스처 리소스 상태를 셰이더에서 읽을 수 있도록 변경 ---
-	CD3DX12_RESOURCE_BARRIER barrier =
-		CD3DX12_RESOURCE_BARRIER::Transition(
-			textureDefault.Get(),
-			D3D12_RESOURCE_STATE_COPY_DEST,
-			D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-	commandList->ResourceBarrier(1, &barrier);
-
+	//commandContext->TransitionToCommon(textureDefault.Get(), D3D12_RESOURCE_STATE_COMMON);
 	// 디스크립터 힙 생성
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
 	srvHeapDesc.NumDescriptors = 1;
@@ -132,25 +164,21 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath, CommandContext
 
 	device->m_device->CreateShaderResourceView(textureDefault.Get(), &srvDesc, srvHandle);
 
+	commandContext->Execute();
+
 	textureResource.get()->SetTextureDefault(std::move(textureDefault));
 	textureResource.get()->SetTextureUpload(std::move(textureUpload));
 	textureResource.get()->SetTextureHeap(std::move(textureheap));
 	textureResource.get()->SetSRVHandle(srvHandle);
+	size_t id = textureResource.get()->GetID();
 	m_textureResourceMap[textureResource.get()->GetID()] = std::make_shared<TextureResource>(std::move(*textureResource));
 
-
-	// --- 7. 커맨드 리스트 실행 및 동기화 ---
-	commandList->Close();
-	ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
-	device->m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-	// GPU 작업이 완료될 때까지 기다립니다 (Fence 사용).
-	device->SignalFence();
-	device->WaitForFence();
+	m_loadingTextures.push_back({ commandContext->GetCommittedFenceValue(), m_textureResourceMap[id] });
 }
 
 void Graphics::ResourceManager::CreateMeshResource(const Mesh* core_mesh)
 {
+	const auto commandContext = m_renderContext->m_copyCommandContext;
 	m_meshResourceMap[core_mesh->GetID()] = std::make_shared<MeshResource>(
 		core_mesh->GetName(),
 		core_mesh->GetID());
@@ -171,6 +199,8 @@ void Graphics::ResourceManager::CreateMeshResource(const Mesh* core_mesh)
 	// 모델 id 도 넣어야 한다.
 	m_meshResourceMap[core_mesh->GetID()]->SetMeshIndex(core_mesh->GetMeshIndex());
 	m_meshResourceMap[core_mesh->GetID()]->SetModelID(core_mesh->GetModelID());
+
+	m_loadingMeshes.push_back({ commandContext->GetCommittedFenceValue(), m_meshResourceMap[core_mesh->GetID()] });
 }
 
 
@@ -185,6 +215,7 @@ ComPtr<ID3D12Resource> Graphics::ResourceManager::CreateUploadBuffer(const void*
 {
 	const auto device = m_renderContext->m_graphicsDevice;
 	ComPtr<ID3D12Resource> uploadBuffer = nullptr;
+	uploadBuffers.push_back(uploadBuffer);
 
 	D3D12_HEAP_PROPERTIES uploadHeapProps = CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD);
 	D3D12_RESOURCE_DESC bufferDesc = CD3DX12_RESOURCE_DESC::Buffer(bufferSize);
@@ -195,20 +226,20 @@ ComPtr<ID3D12Resource> Graphics::ResourceManager::CreateUploadBuffer(const void*
 		&bufferDesc,
 		D3D12_RESOURCE_STATE_COMMON,
 		nullptr,
-		IID_PPV_ARGS(&uploadBuffer)
+		IID_PPV_ARGS(&uploadBuffers.back())
 	));
 
 	if (initialData)
 	{
 		UINT8* pDataBegin = nullptr;
 		D3D12_RANGE readRange = { 0, 0 }; // CPU에서 읽지 않으므로 범위는 0입니다.
-		ThrowIfFailed(uploadBuffer->Map(0, &readRange, reinterpret_cast<void**>(&pDataBegin)));
+		ThrowIfFailed(uploadBuffers.back()->Map(0, &readRange, reinterpret_cast<void**>(&pDataBegin)));
 		memcpy(pDataBegin, initialData, bufferSize);
-		uploadBuffer->Unmap(0, nullptr);
+		uploadBuffers.back()->Unmap(0, nullptr);
 	}
 
 	// 생성된 리소스 객체를 반환합니다.
-	return uploadBuffer;
+	return uploadBuffers.back();
 }
 
 /// <summary>
@@ -274,18 +305,18 @@ ComPtr<ID3D12Resource> Graphics::ResourceManager::CreateCBResource(const void* i
 }
 
 /// <summary>
-/// 메쉬의 정점 버퍼 리소스를 생성합니다.
-/// 
+/// 정점 버퍼를 생성하는 함수
 /// </summary>
-/// <param name="mesh_resource">그래픽스 메쉬정보를 저장할 데이터</param>
+/// <param name="mesh_resource">메쉬정보가 저장될 자료형</param>
 /// <param name="mesh_data">메쉬정보</param>
-/// <param name="state">상태</param>
+/// <param name="state">리소스 상태</param>
 void Graphics::ResourceManager::CreateVBResource(MeshResource* mesh_resource, const Graphics::MeshData& mesh_data, const D3D12_RESOURCE_STATES state)
 {
 	const auto device = m_renderContext->m_graphicsDevice;
-	const auto commandContext = m_renderContext->m_commandContext;
+	const auto commandContext = m_renderContext->m_copyCommandContext;
+	commandContext->Reset();
+	const auto cmdList = commandContext->GetCommandList();
 
-	/// 채워야 할 리소스
 	UINT vertexBufferSize = static_cast<UINT>(sizeof(Graphics::Vertex) * mesh_data.vertices.size());
 	ComPtr<ID3D12Resource> vertexBufferDefault = nullptr;
 	ComPtr<ID3D12Resource> vertexBufferUpload = nullptr;
@@ -298,7 +329,7 @@ void Graphics::ResourceManager::CreateVBResource(MeshResource* mesh_resource, co
 		&defaultHeapProps,
 		D3D12_HEAP_FLAG_NONE,
 		&bufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST, // 일단 복사 대상으로 생성
+		D3D12_RESOURCE_STATE_COMMON, // 일단 복사 대상으로 생성
 		nullptr,
 		IID_PPV_ARGS(&vertexBufferDefault)));
 
@@ -308,31 +339,37 @@ void Graphics::ResourceManager::CreateVBResource(MeshResource* mesh_resource, co
 		mesh_data.vertices.data(), // 초기 데이터 바로 복사
 		vertexBufferSize);
 
-	commandContext->CopyResource(
+	// 3. 업로드버퍼 -> 디폴트버퍼 복사
+	cmdList->CopyResource(
 		vertexBufferDefault.Get(),
-		vertexBufferUpload.Get(),
-		vertexBufferSize,
-		D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER);
+		vertexBufferUpload.Get());
 
-	device->WaitForFence();
+	//commandContext->TransitionToCommon(vertexBufferDefault.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
 
-	// D3D12_VERTEX_BUFFER_VIEW
-	// : 정점 버퍼 뷰를 정의하는 구조체입니다.
-	// 이후 DrawCall 시 이 정보를 넘김
-	// 이 뷰는 GPU가 정점 데이터를 읽을 때 사용됩니다.
+	// 4. 정점버퍼 뷰 설정
 	vertexBufferView.BufferLocation = vertexBufferDefault->GetGPUVirtualAddress();	// GPU에서 읽을 정점버퍼 시작 주소, 정점 버퍼의 GPU 가상 주소
 	vertexBufferView.StrideInBytes = static_cast<UINT>(sizeof(Graphics::Vertex));		// 정점버퍼 전체 크기(바이트 단위)
 	vertexBufferView.SizeInBytes = static_cast<UINT>(vertexBufferSize);	// 정점 하나당 크기(바이트 단위)
 
+	commandContext->Execute();
 	mesh_resource->SetVBSize(vertexBufferSize); // 정점 버퍼 크기 설정
 	mesh_resource->SetVBDefault(vertexBufferDefault.Get()); // 디폴트 힙 리소스 설정
 	mesh_resource->SetVBView(vertexBufferView); // 정점 버퍼 뷰 설정
 }
 
+/// <summary>
+/// 인덱스 버퍼를 생성하는 함수
+/// </summary>
+/// <param name="mesh_resource">메쉬정보가 저장될 자료형</param>
+/// <param name="mesh_data">메쉬정보</param>
+/// <param name="state">리소스 상태</param>
 void Graphics::ResourceManager::CreateIBResource(MeshResource* mesh_resource, const Graphics::MeshData& mesh_data, const D3D12_RESOURCE_STATES state)
 {
 	const auto device = m_renderContext->m_graphicsDevice;
-	const auto commandContext = m_renderContext->m_commandContext;
+	const auto commandContext = m_renderContext->m_copyCommandContext;
+	commandContext->Reset();
+	const auto cmdList = commandContext->GetCommandList();
+
 	UINT indexBufferSize = static_cast<UINT>(sizeof(UINT) * mesh_data.indices.size());
 	ComPtr<ID3D12Resource> indexBufferDefault = nullptr;
 	ComPtr<ID3D12Resource> indexBufferUpload = nullptr;
@@ -345,7 +382,7 @@ void Graphics::ResourceManager::CreateIBResource(MeshResource* mesh_resource, co
 		&heapProps,
 		D3D12_HEAP_FLAG_NONE,
 		&bufferDesc,
-		D3D12_RESOURCE_STATE_COPY_DEST,
+		D3D12_RESOURCE_STATE_COMMON,
 		nullptr,
 		IID_PPV_ARGS(&indexBufferDefault)
 	));
@@ -356,18 +393,17 @@ void Graphics::ResourceManager::CreateIBResource(MeshResource* mesh_resource, co
 		indexBufferSize);
 
 	// 3. 업로드버퍼 -> 디폴트버퍼 복사
-	commandContext->CopyResource(
+	cmdList->CopyResource(
 		indexBufferDefault.Get(),
-		indexBufferUpload.Get(),
-		indexBufferSize, D3D12_RESOURCE_STATE_INDEX_BUFFER);
-	
-	device->WaitForFence();
+		indexBufferUpload.Get());
 
+	//commandContext->TransitionToCommon(indexBufferDefault.Get(), D3D12_RESOURCE_STATE_COPY_DEST);
 	// 6. 인덱스버퍼 뷰 생성
 	indexBufferView.BufferLocation = indexBufferDefault->GetGPUVirtualAddress();
 	indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 	indexBufferView.SizeInBytes = indexBufferSize;
 
+	commandContext->Execute();
 	mesh_resource->SetIndexCount(static_cast<UINT>(mesh_data.indices.size()));
 	mesh_resource->SetIBSize(indexBufferSize); // 인덱스 버퍼 크기 설정
 	mesh_resource->SetIBDefault(indexBufferDefault.Get()); // 디폴트 힙 리소스 설정

@@ -1,6 +1,6 @@
 #include "Renderer_pch.h"
 #include "UIManager.h"
-#include "CommandContext.h"
+#include "RenderCommandContext.h"
 #include "SwapChain.h"
 
 Graphics::UIManager::UIManager()
@@ -34,7 +34,7 @@ UIInitInfo* Graphics::UIManager::GetUIInfo()
 {
 	const auto device = m_renderContext->m_graphicsDevice;
 	const auto swapChain = m_renderContext->m_swapChain;
-	m_UIInitInfo.get()->commandQueue = device->m_commandQueue.Get();
+	m_UIInitInfo.get()->commandQueue = device->m_renderCmdQueue.Get();
 	m_UIInitInfo.get()->device = device->m_device.Get();
 	m_UIInitInfo.get()->frameBufferCount = swapChain->m_frameBufferCount;
 	m_UIInitInfo.get()->imguiDescriptorHeap = m_imguiDescriptorHeap.Get();
@@ -42,10 +42,10 @@ UIInitInfo* Graphics::UIManager::GetUIInfo()
 }
 UILoopInfo* Graphics::UIManager::GetUILoopInfo()
 {
-	const auto commandList = m_renderContext->m_commandContext->m_commandList;
+	const auto commandList = m_renderContext->m_commandContext->GetCommandList();
 	const auto swapChain = m_renderContext->m_swapChain;
 
-	m_UILoopInfo.get()->commandlist = commandList.Get();
+	m_UILoopInfo.get()->commandlist = commandList;
 	m_UILoopInfo.get()->imguiDescriptorHeap = m_imguiDescriptorHeap.Get();
 	m_UILoopInfo.get()->rendertarget = swapChain->m_renderTargets[swapChain->m_frameIndex].Get();
 	return m_UILoopInfo.get();

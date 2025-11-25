@@ -3,7 +3,12 @@
 
 Graphics::GraphicsDevice::~GraphicsDevice() = default;
 
-
+/// <summary>
+/// 그래픽스 디바이스 초기화
+/// 
+/// </summary>
+/// <param name="useWarpDevice"></param>
+/// <param name="debugLayerOn"></param>
 void Graphics::GraphicsDevice::Initialize(const bool& useWarpDevice, const bool& debugLayerOn)
 {
 	m_useWarpDevice = useWarpDevice;
@@ -20,6 +25,7 @@ void Graphics::GraphicsDevice::Initialize(const bool& useWarpDevice, const bool&
 	// 펜스 생성
 	CreateFence();
 }
+
 
 /// <summary>
 /// 디버그 레이어를 활성 여부를 변수로 받아
@@ -196,11 +202,17 @@ void Graphics::GraphicsDevice::CreateCommandQueue()
 	// INT Priority : 큐의 우선순위를 지정합니다.
 	// D3D12_COMMAND_QUEUE_FLAGS Flags : 큐의 플래그를 지정합니다.
 	// UINT NodeMask : 멀티 GPU 시스템에서 큐가 실행될 노드를 지정합니다.(멀티로 안쓰면 0)
-	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	D3D12_COMMAND_QUEUE_DESC renderQueueDesc = {};
+	renderQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	renderQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
-	ThrowIfFailed(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_commandQueue)));
+	ThrowIfFailed(m_device->CreateCommandQueue(&renderQueueDesc, IID_PPV_ARGS(&m_renderCmdQueue)));
+
+	D3D12_COMMAND_QUEUE_DESC copyQueueDesc = {};
+	copyQueueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
+	copyQueueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	ThrowIfFailed(m_device->CreateCommandQueue(&copyQueueDesc, IID_PPV_ARGS(&m_copyCmdQueue)));
+	int a = 3;
 }
 
 
@@ -213,19 +225,21 @@ void Graphics::GraphicsDevice::CreateCommandQueue()
 void Graphics::GraphicsDevice::CreateFence()
 {
 	// CreateFence() 메서드는 GPU와 CPU 간의 동기화를 위해 사용되는 Fence 객체를 생성합니다.
-	ThrowIfFailed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_fence)));
-	m_fenceValue = 0; // 초기 펜스 값 설정	
+	ThrowIfFailed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_renderFence)));
+	ThrowIfFailed(m_device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_copyFence)));
+	m_renderFenceValue = 0; 
+	m_copyFenceValue = 0; 
 
-	// CreateEvent() 메서드는 CPU가 GPU의 작업 완료를 기다릴 때 사용할 이벤트 객체를 생성합니다.
-	/*윈도우 표준 이벤트 오브젝트 생성
+	// event는 fence가 특정 값에 도달했을 때 알림을 받기 위해 사용됩니다.
+	m_renderFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+	m_copyFenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
-		CPU가 “이벤트가 발생할 때까지 기다리게” 할 수 있음
+	if (m_renderFenceEvent == nullptr)
+	{
+		HRESULT_FROM_WIN32(GetLastError());
+	}
 
-		Fence와 연동해서,
-		→ GPU가 특정 작업 끝날 때까지 CPU를 잠시 멈추는 데 사용*/
-	m_fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-
-	if (m_fenceEvent == nullptr)
+	if (m_copyFenceEvent == nullptr)
 	{
 		HRESULT_FROM_WIN32(GetLastError());
 	}
@@ -237,10 +251,14 @@ void Graphics::GraphicsDevice::CreateFence()
 /// 
 /// </summary>
 /// <param name="fenceValue">신호를 보낼 펜스 값입니다.</param>
-void Graphics::GraphicsDevice::SignalFence()
+void Graphics::GraphicsDevice::SignalRenderFence()
 {
-	
-	m_commandQueue->Signal(m_fence.Get(), ++m_fenceValue);
+	m_renderCmdQueue->Signal(m_renderFence.Get(), ++m_renderFenceValue);
+}
+
+void Graphics::GraphicsDevice::SignalCopyFence()
+{
+	m_copyCmdQueue->Signal(m_copyFence.Get(), ++m_copyFenceValue);
 }
 
 /// <summary>
@@ -249,11 +267,39 @@ void Graphics::GraphicsDevice::SignalFence()
 /// 
 /// </summary>
 /// <param name="fenceValue">대기할 목표 펜스 값입니다.</param>
-void Graphics::GraphicsDevice::WaitForFence()
+void Graphics::GraphicsDevice::WaitForRenderFence()
 {
- 	if (m_fence.Get()->GetCompletedValue() < m_fenceValue)
+ 	if (m_renderFence.Get()->GetCompletedValue() < m_renderFenceValue)
 	{
-		m_fence->SetEventOnCompletion(m_fenceValue, m_fenceEvent);
-		WaitForSingleObject(m_fenceEvent, INFINITE);
+		m_renderFence->SetEventOnCompletion(m_renderFenceValue, m_renderFenceEvent);
+		WaitForSingleObject(m_renderFenceEvent, INFINITE);
 	}
 }
+
+void Graphics::GraphicsDevice::WaitForCopyFence()
+{
+	if (m_copyFence.Get()->GetCompletedValue() < m_copyFenceValue)
+	{
+		m_copyFence->SetEventOnCompletion(m_copyFenceValue, m_copyFenceEvent);
+		WaitForSingleObject(m_copyFenceEvent, INFINITE);
+	}
+}
+
+void Graphics::GraphicsDevice::WaitForRenderFenceValue(const UINT64& fenceValue)
+{
+	if (m_renderFence->GetCompletedValue() < fenceValue)
+	{
+		m_renderFence->SetEventOnCompletion(fenceValue, m_renderFenceEvent);
+		WaitForSingleObject(m_renderFenceEvent, INFINITE);
+	}
+}
+
+void Graphics::GraphicsDevice::WaitForCopyFenceValue(const UINT64& fenceValue)
+{
+	if (m_copyFence->GetCompletedValue() < fenceValue)
+	{
+		m_copyFence->SetEventOnCompletion(fenceValue, m_copyFenceEvent);
+		WaitForSingleObject(m_copyFenceEvent, INFINITE);
+	}
+}
+

@@ -1,5 +1,7 @@
 #pragma once
-class TextureResource
+#include "RenderResource.h"
+
+class TextureResource : public Graphics::RenderResource
 {
 public:
 	TextureResource(std::string name, size_t id)

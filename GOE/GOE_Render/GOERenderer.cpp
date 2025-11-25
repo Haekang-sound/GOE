@@ -7,9 +7,10 @@
 #include "GraphicsDevice.h"
 #include "SwapChain.h"
 #include "PSOManager.h"
-#include "CommandContext.h"
 #include "UIManager.h"
 #include "ResourceManager.h"
+#include "CopyCommandContext.h"
+#include "RenderCommandContext.h"
 
 /// 카메라도 여기있으면안됨
 #include "Camera.h" 
@@ -37,7 +38,8 @@ GOERenderer::GOERenderer(const HWND hWnd)
 	m_swapChain = std::make_unique<Graphics::SwapChain>(m_hWnd, 2);
 	m_PSOManager = std::make_unique<Graphics::PSOManager>();
 	m_resourceManager = std::make_unique<Graphics::ResourceManager>();
-	m_commandContext = std::make_unique<Graphics::CommandContext>();
+	m_commandContext = std::make_unique<Graphics::RenderCommandContext>();
+	m_copyCommandContext = std::make_unique<Graphics::CopyCommandContext>();
 	m_UIManager = std::make_unique<Graphics::UIManager>();
 	m_renderContext = std::make_unique<Graphics::RenderContext>();
 
@@ -47,6 +49,7 @@ GOERenderer::GOERenderer(const HWND hWnd)
 	m_renderContext.get()->m_swapChain = m_swapChain.get();
 	m_renderContext.get()->m_PSOManager = m_PSOManager.get();
 	m_renderContext.get()->m_commandContext = m_commandContext.get();
+	m_renderContext.get()->m_copyCommandContext = m_copyCommandContext.get();
 	m_renderContext.get()->m_UIManager = m_UIManager.get();
 }
 
@@ -60,13 +63,18 @@ GOERenderer::~GOERenderer()
 }
 
 /// <summary>
-/// 초기화 함수
-///
+/// 랜더러의 필수클래스들을 생성하고 초기화 합니다.
+///	0. PIX
+///	1. 그래픽스 디바이스
+/// 2. 스왑체인
+/// 3. PSO매니저
+/// 4. 커맨드 컨텍스트
+/// 5. UI매니저
+/// 6. 리소스 매니저
+/// 
 /// </summary>
 void GOERenderer::OnInit()
 {
-	/// 순서는 중요합니다.
-	m_graphicsDevice.get()->Initialize(false, true);
 #if defined(_DEBUG)
 	GetLatestWinPixGpuCapturerPath_Cpp17();
 	// Check to see if a copy of WinPixGpuCapturer.dll has already been injected into the application.
@@ -76,17 +84,23 @@ void GOERenderer::OnInit()
 		LoadLibrary(L"C:\\Program Files\\Microsoft PIX\\2509.25\\WinPixGpuCapturer.dll");
 	}
 #endif
+	m_graphicsDevice.get()->Initialize(false, true);
 	m_swapChain.get()->Initialize(m_renderContext.get());
 	m_PSOManager.get()->Initialize(m_renderContext.get());
 	m_commandContext.get()->Initialize(m_renderContext.get());
+	m_copyCommandContext.get()->Initialize(m_renderContext.get());
 	m_UIManager.get()->Initialize(m_renderContext.get());
 	m_resourceManager.get()->Initialize(m_renderContext.get());
 
 	m_camera = new Camera(m_hWnd);
+
+	ResetCommandLists();
+
 }
 
 void GOERenderer::OnUpdate(double dTime)
 {
+	m_resourceManager.get()->UpdateResourceStates();
 	m_camera->OnUpdate();
 
 	// 랜더오브젝트들을 그리는구간
@@ -129,17 +143,12 @@ void GOERenderer::OnUpdate(double dTime)
 /// </summary>
 void GOERenderer::BeginRender()
 {
-	const auto commandAllocator = m_renderContext.get()->m_commandContext->m_commandAllocator;
-	const auto commandList = m_renderContext.get()->m_commandContext->m_commandList;
 	const auto device = m_renderContext.get()->m_graphicsDevice;
-	device->WaitForFence();
-
-	// 1. 커맨드 할당자와 커맨드 리스트 초기화
-	// 이전에 기록된 GPU 작업(커맨드 리스트)이 끝났으니, 새롭게 명령을 기록할 수 있도록 할당자(Allocator)를 리셋합니다.
-	commandAllocator->Reset();
-	// 커맨드 리스트(실제 명령 기록 객체)를 리셋하고, 새 명령을 이 할당자에, 지정한 파이프라인 상태(m_pipelineState)로 기록하겠다고 선언.
-	commandList->Reset(commandAllocator.Get(), m_PSOManager.get()->m_pipelineState.Get());
-
+	const auto commandContext = m_renderContext.get()->m_commandContext;
+	device->WaitForRenderFence();
+	commandContext->Reset();
+	const auto commandList = m_renderContext.get()->m_commandContext->GetCommandList();
+	commandList->SetPipelineState(m_PSOManager.get()->m_pipelineState.Get());
 	// 2. 그래픽스 파이프라인 세팅
 		// 셰이더들이 쓸 수 있는 리소스(텍스처, 버퍼 등)들의 묶음인 Root Signature를 바인딩.
 	commandList->SetGraphicsRootSignature(m_PSOManager.get()->m_rootSignature.Get());
@@ -188,7 +197,7 @@ void GOERenderer::BeginRender()
 /// </summary>
 void GOERenderer::OnRender()
 {
-	const auto commandList = m_commandContext.get()->m_commandList;
+	const auto commandList = m_commandContext.get()->GetCommandList();
 	const auto resourceManager = m_resourceManager.get();
 
 	/// 지금은 모든 모델을 그리지만 나중에는 선택적으로 그려야한다.
@@ -196,6 +205,15 @@ void GOERenderer::OnRender()
 	/// 렌더오브젝트는 메쉬단위이므로 meshresource는 해쉬맵이어야한다.
 	for (const auto& renderObject : m_renderObjects)
 	{
+		auto meshResource = resourceManager->GetMeshResource(renderObject->GetMeshID());
+		auto textureResource = resourceManager->GetTextureResource(renderObject->GetTextureID());
+
+		if (!meshResource || meshResource.get()->GetState() != Graphics::ResourceState::READY ||
+			!textureResource || textureResource.get()->GetState() != Graphics::ResourceState::READY)
+		{
+			continue;
+		}
+
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		commandList->IASetVertexBuffers(0, 1, &resourceManager->GetMeshResource(renderObject->GetMeshID())->GetVBView());
 		commandList->IASetIndexBuffer(&resourceManager->GetMeshResource(renderObject->GetMeshID())->GetIBView());
@@ -212,7 +230,7 @@ void GOERenderer::OnRender()
 		commandList->SetGraphicsRootConstantBufferView(2, resourceManager->GetMeshResource(renderObject->GetMeshID())->GetCB()->GetGPUVirtualAddress()); // MeshResource의 CB 사용
 
 		// 4. 텍스처 서술자 테이블 바인딩 (루트 파라미터 3)
-		ID3D12DescriptorHeap* ppHeaps[] = {resourceManager->GetTextureResource(renderObject->GetTextureID())->GetTextureHeap() }; // TextureResource에서 힙 가져오기
+		ID3D12DescriptorHeap* ppHeaps[] = { resourceManager->GetTextureResource(renderObject->GetTextureID())->GetTextureHeap() }; // TextureResource에서 힙 가져오기
 		commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps); // 힙 설정
 
 		// GPU 핸들 가져오기 (TextureResource에 GetSRVGpuHandle() 같은 함수가 있으면 더 좋습니다)
@@ -223,7 +241,6 @@ void GOERenderer::OnRender()
 		// 7. 그리기 명령
 		commandList->DrawIndexedInstanced(resourceManager->GetMeshResource(renderObject->GetMeshID())->GetIndexCount(), 1, 0, 0, 0);
 	}
-	// 6. 그리기 전 세팅
 }
 
 /// <summary>
@@ -232,34 +249,20 @@ void GOERenderer::OnRender()
 /// </summary>
 void GOERenderer::EndRender()
 {
-	const auto commandAllocator = m_renderContext.get()->m_commandContext->m_commandAllocator;
-	const auto commandList = m_renderContext.get()->m_commandContext->m_commandList;
 	const auto device = m_renderContext.get()->m_graphicsDevice;
+	const auto commandContext = m_renderContext.get()->m_commandContext;
+	const auto commandList = m_renderContext.get()->m_commandContext->GetCommandList();
 
-	// 8. 리소스 배리어(상태 변경) – “RenderTarget → Present”
-	// 렌더링이 끝났으니, 다시 "화면에 표시(PRESENT)" 상태로 전환
-	// 이 상태 변경은 GPU가 커맨드 리스트를 실행하는 동안 자동으로 처리됩니다.
-	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+	m_commandContext.get()->TransitionToPresent(
 		m_swapChain.get()->m_renderTargets[m_swapChain.get()->m_frameIndex].Get(),
-		D3D12_RESOURCE_STATE_RENDER_TARGET,      // StateBefore (현재 상태)
-		D3D12_RESOURCE_STATE_PRESENT             // StateAfter (목표 상태)
-	);
-
-	//3. 리소스 배리어(상태 변경) – “Present → RenderTarget”
-		// 현재 그릴 렌더타겟(BackBuffer)의 상태를 “화면에 표시(PRESENT)” → “렌더링(RTT)” 상태로 전환
-	commandList->ResourceBarrier(1, &barrier);
+		D3D12_RESOURCE_STATE_RENDER_TARGET);
 
 	// 9. 커맨드 리스트 닫기
 		// 커맨드 리스트에 더 이상 명령을 추가하지 않겠다고 선언합니다.
 		// 이 메서드를 호출한 후에는 커맨드 리스트를 실행할 수 있습니다.
-	commandList->Close();
-
-	ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
-	device->m_commandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+	commandContext->Execute();
 
 	m_swapChain.get()->m_swapChain->Present(1, 0);
-
-	device->SignalFence();
 
 	// GPU 작업이 끝났으니, swapchain에서 새로운 백버퍼 인덱스를 받아옴.
 	m_swapChain.get()->m_frameIndex = m_swapChain.get()->m_swapChain->GetCurrentBackBufferIndex();
@@ -273,9 +276,25 @@ void GOERenderer::EndRender()
 void GOERenderer::OnDestroy()
 {
 	const auto device = m_renderContext.get()->m_graphicsDevice;
-	device->WaitForFence();
-	CloseHandle(device->m_fenceEvent);
+	device->WaitForRenderFence();
+	// fenceEvent는 그래픽 디바이스가 소유하고 있으므로 여기서 닫아준다.
+	CloseHandle(device->GetRenderFenceEvent());
+	CloseHandle(device->GetCopyFenceEvent());
 	delete m_camera;
+}
+
+void GOERenderer::ResetCommandLists()
+{
+	const auto commandConetext = m_renderContext.get()->m_commandContext;
+	const auto copyCommandContext = m_renderContext.get()->m_copyCommandContext;
+}
+
+void GOERenderer::FlushCommandQueue()
+{
+}
+
+void GOERenderer::WaitForGPU()
+{
 }
 
 UIInitInfo* GOERenderer::GetUIInfo()
@@ -308,7 +327,7 @@ void GOERenderer::AddRenderObejct(RenderObjectData& data)
 void GOERenderer::LoadTexture(std::string filepath)
 {
 	const auto resourceManager = m_resourceManager.get();
-	resourceManager->LoadTexture(filepath, *m_commandContext.get());
+	resourceManager->LoadTexture(filepath);
 }
 
 

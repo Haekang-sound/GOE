@@ -56,7 +56,7 @@ void Graphics::SwapChain::CreateSwapChain()
 	//  CreateSwapChainForHwnd()
 	// : 이 메서드는 HWND에 대한 스왑체인을 생성합니다.
 	ThrowIfFailed(device->m_dxgiFactory->CreateSwapChainForHwnd(
-		device->m_commandQueue.Get(),
+		device->m_renderCmdQueue.Get(),
 		m_hWnd,
 		&swapChainDesc,
 		nullptr,
