@@ -1,4 +1,4 @@
-#include "Renderer_pch.h"
+﻿#include "Renderer_pch.h"
 #include "ResourceManager.h"
 
 #include <d3dx12/d3dx12.h>
@@ -144,7 +144,6 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath)
 	// 커맨드 리스트에 복사 명령을 기록합니다.
 	UpdateSubresources(commandList, textureDefault.Get(), textureUpload.Get(), 0, 0, 1, &subresourceData);
 
-	//commandContext->TransitionToCommon(textureDefault.Get(), D3D12_RESOURCE_STATE_COMMON);
 	// 디스크립터 힙 생성
 	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
 	srvHeapDesc.NumDescriptors = 1;
@@ -163,7 +162,7 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath)
 	srvDesc.Texture2D.MipLevels = 1;
 
 	device->m_device->CreateShaderResourceView(textureDefault.Get(), &srvDesc, srvHandle);
-
+	
 	commandContext->Execute();
 
 	textureResource.get()->SetTextureDefault(std::move(textureDefault));

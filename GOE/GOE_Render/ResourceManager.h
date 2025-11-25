@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <vector>
 #include <memory>
 #include <unordered_map>
@@ -25,7 +25,6 @@ namespace Graphics
 		void CreateMeshResource(const Mesh* core_mesh);
 
 	public:
-		// ... Get 함수들은 그대로 ...
 		inline const std::unordered_map<size_t, std::shared_ptr<MeshResource>>& GetMeshResourceMap() const
 		{
 			return m_meshResourceMap;

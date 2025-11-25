@@ -1,4 +1,4 @@
-#include "Renderer_pch.h"
+﻿#include "Renderer_pch.h"
 #include "GOERenderer.h"
 
 #include <d3dx12/d3dx12.h>
@@ -200,14 +200,12 @@ void GOERenderer::OnRender()
 	const auto commandList = m_commandContext.get()->GetCommandList();
 	const auto resourceManager = m_resourceManager.get();
 
-	/// 지금은 모든 모델을 그리지만 나중에는 선택적으로 그려야한다.
-	/// 공유자원이 아닌 고유자원을 기준으로 랜더오브젝트의 관한 queue를 만들어야한다.
-	/// 렌더오브젝트는 메쉬단위이므로 meshresource는 해쉬맵이어야한다.
 	for (const auto& renderObject : m_renderObjects)
 	{
 		auto meshResource = resourceManager->GetMeshResource(renderObject->GetMeshID());
 		auto textureResource = resourceManager->GetTextureResource(renderObject->GetTextureID());
-
+		
+		// 리소스 로딩여부를 확인하고 해당되지 않으면 스킵
 		if (!meshResource || meshResource.get()->GetState() != Graphics::ResourceState::READY ||
 			!textureResource || textureResource.get()->GetState() != Graphics::ResourceState::READY)
 		{
@@ -215,8 +213,8 @@ void GOERenderer::OnRender()
 		}
 
 		commandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		commandList->IASetVertexBuffers(0, 1, &resourceManager->GetMeshResource(renderObject->GetMeshID())->GetVBView());
-		commandList->IASetIndexBuffer(&resourceManager->GetMeshResource(renderObject->GetMeshID())->GetIBView());
+		commandList->IASetVertexBuffers(0, 1, &meshResource->GetVBView());
+		commandList->IASetIndexBuffer(&meshResource->GetIBView());
 
 		/// 콘스탄트 버퍼의 관한 문제는 고유자원을 기준으로 랜더할때 해결될것
 		// 1. 월드/뷰/프로젝션 CBV 바인딩 (루트 파라미터 0)
@@ -230,16 +228,16 @@ void GOERenderer::OnRender()
 		commandList->SetGraphicsRootConstantBufferView(2, resourceManager->GetMeshResource(renderObject->GetMeshID())->GetCB()->GetGPUVirtualAddress()); // MeshResource의 CB 사용
 
 		// 4. 텍스처 서술자 테이블 바인딩 (루트 파라미터 3)
-		ID3D12DescriptorHeap* ppHeaps[] = { resourceManager->GetTextureResource(renderObject->GetTextureID())->GetTextureHeap() }; // TextureResource에서 힙 가져오기
+		ID3D12DescriptorHeap* ppHeaps[] = { textureResource->GetTextureHeap() }; // TextureResource에서 힙 가져오기
 		commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps); // 힙 설정
 
 		// GPU 핸들 가져오기 (TextureResource에 GetSRVGpuHandle() 같은 함수가 있으면 더 좋습니다)
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGpuHandle(resourceManager->GetTextureResource(renderObject->GetTextureID())->GetTextureHeap()->GetGPUDescriptorHandleForHeapStart());
+		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGpuHandle(textureResource->GetTextureHeap()->GetGPUDescriptorHandleForHeapStart());
 		// 루트 파라미터 인덱스를 3으로 변경!
 		commandList->SetGraphicsRootDescriptorTable(3, srvGpuHandle); // <--- 인덱스 3 사용
 
 		// 7. 그리기 명령
-		commandList->DrawIndexedInstanced(resourceManager->GetMeshResource(renderObject->GetMeshID())->GetIndexCount(), 1, 0, 0, 0);
+		commandList->DrawIndexedInstanced(meshResource->GetIndexCount(), 1, 0, 0, 0);
 	}
 }
 
