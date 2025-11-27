@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "RenderResource.h"
 /// <summary>
 /// 메쉬정보를 랜더러에서 사용할 수 있는 형태로 가공한 클래스
@@ -59,6 +59,4 @@ private:
 	// boneoffset을 저장할 자료형
 	UINT m_CBSize = 0;
 	ComPtr<ID3D12Resource> m_constantBuffer = {};
-	//ComPtr<ID3D12DescriptorHeap> m_CBVHeap = {};
-	//D3D12_CPU_DESCRIPTOR_HANDLE m_CBVHandle = {};
 };

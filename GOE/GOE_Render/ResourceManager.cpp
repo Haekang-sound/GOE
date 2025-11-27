@@ -5,6 +5,7 @@
 #include "DirectXTex.h"	
 
 #include "CopyCommandContext.h"
+#include "DescriptorHeapManager.h"
 #include "RenderCommandContext.h"
 #include "PSOManager.h"
 
@@ -65,8 +66,6 @@ void Graphics::ResourceManager::UpdateResourceStates()
 	{
 		uploadBuffers.clear();
 	}
-
-
 }
 
 void Graphics::ResourceManager::LoadTexture(std::string filepath)
@@ -76,17 +75,15 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath)
 	commandContext->Reset();
 	const auto commandList = m_renderContext->m_copyCommandContext->GetCommandList();
 	const auto PSOManager = m_renderContext->m_PSOManager;
+	const auto descriptorHeapManager = m_renderContext->m_descriptorHeapManager;
 
 	// 파일경로를 통해 텍스처를 로드합니다.
 	WIC_FLAGS wicFlags = WIC_FLAGS_NONE;
 	TexMetadata metadata = {};
 	ScratchImage data;
-
-	HRESULT hr = DirectX::LoadFromWICFile(
+	ThrowIfFailed(DirectX::LoadFromWICFile(
 		std::wstring(filepath.begin(), filepath.end()).c_str(),
-		wicFlags, &metadata, data, nullptr);
-
-	ThrowIfFailed(hr);
+		wicFlags, &metadata, data, nullptr));
 
 	/// 해셔와 관련된 내용은 
 	/// 전용 클래스로 대체될 것이기 때문에 
@@ -97,8 +94,8 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath)
 
 	ComPtr<ID3D12Resource> textureDefault = nullptr;
 	ComPtr<ID3D12Resource> textureUpload = nullptr;
-	ComPtr<ID3D12DescriptorHeap> textureheap = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle;
+	D3D12_CPU_DESCRIPTOR_HANDLE srvHandle = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuSrvHandle = {};
 
 	// ScratchImage로부터 얻은 메타데이터로 리소스 속성을 정의합니다.
 	D3D12_RESOURCE_DESC textureDesc = CD3DX12_RESOURCE_DESC::Tex2D(
@@ -108,33 +105,23 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath)
 		static_cast<UINT16>(metadata.arraySize),
 		static_cast<UINT16>(metadata.mipLevels));
 
-	// --- 2. 디폴트 힙 생성 ---
+	// 디폴트 힙 생성 ---
 	CD3DX12_HEAP_PROPERTIES defaultHeapProperties(D3D12_HEAP_TYPE_DEFAULT);
-	hr = device->m_device->CreateCommittedResource(
+	ThrowIfFailed(device->m_device->CreateCommittedResource(
 		&defaultHeapProperties,
 		D3D12_HEAP_FLAG_NONE,
 		&textureDesc,
 		D3D12_RESOURCE_STATE_COMMON, // 데이터를 복사 받을 상태로 생성
 		nullptr,
-		IID_PPV_ARGS(&textureDefault)); // 멤버 변수 m_texture에 저장
+		IID_PPV_ARGS(&textureDefault))); // 멤버 변수 m_texture에 저장
 
-	if (FAILED(hr))
-	{
-		return;
-	}
-
-	// 3. 업로드 힙 생성
+	// 업로드 힙 생성
 	// UINT64 자료형을 사용해야한다.
 	const UINT64 uploadBufferSize = GetRequiredIntermediateSize(textureDefault.Get(), 0, 1);
 	textureUpload = CreateUploadBuffer(nullptr, uploadBufferSize); // 빈 업로드 버퍼 생성
 	CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
 
-	if (FAILED(hr))
-	{
-		return;
-	}
-
-	// --- 4. ScratchImage 데이터를 GPU 리소스로 복사하도록 명령 기록 ---
+	// ScratchImage 데이터를 GPU 리소스로 복사하도록 명령 기록 ---
 	D3D12_SUBRESOURCE_DATA subresourceData = {};
 	subresourceData.pData = data.GetPixels();	// ScratchImage의 픽셀 데이터
 	subresourceData.RowPitch = data.GetImage(0, 0, 0)->rowPitch; // 한 줄의 바이트 크기
@@ -144,34 +131,32 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath)
 	// 커맨드 리스트에 복사 명령을 기록합니다.
 	UpdateSubresources(commandList, textureDefault.Get(), textureUpload.Get(), 0, 0, 1, &subresourceData);
 
-	// 디스크립터 힙 생성
-	D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-	srvHeapDesc.NumDescriptors = 1;
-	srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	srvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ThrowIfFailed(device->m_device->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&textureheap)));
-
-	// --- 6. 셰이더 리소스 뷰(SRV) 생성 ---
-	// SRV를 생성할 디스크립터 힙의 핸들을 가져옵니다 (m_srvHeap은 미리 생성되어 있어야 함).
-	srvHandle = textureheap->GetCPUDescriptorHandleForHeapStart();
-
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 	srvDesc.Format = metadata.format;
 	srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	srvDesc.Texture2D.MipLevels = 1;
 
+	/// 디스크립터힙에 SRV 생성 ---
+	// 1. 디스크립터 힙으로부터 핸들 할당
+	int result = descriptorHeapManager->Allocate(1, &srvHandle, &gpuSrvHandle);
+	if(result == -1)
+	{
+		throw std::runtime_error("Failed to allocate descriptor heap for texture SRV.");
+	}
+	// 2. SRV 생성
 	device->m_device->CreateShaderResourceView(textureDefault.Get(), &srvDesc, srvHandle);
-	
+	// 3. 커맨드제출
 	commandContext->Execute();
-
+	// 4. 리소스저장
 	textureResource.get()->SetTextureDefault(std::move(textureDefault));
-	textureResource.get()->SetTextureUpload(std::move(textureUpload));
-	textureResource.get()->SetTextureHeap(std::move(textureheap));
-	textureResource.get()->SetSRVHandle(srvHandle);
-	size_t id = textureResource.get()->GetID();
-	m_textureResourceMap[textureResource.get()->GetID()] = std::make_shared<TextureResource>(std::move(*textureResource));
+	// 5. 디스크립터 힙 핸들 저장
+	textureResource->SetSRVHandles(srvHandle, gpuSrvHandle);
 
+	size_t id = textureResource.get()->GetID();
+	// 텍스처 리소스 맵에 추가
+	m_textureResourceMap[textureResource.get()->GetID()] = std::make_shared<TextureResource>(std::move(*textureResource));
+	// 로딩 중인 리소스 목록에 추가
 	m_loadingTextures.push_back({ commandContext->GetCommittedFenceValue(), m_textureResourceMap[id] });
 }
 

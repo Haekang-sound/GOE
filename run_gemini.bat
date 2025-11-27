@@ -2,7 +2,7 @@
 chcp 65001 > nul
 
 REM --- [1. 설정] ---
-set GEMINI_MODEL=gemini-2.5-pro
+set GEMINI_MODEL=gemini-3-pro-preview
 set GEMINI_API_KEY=AIzaSyCr8WQJz4OYl8jI25BoTdzZz2a_Wejx3C8
 set GOOGLE_CLOUD_PROJECT=gen-lang-client-0015189838
 

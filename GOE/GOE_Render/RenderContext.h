@@ -1,14 +1,15 @@
-#pragma once
+﻿#pragma once
 
 namespace Graphics
 {
 	class GraphicsDevice;
 	class SwapChain;
 	class PSOManager;
-	class RenderCommandContext;
-	class CopyCommandContext;
 	class UIManager;
 	class ResourceManager;
+	class DescriptorHeapManager;
+	class RenderCommandContext;
+	class CopyCommandContext;
 
 
 	/// <summary>
@@ -21,6 +22,7 @@ namespace Graphics
 		PSOManager* m_PSOManager;
 		UIManager* m_UIManager;
 		ResourceManager* m_resourceManager;
+		DescriptorHeapManager* m_descriptorHeapManager;
 		// command
 		RenderCommandContext* m_commandContext;
 		CopyCommandContext* m_copyCommandContext;

@@ -1,4 +1,4 @@
-#include "Renderer_pch.h"
+﻿#include "Renderer_pch.h"
 #include "PSOManager.h"
 #include "dxcapi.h"
 #include <filesystem>
@@ -12,6 +12,24 @@ void Graphics::PSOManager::Initialize(RenderContext* renderContext)
 	CreateRootSignature();
 	CompileShaders();
 	CreatePipelineState();
+}
+void Graphics::PSOManager::SetInputElementDesc(const UINT& index, const char* semanticName, const UINT& semanticIndex, const DXGI_FORMAT& format, const UINT& inputSlot, const UINT& alignedByteOffset, const D3D12_INPUT_CLASSIFICATION& inputSlotClass, const UINT& instanceDataStepRate)
+{
+	m_inputElementDescs[index].SemanticName = semanticName;
+	m_inputElementDescs[index].SemanticIndex = semanticIndex;
+	m_inputElementDescs[index].Format = format;
+	m_inputElementDescs[index].InputSlot = inputSlot;
+	m_inputElementDescs[index].AlignedByteOffset = alignedByteOffset;
+	m_inputElementDescs[index].InputSlotClass = inputSlotClass;
+	m_inputElementDescs[index].InstanceDataStepRate = instanceDataStepRate;
+}
+
+void Graphics::PSOManager::SetInputElementDescs(const D3D12_INPUT_ELEMENT_DESC* inputElementDescs, const UINT& count)
+{
+	for (UINT i = 0; i < count; ++i)
+	{
+		m_inputElementDescs[i] = inputElementDescs[i];
+	}
 }
 /// <summary>
 /// 루트시그니처를 생성합니다.

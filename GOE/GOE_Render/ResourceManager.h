@@ -2,6 +2,7 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+#include "RenderManager.h"
 
 class TextureResource;
 class MeshResource;
@@ -12,13 +13,13 @@ namespace Graphics
 	struct MeshData;
 	struct RenderContext;
 
-	class ResourceManager
+	class ResourceManager : public RenderManager
 	{
 	public:
 		ResourceManager() = default;
 		~ResourceManager();
 
-		void Initialize(RenderContext* renderContext);
+		void Initialize(RenderContext* renderContext) override;
 		void UpdateResourceStates();
 
 		void LoadTexture(std::string filepath);
@@ -84,9 +85,6 @@ namespace Graphics
 		std::vector<std::pair<UINT64, std::weak_ptr<MeshResource>>> m_loadingMeshes;
 
 		std::vector<ComPtr<ID3D12Resource>> uploadBuffers; // 임시 리소스 보관용 벡터
-
-	private:
-		RenderContext* m_renderContext = nullptr;
 	};
 }
 

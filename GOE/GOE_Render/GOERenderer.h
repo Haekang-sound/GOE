@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ID3DRenderer.h"
 #include <d3d12.h>
 
@@ -23,6 +23,7 @@ namespace Graphics
 	class CopyCommandContext;
 	class UIManager;
 	class ResourceManager;
+	class DescriptorHeapManager;
 }
 
 class Mesh;
@@ -52,6 +53,7 @@ protected:
 	std::unique_ptr<Graphics::PSOManager> m_PSOManager= nullptr;
 	std::unique_ptr<Graphics::ResourceManager> m_resourceManager = nullptr;
 	std::unique_ptr<Graphics::UIManager> m_UIManager = nullptr;
+	std::unique_ptr<Graphics::DescriptorHeapManager> m_descriptorHeapManager = nullptr;
 	
 	std::unique_ptr<Graphics::RenderCommandContext> m_commandContext = nullptr;
 	std::unique_ptr<Graphics::CopyCommandContext> m_copyCommandContext = nullptr;

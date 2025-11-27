@@ -1,6 +1,5 @@
-#pragma once
+﻿#pragma once
 #include <wrl.h>
-
 namespace Graphics
 {
 	/// <summary>
@@ -9,7 +8,7 @@ namespace Graphics
 	/// 
 	/// ohk
 	/// </summary>
-	class GraphicsDevice
+	class GraphicsDevice 
 	{
 	public:
 		GraphicsDevice() = default;

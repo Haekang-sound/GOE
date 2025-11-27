@@ -25,6 +25,7 @@
     <ClInclude Include="CommandContext.h" />
     <ClInclude Include="CopyCommandContext.h" />
     <ClInclude Include="D3DMath.h" />
+    <ClInclude Include="DescriptorHeapManager.h" />
     <ClInclude Include="DirectXTex.h" />
     <ClInclude Include="GOERenderer.h" />
     <ClInclude Include="GraphicsDevice.h" />
@@ -37,6 +38,7 @@
     <ClInclude Include="Renderer_pch.h" />
     <ClInclude Include="ID3DRenderer.h" />
     <ClInclude Include="Kuramon.h" />
+    <ClInclude Include="RenderManager.h" />
     <ClInclude Include="RenderObject.h" />
     <ClInclude Include="RenderResource.h" />
     <ClInclude Include="ResourceManager.h" />
@@ -48,6 +50,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CommandContext.cpp" />
     <ClCompile Include="CopyCommandContext.cpp" />
+    <ClCompile Include="DescriptorHeapManager.cpp" />
     <ClCompile Include="GOERenderer.cpp" />
     <ClCompile Include="GraphicsDevice.cpp" />
     <ClCompile Include="Kuramon.cpp" />
@@ -62,6 +65,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="RenderManager.cpp" />
     <ClCompile Include="RenderObject.cpp" />
     <ClCompile Include="RenderResource.cpp" />
     <ClCompile Include="ResourceManager.cpp" />

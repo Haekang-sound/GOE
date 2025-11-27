@@ -11,6 +11,7 @@
 #include "ResourceManager.h"
 #include "CopyCommandContext.h"
 #include "RenderCommandContext.h"
+#include "DescriptorHeapManager.h"
 
 /// 카메라도 여기있으면안됨
 #include "Camera.h" 
@@ -41,6 +42,7 @@ GOERenderer::GOERenderer(const HWND hWnd)
 	m_commandContext = std::make_unique<Graphics::RenderCommandContext>();
 	m_copyCommandContext = std::make_unique<Graphics::CopyCommandContext>();
 	m_UIManager = std::make_unique<Graphics::UIManager>();
+	m_descriptorHeapManager = std::make_unique<Graphics::DescriptorHeapManager>();
 	m_renderContext = std::make_unique<Graphics::RenderContext>();
 
 	// 렌더컨텍스트에 각 매니저들 연결
@@ -51,6 +53,7 @@ GOERenderer::GOERenderer(const HWND hWnd)
 	m_renderContext.get()->m_commandContext = m_commandContext.get();
 	m_renderContext.get()->m_copyCommandContext = m_copyCommandContext.get();
 	m_renderContext.get()->m_UIManager = m_UIManager.get();
+	m_renderContext.get()->m_descriptorHeapManager = m_descriptorHeapManager.get();
 }
 
 /// <summary>
@@ -91,6 +94,7 @@ void GOERenderer::OnInit()
 	m_copyCommandContext.get()->Initialize(m_renderContext.get());
 	m_UIManager.get()->Initialize(m_renderContext.get());
 	m_resourceManager.get()->Initialize(m_renderContext.get());
+	m_descriptorHeapManager.get()->Initialize(m_renderContext.get());
 
 	m_camera = new Camera(m_hWnd);
 
@@ -148,28 +152,21 @@ void GOERenderer::BeginRender()
 	device->WaitForRenderFence();
 	commandContext->Reset();
 	const auto commandList = m_renderContext.get()->m_commandContext->GetCommandList();
-	commandList->SetPipelineState(m_PSOManager.get()->m_pipelineState.Get());
+
+	commandList->SetPipelineState(m_PSOManager.get()->GetPipelineState().Get());
 	// 2. 그래픽스 파이프라인 세팅
 		// 셰이더들이 쓸 수 있는 리소스(텍스처, 버퍼 등)들의 묶음인 Root Signature를 바인딩.
-	commandList->SetGraphicsRootSignature(m_PSOManager.get()->m_rootSignature.Get());
+	commandList->SetGraphicsRootSignature(m_PSOManager.get()->GetRootSignature().Get());
 	// 뷰포트(화면에 그릴 영역의 크기와 위치, 카메라 뷰)를 지정.
 	commandList->RSSetViewports(1, &m_swapChain.get()->m_viewport);
 	// ScissorRECT 지정. 이 영역 바깥은 렌더링 안 함(클리핑).
 	commandList->RSSetScissorRects(1, &m_swapChain.get()->m_scissorRect);
 
-	/*1. 베리어(Barrier)란 ?
-		GPU 리소스(버퍼, 텍스처 등)의 “상태 전환”을 명시적으로 선언하는 명령
-		D3D12에서 리소스는 “읽기”, “쓰기”, “카피”, “표시(Present)”, “렌더타겟”, “셰이더리소스” 등 다양한 상태를 가짐
-		GPU 파이프라인의 단계마다 리소스가 “올바른 상태”에 있어야만 GPU가 올바르게 처리함
-		베리어는 “지금부터 이 리소스 상태를 바꾼다”를 GPU에 알려주는 명령어*/
 	auto barrier = CD3DX12_RESOURCE_BARRIER::Transition(
 		m_swapChain.get()->m_renderTargets[m_swapChain.get()->m_frameIndex].Get(),    // pResource
 		D3D12_RESOURCE_STATE_PRESENT,           // StateBefore
 		D3D12_RESOURCE_STATE_RENDER_TARGET      // StateAfter
 	);
-
-	//3. 리소스 배리어(상태 변경) – “Present → RenderTarget”
-		// 현재 그릴 렌더타겟(BackBuffer)의 상태를 “화면에 표시(PRESENT)” → “렌더링(RTT)” 상태로 전환
 	commandList->ResourceBarrier(1, &barrier);
 
 	/// 4. 렌더 타겟 뷰 바인딩 + DSV 핸들 추가 
@@ -199,6 +196,7 @@ void GOERenderer::OnRender()
 {
 	const auto commandList = m_commandContext.get()->GetCommandList();
 	const auto resourceManager = m_resourceManager.get();
+	const auto descriptorHeapManager = m_descriptorHeapManager.get();
 
 	for (const auto& renderObject : m_renderObjects)
 	{
@@ -228,11 +226,11 @@ void GOERenderer::OnRender()
 		commandList->SetGraphicsRootConstantBufferView(2, resourceManager->GetMeshResource(renderObject->GetMeshID())->GetCB()->GetGPUVirtualAddress()); // MeshResource의 CB 사용
 
 		// 4. 텍스처 서술자 테이블 바인딩 (루트 파라미터 3)
-		ID3D12DescriptorHeap* ppHeaps[] = { textureResource->GetTextureHeap() }; // TextureResource에서 힙 가져오기
+		ID3D12DescriptorHeap* ppHeaps[] = { descriptorHeapManager->GetSRVHeap()}; // TextureResource에서 힙 가져오기
 		commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps); // 힙 설정
 
 		// GPU 핸들 가져오기 (TextureResource에 GetSRVGpuHandle() 같은 함수가 있으면 더 좋습니다)
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGpuHandle(textureResource->GetTextureHeap()->GetGPUDescriptorHandleForHeapStart());
+		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGpuHandle(textureResource->GetSRVGpuHandle());
 		// 루트 파라미터 인덱스를 3으로 변경!
 		commandList->SetGraphicsRootDescriptorTable(3, srvGpuHandle); // <--- 인덱스 3 사용
 

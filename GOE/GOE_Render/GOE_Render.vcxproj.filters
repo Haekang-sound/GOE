@@ -68,6 +68,8 @@
     <ClInclude Include="CopyCommandContext.h" />
     <ClInclude Include="RenderCommandContext.h" />
     <ClInclude Include="RenderResource.h" />
+    <ClInclude Include="DescriptorHeapManager.h" />
+    <ClInclude Include="RenderManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GOERenderer.cpp">
@@ -114,6 +116,8 @@
     <ClCompile Include="CopyCommandContext.cpp" />
     <ClCompile Include="RenderCommandContext.cpp" />
     <ClCompile Include="RenderResource.cpp" />
+    <ClCompile Include="DescriptorHeapManager.cpp" />
+    <ClCompile Include="RenderManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

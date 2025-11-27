@@ -1,4 +1,4 @@
-#include "Renderer_pch.h"
+﻿#include "Renderer_pch.h"
 #include "GraphicsDevice.h"
 
 Graphics::GraphicsDevice::~GraphicsDevice() = default;

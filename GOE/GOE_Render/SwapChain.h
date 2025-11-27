@@ -1,9 +1,9 @@
-#pragma once
-
+﻿#pragma once
+#include "RenderManager.h"
 namespace Graphics
 {
 	struct RenderContext;
-	class SwapChain
+	class SwapChain : public RenderManager
 	{
 	public:
 		SwapChain(const HWND hWnd, const UINT frameBufferCount);
@@ -19,7 +19,6 @@ namespace Graphics
 		UINT m_height = 0;
 
 		static const UINT m_frameBufferCount = 2;
-		//UINT m_frameBufferCount = 2;
 
 		UINT m_frameIndex = 0;
 		ComPtr<IDXGISwapChain3> m_swapChain = nullptr;
@@ -34,7 +33,7 @@ namespace Graphics
 		XMFLOAT4X4 m_proj = {};
 
 	public:
-		void Initialize(RenderContext* renderContext);
+		void Initialize(RenderContext* renderContext) override;
 
 	private:
 		void CreateSwapChain();
@@ -45,9 +44,6 @@ namespace Graphics
 
 	private:
 		HWND m_hWnd;
-		RenderContext* m_renderContext = nullptr;
-		
-
 	};
 }
 

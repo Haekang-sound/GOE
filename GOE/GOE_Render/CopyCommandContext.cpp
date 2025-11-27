@@ -1,4 +1,4 @@
-#include "Renderer_pch.h"
+﻿#include "Renderer_pch.h"
 #include "CopyCommandContext.h"
 
 Graphics::CopyCommandContext::~CopyCommandContext() = default;
@@ -17,9 +17,9 @@ void Graphics::CopyCommandContext::Execute()
 	ThrowIfFailed(m_commandList->Close());
 	ID3D12CommandList* cmdsLists[] = { m_commandList.Get() };
 	device->m_copyCmdQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+
 	device->SignalCopyFence();
 	m_committedFaenceValue = device->GetCopyFenceValue();
-
 }
 
 void Graphics::CopyCommandContext::Reset()

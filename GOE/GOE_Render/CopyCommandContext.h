@@ -23,7 +23,6 @@ namespace Graphics
 	public:
 		void TransitionToCommon(ID3D12Resource* resource, D3D12_RESOURCE_STATES currentState);
 
-
 	protected:
 		void CreateCommandAllocator() override;
 		void CreateCommandList() override;
