@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 namespace Graphics
 {
@@ -21,6 +21,7 @@ public:
 	~RenderObject();
 
 public:
+	inline const std::string& GetName() const { return m_name; }
 	inline size_t GetID() const { return m_id; }
 	inline size_t GetMeshID() const { return m_meshID; }
 	inline size_t GetMeshIndex() const { return m_meshIndex; }
@@ -31,15 +32,10 @@ public:
 	inline bool IsVisible() const { return m_isVisible; }
 	inline bool IsAnimated() const { return m_isAnimated; }
 
-	inline const std::string& GetName() const { return m_name; }
+	inline ComPtr<ID3D12Resource> GetCB() const { return m_constantBuffer; }
+	inline ComPtr<ID3D12Resource> GetCBBoneMatrix() const { return m_boneMatrixBuffer; }
 
-	inline ID3D12Resource* GetCB() const { return m_constantBuffer.Get(); }
-	inline ID3D12Resource* GetCB() { return m_constantBuffer.Get(); }
-	inline ID3D12DescriptorHeap* GetCBVHeap() const { return m_CBVHeap.Get(); }
 	inline const D3D12_CPU_DESCRIPTOR_HANDLE& GetCBVHandle() const { return m_CBVHandle; }
-
-	inline ID3D12Resource* GetCBBoneMatrix() const { return m_boneMatrixBuffer.Get(); }
-	inline ID3D12DescriptorHeap* GetCBVoneMatrixHeap() const { return m_boneMatrixHeap.Get(); }
 	inline const D3D12_CPU_DESCRIPTOR_HANDLE& SetCBVoneMatrixHandle() const { return m_boneMatrixHandle; }
 
 	inline Graphics::Matrix4x4& GetBoneTM(int i) { return m_boneTM[i]; }
@@ -55,13 +51,9 @@ public:
 	inline void SetTextureID(size_t textureID) { m_textureID = textureID; }
 
 	inline void SetCB(ComPtr<ID3D12Resource>&& uploadBuffer) { m_constantBuffer = std::move(uploadBuffer); }
-	inline void SetCBVHeap(ComPtr<ID3D12DescriptorHeap>&& heap) { m_CBVHeap = std::move(heap); }
-	inline void SetCBVHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_CBVHandle = handle; }
-
 	inline void SetCBBoneMatrix(ComPtr<ID3D12Resource>&& uploadBuffer) { m_boneMatrixBuffer = std::move(uploadBuffer); }
-	inline void SetCBVoneMatrixHeap(ComPtr<ID3D12DescriptorHeap>&& heap) { m_boneMatrixHeap = std::move(heap); }
+	inline void SetCBVHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_CBVHandle = handle; }
 	inline void SetCBVoneMatrixHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_boneMatrixHandle = handle; }
-
 
 	inline void SetLocalTM(const GOE::Matrix4x4& localTM) { m_localTM = localTM; }
 	inline void SetWorldTM(const GOE::Matrix4x4& worldTM) { m_worldTM = worldTM; }
@@ -85,13 +77,11 @@ private:
 	bool m_isAnimated = false; // 애니메이션 적용 여부
 
 private:
-	// CB
-	ComPtr<ID3D12Resource> m_constantBuffer = {};
-	ComPtr<ID3D12DescriptorHeap> m_CBVHeap = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE m_CBVHandle = {};
+	ComPtr<ID3D12Resource> m_constantBuffer = nullptr;
+	ComPtr<ID3D12Resource> m_boneMatrixBuffer = nullptr;
 
-	ComPtr<ID3D12Resource> m_boneMatrixBuffer = {};
-	ComPtr<ID3D12DescriptorHeap> m_boneMatrixHeap = {};
+	// CB
+	D3D12_CPU_DESCRIPTOR_HANDLE m_CBVHandle = {};
 	D3D12_CPU_DESCRIPTOR_HANDLE m_boneMatrixHandle = {};
 
 };

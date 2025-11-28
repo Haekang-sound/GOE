@@ -83,8 +83,7 @@ namespace Graphics
 		// '로딩 중'인 리소스와 완료 목표 펜스 값을 저장하는 목록
 		std::vector<std::pair<UINT64, std::weak_ptr<TextureResource>>> m_loadingTextures;
 		std::vector<std::pair<UINT64, std::weak_ptr<MeshResource>>> m_loadingMeshes;
-
-		std::vector<ComPtr<ID3D12Resource>> uploadBuffers; // 임시 리소스 보관용 벡터
+		std::vector<ComPtr<ID3D12Resource>> uploadBuffers;
 	};
 }
 

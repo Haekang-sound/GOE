@@ -44,7 +44,6 @@ private:
 	const size_t m_id = 0; // 모델 ID
 	size_t m_meshIndex = -1; // 메쉬 인덱스 (추가 필요시 사용)
 	size_t m_modelID = 0; // 모델 ID (추가 필요시 사용)
-	Graphics::ResourceState m_state = Graphics::ResourceState::LOADING;
 
 private:
 	UINT m_VBSize = 0;

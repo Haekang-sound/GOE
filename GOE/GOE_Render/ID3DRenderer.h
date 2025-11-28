@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 class Model;
 class UIInitInfo;
@@ -25,9 +25,6 @@ namespace GOE
 		virtual void EndRender() = 0;
 		virtual void OnDestroy() = 0;
 
-		virtual void ResetCommandLists() = 0;
-		virtual void FlushCommandQueue() = 0;
-		virtual void WaitForGPU() = 0;
 	public:
 		// DirectX
 		virtual void LoadTexture(std::string filepath) {};

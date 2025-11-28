@@ -29,6 +29,10 @@ namespace Graphics
 		void WaitForRenderFenceValue(const UINT64& fenceValue);
 		void WaitForCopyFenceValue(const UINT64& fenceValue);
 
+		void WaitForRenderQueue();
+		void WaitForCopyQueue();
+		void WaitForRenderQueueValue(const UINT64 fenceValue);
+		void WaitForCopyQueueValue(const UINT64 fenceValue);
 
 	public:
 		HANDLE GetRenderFenceEvent() const { return m_renderFenceEvent; }

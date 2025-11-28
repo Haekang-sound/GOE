@@ -303,3 +303,23 @@ void Graphics::GraphicsDevice::WaitForCopyFenceValue(const UINT64& fenceValue)
 	}
 }
 
+void Graphics::GraphicsDevice::WaitForRenderQueue()
+{
+	m_renderCmdQueue->Wait(m_copyFence.Get(), m_copyFenceValue);
+}
+
+void Graphics::GraphicsDevice::WaitForCopyQueue()
+{
+	m_copyCmdQueue->Wait(m_renderFence.Get(), m_renderFenceValue);
+}
+
+void Graphics::GraphicsDevice::WaitForRenderQueueValue(const UINT64 fenceValue)
+{
+	m_renderCmdQueue->Wait(m_copyFence.Get(), fenceValue);
+}
+
+void Graphics::GraphicsDevice::WaitForCopyQueueValue(const UINT64 fenceValue)
+{
+	m_copyCmdQueue->Wait(m_renderFence.Get(), fenceValue);
+}
+

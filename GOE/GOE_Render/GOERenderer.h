@@ -73,9 +73,6 @@ public:
 	void OnRender() override;
 	void EndRender() override;
 	void OnDestroy() override;
-	void ResetCommandLists();
-	void FlushCommandQueue();
-	void WaitForGPU();
 
 public:
 	void CreateMeshResource(const Mesh* core_mesh) override;

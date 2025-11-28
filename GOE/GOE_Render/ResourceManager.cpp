@@ -68,6 +68,12 @@ void Graphics::ResourceManager::UpdateResourceStates()
 	}
 }
 
+/// <summary>
+/// 경로를 받아서 텍스처를 로드하고
+/// 텍스처 리소스를 생성합니다.
+/// 
+/// </summary>
+/// <param name="filepath"></param>
 void Graphics::ResourceManager::LoadTexture(std::string filepath)
 {
 	const auto device = m_renderContext->m_graphicsDevice;
@@ -139,7 +145,7 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath)
 
 	/// 디스크립터힙에 SRV 생성 ---
 	// 1. 디스크립터 힙으로부터 핸들 할당
-	int result = descriptorHeapManager->Allocate(1, &srvHandle, &gpuSrvHandle);
+	int result = descriptorHeapManager->Allocate(1, &srvHandle);
 	if(result == -1)
 	{
 		throw std::runtime_error("Failed to allocate descriptor heap for texture SRV.");
@@ -160,29 +166,51 @@ void Graphics::ResourceManager::LoadTexture(std::string filepath)
 	m_loadingTextures.push_back({ commandContext->GetCommittedFenceValue(), m_textureResourceMap[id] });
 }
 
+/// <summary>
+/// 그래픽스 메쉬리소스를 생성합니다.
+/// 
+/// </summary>
+/// <param name="core_mesh">메쉬 정보</param>
 void Graphics::ResourceManager::CreateMeshResource(const Mesh* core_mesh)
 {
+	const auto device = m_renderContext->m_graphicsDevice;
 	const auto commandContext = m_renderContext->m_copyCommandContext;
+	const auto descriptorHeapManager = m_renderContext->m_descriptorHeapManager;
+
 	m_meshResourceMap[core_mesh->GetID()] = std::make_shared<MeshResource>(
 		core_mesh->GetName(),
 		core_mesh->GetID());
+	auto meshResource = m_meshResourceMap[core_mesh->GetID()].get();
 
 	// 메쉬데이터를 가져옴
 	Graphics::MeshData meshData(core_mesh->GetMeshData());
 
 	// 메쉬데이터를 리소스로 변환해서 방금 추가한 메쉬리소스에 추가
-	CreateVBResource(m_meshResourceMap[core_mesh->GetID()].get(), meshData);
-	CreateIBResource(m_meshResourceMap[core_mesh->GetID()].get(), meshData);
+	CreateVBResource(meshResource, meshData);
+	CreateIBResource(meshResource, meshData);
 
-	// 월드 행렬을 위한 상수 버퍼 생성 (초기값: 항등 행렬)
-	// 공간 크기만큼 할당한다.
-	m_meshResourceMap[core_mesh->GetID()]->SetCB(
-		CreateCBResource(meshData.boneOffsets.data(), sizeof(XMFLOAT4X4) * 128));
+	// 1. 할당
+	D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle = {};
+	D3D12_GPU_DESCRIPTOR_HANDLE gpuCbvHandle = {};
+	descriptorHeapManager->Allocate(1, &cbvHandle);
+	
+	// 2. CB생성
+	meshResource->SetCB(CreateCBResource(meshData.boneOffsets.data(), sizeof(XMFLOAT4X4) * 128));
+
+	// 3. CBV생성
+	// cpu핸들을 사용해서 CBV를 작성한다.
+	D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+	cbvDesc.BufferLocation = meshResource->GetCB()->GetGPUVirtualAddress();
+	cbvDesc.SizeInBytes = (sizeof(XMFLOAT4X4) * 128 + 255) & ~255; // 256바이트 정렬
+	device->m_device->CreateConstantBufferView(&cbvDesc, cbvHandle);
+
+	// 4. 핸들입력
+	meshResource->SetSRVHandles(cbvHandle, gpuCbvHandle);
 
 	// 추가된 메쉬리소스에  modelID와 meshIndex를 설정한다.
 	// 모델 id 도 넣어야 한다.
-	m_meshResourceMap[core_mesh->GetID()]->SetMeshIndex(core_mesh->GetMeshIndex());
-	m_meshResourceMap[core_mesh->GetID()]->SetModelID(core_mesh->GetModelID());
+	meshResource->SetMeshIndex(core_mesh->GetMeshIndex());
+	meshResource->SetModelID(core_mesh->GetModelID());
 
 	m_loadingMeshes.push_back({ commandContext->GetCommittedFenceValue(), m_meshResourceMap[core_mesh->GetID()] });
 }

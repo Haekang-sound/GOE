@@ -398,3 +398,46 @@ D3D12의 비동기 실행 모델을 다룰 때, 리소스의 생명 주기와 GP
 
 **최종 결과:**
 이 일련의 과정을 통해, 게임 루프를 방해하지 않으면서도 백그라운드에서 안전하게 리소스를 로딩하는 견고한 비동기 시스템을 구축하는 데 성공했다. 전역 대기(Global Wait)를 없애는 대신, 꼭 필요한 자원(Allocator)에 대해서만 최소한의 동기화를 수행하는 효율적인 구조를 완성했다.
+
+--- 대화 기록 시작 (2025년 11월 28일 금요일) ---
+
+### **기술적 회고: D3D12 Descriptor Management 최적화**
+
+#### **1. 핵심 아키텍처 변화**
+
+*   **기존 (Individual Heaps):**
+    *   각 `Resource`(Texture, Mesh)가 자신만의 소형 `Descriptor Heap`을 개별적으로 소유.
+    *   **문제점:** Draw Call마다 서로 다른 힙을 바인딩하기 위해 `SetDescriptorHeaps`를 빈번하게 호출. 이는 GPU 파이프라인의 병목(Pipeline Stall)을 유발하는 고비용 연산임.
+
+*   **변경 (Centralized & Dynamic Heap):**
+    *   **Staging Heap (Static):** `D3D12_DESCRIPTOR_HEAP_FLAG_NONE`. 리소스 로딩 시 생성된 디스크립터를 영구 보관하는 CPU 전용 힙. 셰이더 접근 불가.
+    *   **Rendering Heap (Dynamic):** `D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE`. 매 프레임 `Reset`되는 Ring Buffer 구조. 셰이더가 참조하는 유일한 힙.
+    *   **최적화:** 프레임 시작 시 `SetDescriptorHeaps`를 **단 1회** 호출. 모든 리소스 뷰(SRV, CBV)를 Rendering Heap으로 **복사(CopyDescriptors)**하거나 **즉시 생성(CreateView)**하여 바인딩.
+
+#### **2. Descriptor Copy & Binding 메커니즘**
+
+*   **CopyDescriptorsSimple (Device API):**
+    *   서로 다른 힙 간에 디스크립터 정보를 복사하는 기능.
+    *   **Source:** Staging Heap (CPU Readable).
+    *   **Dest:** Rendering Heap (CPU Writable, GPU Readable).
+    *   이 기능을 통해 흩어져 있는 정적 리소스들의 뷰를 렌더링 힙의 연속된 메모리 공간으로 모음 → **공간 지역성(Spatial Locality)** 극대화로 GPU 캐시 적중률 향상.
+
+#### **3. 트러블슈팅 (Troubleshooting)**
+
+*   **Error 1: `SET_DESCRIPTOR_HEAP_INVALID`**
+    *   **원인:** `SetDescriptorHeaps`에 동일한 타입(`CBV_SRV_UAV`)의 힙 2개를 동시에 전달 시도. D3D12 명세상 타입별 1개의 힙만 활성화 가능.
+    *   **해결:** Rendering Heap 하나만 바인딩하고, Staging Heap의 내용은 복사해서 사용하는 방식으로 전환.
+
+*   **Error 2: `COPY_DESCRIPTORS_WRITE_ONLY_DESCRIPTOR`**
+    *   **원인:** Staging Heap을 `SHADER_VISIBLE`로 생성함. 이 플래그가 켜진 힙은 CPU 입장에서 **Write-Combine** 메모리로 취급되어 **Read(복사 원본으로 사용)**가 불가능하거나 매우 느림.
+    *   **해결:** Staging Heap의 플래그를 `D3D12_DESCRIPTOR_HEAP_FLAG_NONE`으로 변경하여 CPU Read/Write가 자유로운 일반 메모리처럼 취급.
+
+*   **Error 3: `DESCRIPTOR_HEAP_NOT_SHADER_VISIBLE`**
+    *   **원인:** `FLAG_NONE`으로 바뀐 Staging Heap에 대해 `GetGPUDescriptorHandleForHeapStart()` 호출. 셰이더에 안 보이는 힙은 GPU 가상 주소(GPU Handle)를 가지지 않음.
+    *   **해결:** Staging Heap은 CPU Handle만 사용하도록 로직 수정.
+
+#### **4. 최종 성과**
+*   **Draw Call Overhead 최소화:** 힙 변경 비용 제거.
+*   **Memory Management:** 동적 데이터(Animation Bone Matrix)를 위한 별도 버퍼 관리 없이, 렌더링 힙의 남는 공간을 스택처럼 활용하는 **Linear Allocation** 패턴 정착.
+
+--- 대화 기록 끝 (2025년 11월 28일 금요일) ---

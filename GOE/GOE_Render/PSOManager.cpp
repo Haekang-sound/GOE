@@ -41,29 +41,19 @@ void Graphics::PSOManager::SetInputElementDescs(const D3D12_INPUT_ELEMENT_DESC* 
 void Graphics::PSOManager::CreateRootSignature()
 {
 	const auto device = m_renderContext->m_graphicsDevice;
-	// 루트시그니처는
-	// 셰이더가 사용하는 리소스(버퍼, 텍스처 등)의 바인딩을 정의합니다.
-	// 셰이더마다 구성이 다를 경우
-	// 셰이더마다 루트 시그니처를 따로 정의해야 합니다.
-	// D3D12_ROOT_SIGNATURE_DESC는
-	// 루트 시그니처의 속성을 정의하는 구조체입니다.
-	// 루트시그니처의 형태 == 셰이더가 사용하는 리소스의 형태와 일치해야 합니다.
 
-	// D3D12_ROOT_SIGNATURE_DESC
-	// : 루트 시그니처의 속성을 정의하는 구조체입니다.
-	// NumParameters : 루트 시그니처에 포함될 파라미터의 수
-	// pParameters : 루트 시그니처 파라미터 배열
-	// NumStaticSamplers : 정적 샘플러의 수
-	// pStaticSamplers : 정적 샘플러 배열
-	// Flags : 루트 시그니처의 플래그를 지정합니다.
-
-	D3D12_DESCRIPTOR_RANGE descriptorRanges[1] = {};
+	D3D12_DESCRIPTOR_RANGE descriptorRanges[2] = {};
 	descriptorRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
 	descriptorRanges[0].NumDescriptors = 1;    // 텍스처 1개
 	descriptorRanges[0].BaseShaderRegister = 0;    // 셰이더의 t0 레지스터에 바인딩
 	descriptorRanges[0].RegisterSpace = 0;
 	descriptorRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
+	descriptorRanges[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	descriptorRanges[1].NumDescriptors = 1;    // 텍스처 1개
+	descriptorRanges[1].BaseShaderRegister = 1;
+	descriptorRanges[1].RegisterSpace = 0;
+	descriptorRanges[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 	// D3D12_ROOT_PARAMETER
 	// : 루트 시그니처의 파라미터를 정의하는 구조체입니다.
@@ -77,9 +67,9 @@ void Graphics::PSOManager::CreateRootSignature()
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; // 모든 셰이더 단계에서 접근 가능
 
 	// 파라미터 1: 본 변환 행렬 CBV (b1) - RenderObject 소유
-	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	rootParameters[1].Descriptor.ShaderRegister = 1; // b1 레지스터
-	rootParameters[1].Descriptor.RegisterSpace = 0;
+	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParameters[1].DescriptorTable.NumDescriptorRanges = 1; // 범위 1개
+	rootParameters[1].DescriptorTable.pDescriptorRanges = &descriptorRanges[1]; // 위에서 정의한 범위 사용
 	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX; // 버텍스 셰이더에서만 필요
 
 	// 파라미터 2: 본 오프셋 행렬 CBV (b2) - MeshResource 소유

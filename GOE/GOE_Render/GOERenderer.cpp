@@ -97,9 +97,6 @@ void GOERenderer::OnInit()
 	m_descriptorHeapManager.get()->Initialize(m_renderContext.get());
 
 	m_camera = new Camera(m_hWnd);
-
-	ResetCommandLists();
-
 }
 
 void GOERenderer::OnUpdate(double dTime)
@@ -152,6 +149,10 @@ void GOERenderer::BeginRender()
 	device->WaitForRenderFence();
 	commandContext->Reset();
 	const auto commandList = m_renderContext.get()->m_commandContext->GetCommandList();
+	const auto descriptorHeapManager = m_renderContext.get()->m_descriptorHeapManager;
+
+	// 동적힙의 대한 할당초기화
+	descriptorHeapManager->ResetDynamicHeap();
 
 	commandList->SetPipelineState(m_PSOManager.get()->GetPipelineState().Get());
 	// 2. 그래픽스 파이프라인 세팅
@@ -194,9 +195,15 @@ void GOERenderer::BeginRender()
 /// </summary>
 void GOERenderer::OnRender()
 {
+	const auto device = m_renderContext.get()->m_graphicsDevice;
 	const auto commandList = m_commandContext.get()->GetCommandList();
 	const auto resourceManager = m_resourceManager.get();
 	const auto descriptorHeapManager = m_descriptorHeapManager.get();
+
+	// 정적/동적 디스크립터힙 두가지를 사용할 수 있도록
+	// 힙배열로 전달함
+	ID3D12DescriptorHeap* ppHeaps[] = { descriptorHeapManager->GetDynamicSRVHeap()};
+	commandList->SetDescriptorHeaps(1, ppHeaps); // 힙 설정
 
 	for (const auto& renderObject : m_renderObjects)
 	{
@@ -218,21 +225,32 @@ void GOERenderer::OnRender()
 		// 1. 월드/뷰/프로젝션 CBV 바인딩 (루트 파라미터 0)
 		commandList->SetGraphicsRootConstantBufferView(0, renderObject->GetCB()->GetGPUVirtualAddress());
 
-		// 2. 본 변환 CBV 바인딩 (루트 파라미터 1) - RenderObject 소유
-		//    RenderObject에 GetBoneCB() 와 같은 함수가 추가되어야 합니다.
-		commandList->SetGraphicsRootConstantBufferView(1, renderObject->GetCBBoneMatrix()->GetGPUVirtualAddress()); // 예시: GetBoneCB() 호출
+		// 2. 본 변환 CBV 바인딩
+		// dynamic CBV 바인딩 (루트 파라미터 1)
+		// 본 변환 행렬을 담은 콘스탄트 버퍼의 GPU 가상 주소를 설정
+		D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle = {};
+		D3D12_GPU_DESCRIPTOR_HANDLE cbvGpuHandle = {};
+		// A.공간할당
+		descriptorHeapManager->AllocateDynamic(1, &cbvHandle, &cbvGpuHandle);
+		// B.CBV 생성
+		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+		cbvDesc.BufferLocation = renderObject->GetCBBoneMatrix()->GetGPUVirtualAddress(); // 본 변환 행렬의 GPU 가상 주소
+		cbvDesc.SizeInBytes = (sizeof(XMFLOAT4X4) * 128 + 255) & ~255; // 256바이트 정렬
+		device->m_device->CreateConstantBufferView(&cbvDesc,  cbvHandle);
+		// C.바인딩
+		commandList->SetGraphicsRootDescriptorTable(1, cbvGpuHandle);
+		//commandList->SetGraphicsRootConstantBufferView(1, renderObject->GetCBBoneMatrix()->GetGPUVirtualAddress()); // 예시: GetBoneCB() 호출
 
 		// 3. 본 오프셋 CBV 바인딩 (루트 파라미터 2) - MeshResource 소유
 		commandList->SetGraphicsRootConstantBufferView(2, resourceManager->GetMeshResource(renderObject->GetMeshID())->GetCB()->GetGPUVirtualAddress()); // MeshResource의 CB 사용
 
-		// 4. 텍스처 서술자 테이블 바인딩 (루트 파라미터 3)
-		ID3D12DescriptorHeap* ppHeaps[] = { descriptorHeapManager->GetSRVHeap()}; // TextureResource에서 힙 가져오기
-		commandList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps); // 힙 설정
+		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = {};
+		descriptorHeapManager->CopyToDynamicHeap(
+			textureResource->GetSRVCpuHandle(), // 원본 CPU 핸들
+			&gpuHandle); // 동적 힙의 GPU 핸들로 복사
 
-		// GPU 핸들 가져오기 (TextureResource에 GetSRVGpuHandle() 같은 함수가 있으면 더 좋습니다)
-		CD3DX12_GPU_DESCRIPTOR_HANDLE srvGpuHandle(textureResource->GetSRVGpuHandle());
 		// 루트 파라미터 인덱스를 3으로 변경!
-		commandList->SetGraphicsRootDescriptorTable(3, srvGpuHandle); // <--- 인덱스 3 사용
+		commandList->SetGraphicsRootDescriptorTable(3, gpuHandle); // <--- 인덱스 3 사용
 
 		// 7. 그리기 명령
 		commandList->DrawIndexedInstanced(meshResource->GetIndexCount(), 1, 0, 0, 0);
@@ -279,19 +297,6 @@ void GOERenderer::OnDestroy()
 	delete m_camera;
 }
 
-void GOERenderer::ResetCommandLists()
-{
-	const auto commandConetext = m_renderContext.get()->m_commandContext;
-	const auto copyCommandContext = m_renderContext.get()->m_copyCommandContext;
-}
-
-void GOERenderer::FlushCommandQueue()
-{
-}
-
-void GOERenderer::WaitForGPU()
-{
-}
 
 UIInitInfo* GOERenderer::GetUIInfo()
 {
