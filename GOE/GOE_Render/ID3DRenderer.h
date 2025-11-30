@@ -31,11 +31,9 @@ namespace GOE
 		virtual void CreateMeshResource(const Mesh* core_mesh) {};
 		virtual UIInitInfo* GetUIInfo() = 0;
 		virtual UILoopInfo* GetUILoopInfo() = 0;
-	public:
-		virtual std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() = 0;
 
 	public:
-		virtual void  AddRenderObejct(RenderObjectData& data) {};
+		virtual void ReceiveRenderObejcts(std::vector<RenderObject>&& data) = 0;
 	};
 }
 

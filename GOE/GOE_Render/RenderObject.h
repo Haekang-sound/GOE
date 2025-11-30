@@ -6,7 +6,6 @@ namespace Graphics
 
 }
 
-struct RenderObjectData;
 
 /// <summary>
 /// 랜더링에 필요한 
@@ -17,7 +16,7 @@ struct RenderObjectData;
 class RenderObject
 {
 public:
-	RenderObject(RenderObjectData& data);
+	RenderObject(size_t id);
 	~RenderObject();
 
 public:
@@ -31,13 +30,6 @@ public:
 	inline Graphics::Matrix4x4& GetWorldTM() { return m_worldTM; }
 	inline bool IsVisible() const { return m_isVisible; }
 	inline bool IsAnimated() const { return m_isAnimated; }
-
-	inline ComPtr<ID3D12Resource> GetCB() const { return m_constantBuffer; }
-	inline ComPtr<ID3D12Resource> GetCBBoneMatrix() const { return m_boneMatrixBuffer; }
-
-	inline const D3D12_CPU_DESCRIPTOR_HANDLE& GetCBVHandle() const { return m_CBVHandle; }
-	inline const D3D12_CPU_DESCRIPTOR_HANDLE& SetCBVoneMatrixHandle() const { return m_boneMatrixHandle; }
-
 	inline Graphics::Matrix4x4& GetBoneTM(int i) { return m_boneTM[i]; }
 	inline Graphics::Matrix4x4* GetBoneTMBegin() { return m_boneTM; }
 
@@ -49,18 +41,13 @@ public:
 	inline void SetMeshIndex(size_t meshIndex) { m_meshIndex = meshIndex; }
 	inline void SetModelID(size_t modelID) { m_modelID = modelID; }
 	inline void SetTextureID(size_t textureID) { m_textureID = textureID; }
-
-	inline void SetCB(ComPtr<ID3D12Resource>&& uploadBuffer) { m_constantBuffer = std::move(uploadBuffer); }
-	inline void SetCBBoneMatrix(ComPtr<ID3D12Resource>&& uploadBuffer) { m_boneMatrixBuffer = std::move(uploadBuffer); }
-	inline void SetCBVHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_CBVHandle = handle; }
-	inline void SetCBVoneMatrixHandle(const D3D12_CPU_DESCRIPTOR_HANDLE&& handle) { m_boneMatrixHandle = handle; }
-
 	inline void SetLocalTM(const GOE::Matrix4x4& localTM) { m_localTM = localTM; }
 	inline void SetWorldTM(const GOE::Matrix4x4& worldTM) { m_worldTM = worldTM; }
 	inline void SetBoneTM(size_t idx, GOE::Matrix4x4 matrix)
 	{
-		m_boneTM[idx] = matrix;// .Transpose();
+		m_boneTM[idx] = matrix;
 	}
+
 private:
 	const size_t m_id = 0; // 오브젝트 ID
 	size_t m_meshID = 0; // 메쉬 ID
@@ -75,14 +62,5 @@ private:
 	std::string m_name = ""; // 오브젝트 이름
 	bool m_isVisible = false; // 오브젝트가 보이는지 여부
 	bool m_isAnimated = false; // 애니메이션 적용 여부
-
-private:
-	ComPtr<ID3D12Resource> m_constantBuffer = nullptr;
-	ComPtr<ID3D12Resource> m_boneMatrixBuffer = nullptr;
-
-	// CB
-	D3D12_CPU_DESCRIPTOR_HANDLE m_CBVHandle = {};
-	D3D12_CPU_DESCRIPTOR_HANDLE m_boneMatrixHandle = {};
-
 };
 

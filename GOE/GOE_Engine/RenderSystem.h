@@ -1,5 +1,8 @@
-#pragma once
+﻿#pragma once
 #include "ISystem.h"
+#include "../GOE_Render/RenderObject.h"
+
+class RenderObject;
 
 class RenderSystem : public ISystem
 {
@@ -12,7 +15,7 @@ public:
 	void Initialize() override;
 	void Update(double dTime) override;
 
-private:
-	
+protected:
+	std::vector<RenderObject> m_renderObjects;
 };
 

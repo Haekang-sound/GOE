@@ -1,4 +1,4 @@
-#include "Engine_pch.h"
+﻿#include "Engine_pch.h"
 #include "AnimationSystem.h"
 
 #include "Scene.h"
@@ -49,8 +49,6 @@ void AnimationSystem::Update(double dTime)
 		}
 		m_model->UpdateNodeHierarchy();
 	}
-
-
 }
 
 

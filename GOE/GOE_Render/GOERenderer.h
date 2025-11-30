@@ -46,18 +46,6 @@ class RenderObject;
 /// </summary>
 class GOERenderer : public GOE::ID3DRenderer
 {
-protected: 
-	std::unique_ptr<Graphics::RenderContext> m_renderContext = nullptr;
-	std::unique_ptr<Graphics::GraphicsDevice> m_graphicsDevice = nullptr;
-	std::unique_ptr<Graphics::SwapChain> m_swapChain = nullptr;
-	std::unique_ptr<Graphics::PSOManager> m_PSOManager= nullptr;
-	std::unique_ptr<Graphics::ResourceManager> m_resourceManager = nullptr;
-	std::unique_ptr<Graphics::UIManager> m_UIManager = nullptr;
-	std::unique_ptr<Graphics::DescriptorHeapManager> m_descriptorHeapManager = nullptr;
-	
-	std::unique_ptr<Graphics::RenderCommandContext> m_commandContext = nullptr;
-	std::unique_ptr<Graphics::CopyCommandContext> m_copyCommandContext = nullptr;
-
 public:
 	GOERenderer(const HWND hWnd);
 	~GOERenderer();
@@ -75,24 +63,29 @@ public:
 	void OnDestroy() override;
 
 public:
-	void CreateMeshResource(const Mesh* core_mesh) override;
-	
-	// 텍스처 관련
 	void LoadTexture(std::string filepath) override;
+	void CreateMeshResource(const Mesh* core_mesh) override;
+
+public: 
 	UIInitInfo* GetUIInfo() override;
 	UILoopInfo* GetUILoopInfo() override;
-
-	// 렌더오브젝트 처리는 추가적인 고민이 필요함
-	void AddRenderObejct(RenderObjectData& data) override;
-	std::vector<std::unique_ptr<RenderObject>>& GetRenderObjects() override { return m_renderObjects; }
+	void ReceiveRenderObejcts(std::vector<RenderObject>&& data) override;
 
 public:
-	std::vector<std::unique_ptr<RenderObject>> m_renderObjects;
-
-public:
+	std::vector<RenderObject> m_renderObjects;
 	Camera* m_camera;
 
-private:
-	HWND m_hWnd;
+protected:
+	std::unique_ptr<Graphics::RenderContext> m_renderContext = nullptr;
+	std::unique_ptr<Graphics::GraphicsDevice> m_graphicsDevice = nullptr;
+	std::unique_ptr<Graphics::SwapChain> m_swapChain = nullptr;
+	std::unique_ptr<Graphics::PSOManager> m_PSOManager = nullptr;
+	std::unique_ptr<Graphics::ResourceManager> m_resourceManager = nullptr;
+	std::unique_ptr<Graphics::UIManager> m_UIManager = nullptr;
+	std::unique_ptr<Graphics::DescriptorHeapManager> m_descriptorHeapManager = nullptr;
+	std::unique_ptr<Graphics::RenderCommandContext> m_commandContext = nullptr;
+	std::unique_ptr<Graphics::CopyCommandContext> m_copyCommandContext = nullptr;
 
+protected:
+	HWND m_hWnd;
 };

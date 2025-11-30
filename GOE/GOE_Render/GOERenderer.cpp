@@ -106,35 +106,35 @@ void GOERenderer::OnUpdate(double dTime)
 
 	// 랜더오브젝트들을 그리는구간
 	// 여긴 콘스탄트 버퍼를 업데이트 하는거임
-	for (const auto& renderObject : m_renderObjects)
+	for (auto& renderObject : m_renderObjects)
 	{
 		Graphics::CB cbData = {};
-		XMMATRIX world = XMLoadFloat4x4(&renderObject.get()->GetLocalTM().matrix);
+		XMMATRIX world = XMLoadFloat4x4(&renderObject.GetLocalTM().matrix);
 		XMMATRIX vp =
 			m_camera->GetViewTransform()
-			* XMLoadFloat4x4(&m_swapChain.get()->m_proj);
+			* XMLoadFloat4x4(&m_swapChain->m_proj);
 		cbData.cameraPosition = m_camera->GetPosition();
 
 		XMStoreFloat4x4(&cbData.world, world);
 		XMStoreFloat4x4(&cbData.viewProjection, vp);
 
-		void* pData = nullptr;
-		D3D12_RANGE readRange = { 0, 0 };
-		ThrowIfFailed(renderObject->GetCB()->Map(0, &readRange, &pData));
-		memcpy(pData, &cbData, sizeof(Graphics::CB));
-		renderObject->GetCB()->Unmap(0, nullptr);
+		/*	void* pData = nullptr;
+			D3D12_RANGE readRange = { 0, 0 };
+			ThrowIfFailed(renderObject.GetCB()->Map(0, &readRange, &pData));*/
+			//memcpy(pData, &cbData, sizeof(Graphics::CB));
+			//renderObject.GetCB()->Unmap(0, nullptr);
 
-		/// boneMatrix에 본순서대로 업데이트된 메트릭스를 채우넣으면 된다.
+			/// boneMatrix에 본순서대로 업데이트된 메트릭스를 채우넣으면 된다.
 		XMFLOAT4X4 boneMatrix[128] = {};
 		for (int i = 0; i < 128; ++i)
 		{
-			boneMatrix[i] = renderObject->GetBoneTM(i).matrix;
+			boneMatrix[i] = renderObject.GetBoneTM(i).matrix;
 		}
-		void* pBoneData = nullptr;
-		D3D12_RANGE boneRange = { 0, 0 };
-		ThrowIfFailed(renderObject->GetCBBoneMatrix()->Map(0, &boneRange, &pBoneData));
-		memcpy(pBoneData, &boneMatrix, sizeof(XMFLOAT4X4) * 128);
-		renderObject->GetCBBoneMatrix()->Unmap(0, nullptr);
+		//void* pBoneData = nullptr;
+		//D3D12_RANGE boneRange = { 0, 0 };
+		//ThrowIfFailed(renderObject.GetCBBoneMatrix()->Map(0, &boneRange, &pBoneData));
+		//memcpy(pBoneData, &boneMatrix, sizeof(XMFLOAT4X4) * 128);
+		//renderObject.GetCBBoneMatrix()->Unmap(0, nullptr);
 	}
 }
 
@@ -153,6 +153,7 @@ void GOERenderer::BeginRender()
 
 	// 동적힙의 대한 할당초기화
 	descriptorHeapManager->ResetDynamicHeap();
+	descriptorHeapManager->ResetCB();
 
 	commandList->SetPipelineState(m_PSOManager.get()->GetPipelineState().Get());
 	// 2. 그래픽스 파이프라인 세팅
@@ -200,16 +201,14 @@ void GOERenderer::OnRender()
 	const auto resourceManager = m_resourceManager.get();
 	const auto descriptorHeapManager = m_descriptorHeapManager.get();
 
-	// 정적/동적 디스크립터힙 두가지를 사용할 수 있도록
-	// 힙배열로 전달함
-	ID3D12DescriptorHeap* ppHeaps[] = { descriptorHeapManager->GetDynamicSRVHeap()};
+	ID3D12DescriptorHeap* ppHeaps[] = { descriptorHeapManager->GetDynamicSRVHeap() };
 	commandList->SetDescriptorHeaps(1, ppHeaps); // 힙 설정
 
-	for (const auto& renderObject : m_renderObjects)
+	for (auto& renderObject : m_renderObjects)
 	{
-		auto meshResource = resourceManager->GetMeshResource(renderObject->GetMeshID());
-		auto textureResource = resourceManager->GetTextureResource(renderObject->GetTextureID());
-		
+		auto meshResource = resourceManager->GetMeshResource(renderObject.GetMeshID());
+		auto textureResource = resourceManager->GetTextureResource(renderObject.GetTextureID());
+
 		// 리소스 로딩여부를 확인하고 해당되지 않으면 스킵
 		if (!meshResource || meshResource.get()->GetState() != Graphics::ResourceState::READY ||
 			!textureResource || textureResource.get()->GetState() != Graphics::ResourceState::READY)
@@ -223,27 +222,29 @@ void GOERenderer::OnRender()
 
 		/// 콘스탄트 버퍼의 관한 문제는 고유자원을 기준으로 랜더할때 해결될것
 		// 1. 월드/뷰/프로젝션 CBV 바인딩 (루트 파라미터 0)
-		commandList->SetGraphicsRootConstantBufferView(0, renderObject->GetCB()->GetGPUVirtualAddress());
+		Graphics::CB cbData = {};
 
-		// 2. 본 변환 CBV 바인딩
-		// dynamic CBV 바인딩 (루트 파라미터 1)
-		// 본 변환 행렬을 담은 콘스탄트 버퍼의 GPU 가상 주소를 설정
-		D3D12_CPU_DESCRIPTOR_HANDLE cbvHandle = {};
-		D3D12_GPU_DESCRIPTOR_HANDLE cbvGpuHandle = {};
-		// A.공간할당
-		descriptorHeapManager->AllocateDynamic(1, &cbvHandle, &cbvGpuHandle);
-		// B.CBV 생성
-		D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-		cbvDesc.BufferLocation = renderObject->GetCBBoneMatrix()->GetGPUVirtualAddress(); // 본 변환 행렬의 GPU 가상 주소
-		cbvDesc.SizeInBytes = (sizeof(XMFLOAT4X4) * 128 + 255) & ~255; // 256바이트 정렬
-		device->m_device->CreateConstantBufferView(&cbvDesc,  cbvHandle);
-		// C.바인딩
-		commandList->SetGraphicsRootDescriptorTable(1, cbvGpuHandle);
-		//commandList->SetGraphicsRootConstantBufferView(1, renderObject->GetCBBoneMatrix()->GetGPUVirtualAddress()); // 예시: GetBoneCB() 호출
+		// RenderObject에서 데이터 가져오기 (포인터면 ->, 객체면 .)
+		XMMATRIX world = XMLoadFloat4x4(&renderObject.GetLocalTM().matrix);
+		XMMATRIX vp = m_camera->GetViewTransform() * XMLoadFloat4x4(&m_swapChain->m_proj);
+
+		cbData.cameraPosition = m_camera->GetPosition();
+		XMStoreFloat4x4(&cbData.world, world);
+		XMStoreFloat4x4(&cbData.viewProjection, vp);
+
+		D3D12_GPU_VIRTUAL_ADDRESS cbAddress = descriptorHeapManager->AllocateConstantBuffer(&cbData, sizeof(Graphics::CB));
+		commandList->SetGraphicsRootConstantBufferView(0, cbAddress);
+
+		// 2. 본 변환 행렬 CBV 바인딩 (루트 파라미터 1)
+		Graphics::Matrix4x4* boneData = renderObject.GetBoneTMBegin();
+		size_t boneDataSize = sizeof(Graphics::Matrix4x4) * 128;
+		D3D12_GPU_VIRTUAL_ADDRESS boneAddress = descriptorHeapManager->AllocateConstantBuffer(boneData, boneDataSize);
+		commandList->SetGraphicsRootConstantBufferView(1, boneAddress);
 
 		// 3. 본 오프셋 CBV 바인딩 (루트 파라미터 2) - MeshResource 소유
-		commandList->SetGraphicsRootConstantBufferView(2, resourceManager->GetMeshResource(renderObject->GetMeshID())->GetCB()->GetGPUVirtualAddress()); // MeshResource의 CB 사용
+		commandList->SetGraphicsRootConstantBufferView(2, resourceManager->GetMeshResource(renderObject.GetMeshID())->GetCB()->GetGPUVirtualAddress()); // MeshResource의 CB 사용
 
+		// 핸들을 받아올 GPU 디스크립터 핸들
 		D3D12_GPU_DESCRIPTOR_HANDLE gpuHandle = {};
 		descriptorHeapManager->CopyToDynamicHeap(
 			textureResource->GetSRVCpuHandle(), // 원본 CPU 핸들
@@ -310,27 +311,18 @@ UILoopInfo* GOERenderer::GetUILoopInfo()
 	return UImanager->GetUILoopInfo();
 }
 
-/// <summary>
-/// 랜더오브젝트를 생성한다.
-/// </summary>
-void GOERenderer::AddRenderObejct(RenderObjectData& data)
+void GOERenderer::ReceiveRenderObejcts(std::vector<RenderObject>&& data)
 {
-	const auto resourceManager = m_resourceManager.get();
-	auto newRendrObj = std::make_unique<RenderObject>(data);
-	m_renderObjects.emplace_back(std::move(newRendrObj));
-	// 콘스탄트버퍼를 개별적으로 생성해준다.
-	// 데이터없이 적당한 크기로만 생성해도된다.
-	// 이부분은 랜더시스템을 개선하면 사라지게될것이다.
-	m_renderObjects.back()->SetCB(resourceManager->CreateCBResource(nullptr, sizeof(XMFLOAT4X4)));
-	m_renderObjects.back()->SetCBBoneMatrix(resourceManager->CreateCBResource(m_renderObjects.back().get()->GetBoneTMBegin(), sizeof(XMFLOAT4X4) * 128));
+	m_renderObjects = std::move(data);
 }
+
+
 
 void GOERenderer::LoadTexture(std::string filepath)
 {
 	const auto resourceManager = m_resourceManager.get();
 	resourceManager->LoadTexture(filepath);
 }
-
 
 void GOERenderer::CreateMeshResource(const Mesh* core_mesh)
 {

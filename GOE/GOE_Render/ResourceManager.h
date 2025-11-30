@@ -13,6 +13,10 @@ namespace Graphics
 	struct MeshData;
 	struct RenderContext;
 
+	/// <summary>
+	/// 랜더에 필요한 리소스를 생성, 저장합니다.
+	/// 
+	/// </summary>
 	class ResourceManager : public RenderManager
 	{
 	public:
@@ -53,6 +57,7 @@ namespace Graphics
 			return nullptr;
 		}
 
+	public:
 		ComPtr<ID3D12Resource> CreateUploadBuffer(
 			const void* initialData,
 			size_t bufferSize);

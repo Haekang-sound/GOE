@@ -215,7 +215,6 @@ void Graphics::ResourceManager::CreateMeshResource(const Mesh* core_mesh)
 	m_loadingMeshes.push_back({ commandContext->GetCommittedFenceValue(), m_meshResourceMap[core_mesh->GetID()] });
 }
 
-
 /// <summary>
 /// 범용 upload버퍼 생성함수
 /// </summary>

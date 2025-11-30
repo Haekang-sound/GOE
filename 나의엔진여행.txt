@@ -441,3 +441,33 @@ D3D12의 비동기 실행 모델을 다룰 때, 리소스의 생명 주기와 GP
 *   **Memory Management:** 동적 데이터(Animation Bone Matrix)를 위한 별도 버퍼 관리 없이, 렌더링 힙의 남는 공간을 스택처럼 활용하는 **Linear Allocation** 패턴 정착.
 
 --- 대화 기록 끝 (2025년 11월 28일 금요일) ---
+
+--- 대화 기록 시작 (2025년 11월 29일 토요일) ---
+
+### **D3D12 아키텍처 진화: RenderObject 경량화 및 동적 상수 버퍼 할당**
+
+**문제 상황:**
+`RenderSystem`의 `Update` 단계에서 `RenderObject`를 생성할 때, 상수 버퍼(CB) 리소스를 생성하지 않아 `nullptr` 접근 오류(Access Violation)가 발생했다.
+
+**논의 및 해결 방향:**
+
+1.  **`RenderObject`의 정체성 재정립:**
+    *   기존에는 `RenderObject`가 자신만의 `ID3D12Resource`(CB)를 소유하는 무거운 객체였다.
+    *   이는 매 프레임 생성/파괴 비용이 크고 비효율적이라는 결론에 도달했다.
+    *   따라서 `RenderObject`를 순수 데이터(MeshID, Matrix 등)만 담고 있는 **가벼운 구조체(Value Object)**로 취급하기로 결정했다.
+
+2.  **동적 상수 버퍼(Dynamic Constant Buffer) 도입:**
+    *   개별 객체가 CB를 갖는 대신, 렌더러가 관리하는 **거대한 업로드 힙(Upload Heap)** 하나를 사용하여 매 프레임 데이터를 처리하기로 했다.
+    *   **작동 방식:**
+        1.  `DescriptorHeapManager`에 `AllocateDynamicConstantBuffer(data, size)` 함수를 추가한다.
+        2.  이 함수는 힙 메모리에 데이터를 `memcpy`하고, 즉시 사용 가능한 GPU 가상 주소를 반환한다.
+        3.  렌더링 시점에 이 주소를 `SetGraphicsRootConstantBufferView`에 전달한다.
+
+3.  **렌더링 파이프라인 최적화:**
+    *   `RenderSystem::Update`에서는 오직 데이터 수집과 스키닝(본 행렬 계산)만 수행하고, 리소스 생성은 하지 않는다.
+    *   `GOERenderer::OnRender`에서 그리는 순간에 필요한 메모리를 즉석에서 할당받아 사용한다.
+
+**결론:**
+이러한 구조 변경을 통해 `RenderObject` 생성 비용을 '0'에 가깝게 줄이고, 수천 개의 오브젝트를 효율적으로 처리할 수 있는 **Stateless Rendering** 아키텍처로 나아가는 발판을 마련했다.
+
+--- 대화 기록 끝 (2025년 11월 29일 토요일) ---

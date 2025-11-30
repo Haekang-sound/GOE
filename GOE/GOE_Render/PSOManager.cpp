@@ -1,6 +1,9 @@
 ﻿#include "Renderer_pch.h"
 #include "PSOManager.h"
 #include "dxcapi.h"
+
+#include <d3dx12/d3dx12.h>
+
 #include <filesystem>
 
 
@@ -41,25 +44,16 @@ void Graphics::PSOManager::SetInputElementDescs(const D3D12_INPUT_ELEMENT_DESC* 
 void Graphics::PSOManager::CreateRootSignature()
 {
 	const auto device = m_renderContext->m_graphicsDevice;
+	// 1. 배열 선언 (2개)
+	CD3DX12_DESCRIPTOR_RANGE ranges[2];
+	// 2. 초기화 (Init 함수 사용)
+	// 파라미터 순서: Type, NumDescriptors, BaseShaderRegister, RegisterSpace(생략가능), Offset(생략가능)
+	// range[0]: SRV, 1개, t0
+	ranges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+	// range[1]: CBV, 1개, b1 (BaseRegister가 1이므로)
+	ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_CBV, 1, 1);
 
-	D3D12_DESCRIPTOR_RANGE descriptorRanges[2] = {};
-	descriptorRanges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	descriptorRanges[0].NumDescriptors = 1;    // 텍스처 1개
-	descriptorRanges[0].BaseShaderRegister = 0;    // 셰이더의 t0 레지스터에 바인딩
-	descriptorRanges[0].RegisterSpace = 0;
-	descriptorRanges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	descriptorRanges[1].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-	descriptorRanges[1].NumDescriptors = 1;    // 텍스처 1개
-	descriptorRanges[1].BaseShaderRegister = 1;
-	descriptorRanges[1].RegisterSpace = 0;
-	descriptorRanges[1].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	// D3D12_ROOT_PARAMETER
-	// : 루트 시그니처의 파라미터를 정의하는 구조체입니다.
-	// --- 루트 파라미터 배열 선언 (한 번만!) ---
 	D3D12_ROOT_PARAMETER rootParameters[4] = {}; // 총 4개의 파라미터 (CBV 3개 + Table 1개)
-
 	// 파라미터 0: 월드/뷰/투영 CBV (b0) - RenderObject 소유
 	rootParameters[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 	rootParameters[0].Descriptor.ShaderRegister = 0; // b0 레지스터
@@ -67,9 +61,9 @@ void Graphics::PSOManager::CreateRootSignature()
 	rootParameters[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL; // 모든 셰이더 단계에서 접근 가능
 
 	// 파라미터 1: 본 변환 행렬 CBV (b1) - RenderObject 소유
-	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	rootParameters[1].DescriptorTable.NumDescriptorRanges = 1; // 범위 1개
-	rootParameters[1].DescriptorTable.pDescriptorRanges = &descriptorRanges[1]; // 위에서 정의한 범위 사용
+	rootParameters[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParameters[1].Descriptor.ShaderRegister = 1;
+	rootParameters[1].Descriptor.RegisterSpace = 0;
 	rootParameters[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX; // 버텍스 셰이더에서만 필요
 
 	// 파라미터 2: 본 오프셋 행렬 CBV (b2) - MeshResource 소유
@@ -81,9 +75,8 @@ void Graphics::PSOManager::CreateRootSignature()
 	// 파라미터 3: 텍스처 SRV 서술자 테이블 (t0)
 	rootParameters[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParameters[3].DescriptorTable.NumDescriptorRanges = 1; // 범위 1개
-	rootParameters[3].DescriptorTable.pDescriptorRanges = descriptorRanges; // 위에서 정의한 범위 사용
+	rootParameters[3].DescriptorTable.pDescriptorRanges = &ranges[0]; // 위에서 정의한 범위 사용
 	rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL; // 픽셀 셰이더에서만 필요
-
 
 	D3D12_STATIC_SAMPLER_DESC sampler = {};
 	sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -100,8 +93,6 @@ void Graphics::PSOManager::CreateRootSignature()
 	sampler.RegisterSpace = 0;
 	sampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
 
-
-
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 	rootSignatureDesc.NumParameters = 4;
 	rootSignatureDesc.pParameters = rootParameters;
@@ -113,7 +104,6 @@ void Graphics::PSOManager::CreateRootSignature()
 	ComPtr<ID3DBlob> error;
 	D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 	ThrowIfFailed(device->m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
-
 }
 
 
