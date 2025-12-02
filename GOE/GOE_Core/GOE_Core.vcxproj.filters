@@ -51,6 +51,8 @@
     <ClInclude Include="BoneAnimation.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
+    <ClInclude Include="InputManager.h" />
+    <ClInclude Include="TimeManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
@@ -83,5 +85,7 @@
     <ClCompile Include="BoneAnimation.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
+    <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="TimeManager.cpp" />
   </ItemGroup>
 </Project>
