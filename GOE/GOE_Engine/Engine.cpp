@@ -122,9 +122,11 @@ void GOE::Engine::DebugUpdate(double dTime)
 	DebugManager::GetInstance().PushDebugData([this]()
 		{
 			POINT mPos = GOE::InputManager::GetInstance().GetMousePos();
+			POINT sPos = GOE::InputManager::GetInstance().GetScreenMousePos();
 
 			ImGui::Begin("Input Debugger");
-			ImGui::Text("Mouse Pos | x : %d,  y : %d", mPos.x, mPos.y);
+			ImGui::Text("Mouse Pos x%d, y%d", mPos.x, mPos.y);
+			ImGui::Text("screenMouse Pos x%d, y%d", sPos.x, sPos.y);
 		
 			ImGui::End();
 		}

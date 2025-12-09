@@ -18,6 +18,7 @@ void GOE::InputManager::Update()
 	/// 마우스 로직
 	POINT pt;
 	GetCursorPos(&pt); // 스크린 기준 좌표 가져오기
+	m_screenMousePos = pt;
 
 	if (m_hWnd)
 	{
@@ -31,7 +32,7 @@ void GOE::InputManager::Update()
 	m_mouseDelta.y = m_mousePos.y - m_prevMousePos.y;
 
 	m_prevMousePos = m_mousePos; // 현재를 이전으로 저장
-	
+
 	/// 키보드
 	// 가상키 목록전체를 순회합니다.
 	for (int i = 0; i < 256; ++i)
@@ -93,6 +94,21 @@ bool GOE::InputManager::GetButtonUp(int key)
 	// 입력받은 값이 범위를 벗어나면 return false
 	if (key < 0 || key >= 256) return false;
 	return m_keyStates[key] == KeyState::UP;
+}
+
+bool GOE::InputManager::GetMouseButtonDown(MouseButton button)
+{
+	return GetButtonDown(MouseButtonToKey(button));
+}
+
+bool GOE::InputManager::GetMouseButton(MouseButton button)
+{
+	return GetButton(MouseButtonToKey(button));
+}
+
+bool GOE::InputManager::GetMouseButtonUp(MouseButton button)
+{
+	return GetButtonUp(MouseButtonToKey(button));
 }
 
 /// <summary>
@@ -165,3 +181,13 @@ void GOE::InputManager::DispatchDownEvent(int key)
 	}
 }
 
+int GOE::InputManager::MouseButtonToKey(GOE::MouseButton button)
+{
+	switch (button)
+	{
+		case GOE::MouseButton::Left:   return VK_LBUTTON;
+		case GOE::MouseButton::Right:  return VK_RBUTTON;
+		case GOE::MouseButton::Middle: return VK_MBUTTON;
+		default: return -1;
+	}
+}

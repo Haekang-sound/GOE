@@ -4,6 +4,12 @@
 #include <map>
 namespace GOE
 {
+	enum class MouseButton
+	{
+		Left = 0,
+		Right,
+		Middle
+	};
 	enum class KeyState
 	{
 		NONE = 0,
@@ -17,7 +23,9 @@ namespace GOE
 	struct InputListener
 	{
 		InputListener(EventID e_id, std::function<void()> act)
-			:id(e_id), action(act){}
+			:id(e_id), action(act)
+		{
+		}
 		EventID id;
 		std::function<void()> action;
 	};
@@ -39,23 +47,29 @@ namespace GOE
 		void Update();
 
 	public:
+		// keybord
 		bool GetButtonDown(int key);
 		bool GetButton(int key);
 		bool GetButtonUp(int key);
-
-		EventID BindAction(int key, KeyState state, std::function<void()> fnc);
-		
 		// mouse
+		bool GetMouseButtonDown(MouseButton button);
+		bool GetMouseButton(MouseButton button);
+		bool GetMouseButtonUp(MouseButton button);
+		EventID BindAction(int key, KeyState state, std::function<void()> fnc);
+
 		const POINT& GetMousePos() const { return m_mousePos; }
+		const POINT& GetScreenMousePos() const { return m_screenMousePos; }
 		const POINT& GetMouseDelta() const { return m_mouseDelta; }
 
+
 	private:
-		// keyboard
 		void DispatchUpEvent(int key);
 		void DispatchDownEvent(int key);
+		int MouseButtonToKey(MouseButton button);
 
 	private:
 		HWND m_hWnd;
+		POINT m_screenMousePos = { 0, 0 };// 현재 좌표 (스크린 기준)
 		POINT m_mousePos = { 0, 0 };      // 현재 좌표 (클라이언트 기준)
 		POINT m_prevMousePos = { 0, 0 };  // 이전 프레임 좌표
 		POINT m_mouseDelta = { 0, 0 };    // 이동량
