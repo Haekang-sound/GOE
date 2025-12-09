@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <Windows.h>
 #include <string>
 #include <functional>
@@ -9,17 +9,18 @@ public:
 	Window(const std::wstring& title, int width, int height, HINSTANCE hInstance, int nCmdShow);
 	~Window();
 
+public: 
 	// Application이 호출할 간단한 인터페이스
 	bool InitInstance();
+	void Update(double dTime);
+
 	ATOM MyRegisterClass(HINSTANCE hInstance);
 	bool ProcessMessages(); // 메시지 루프를 처리하고, 종료 여부를 반환
+	void SetTitle(const std::wstring& title);
 
 public:
 	inline HWND GetHWND() const { return m_hWnd; }
-	inline void SetExternalMsgHandler(std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> handler)
-	{
-		m_imguiCallback = handler;
-	};
+	inline void SetExternalMsgHandler(std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> handler){m_imguiCallback = handler;}
 
 private:
 	static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
@@ -31,4 +32,5 @@ private:
 	MSG m_msg;
 	int m_nCmdShow;
 	COORD m_windowSize;
+
 };

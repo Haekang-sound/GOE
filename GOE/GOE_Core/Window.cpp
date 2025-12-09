@@ -1,4 +1,5 @@
-#include "Core_pch.h"
+﻿#include "Core_pch.h"
+#include "TimeManager.h"
 #include "Window.h"
 #include "../GOE/Resource.h"  
 Window::Window(const std::wstring& title, int width, int height, HINSTANCE hInstance, int nCmdShow)
@@ -39,6 +40,18 @@ bool Window::InitInstance()
 
 	return true;
 }
+
+void Window::Update(double dTime)
+{
+	double fps = GOE::TimeManager::GetInstance().GetFPS();
+	double ms = dTime * 1000.0;
+
+	WCHAR buffer[256];
+	swprintf_s(buffer, L"GOE Engine - FPS: %d (%.2f ms)", (int)fps, ms);
+
+	SetTitle(buffer);
+}
+
 ATOM Window::MyRegisterClass(HINSTANCE hInstance)
 {
 	WNDCLASSEXW wcex;                       // 윈도우 클래스 정보를 담는 구조체 (확장된 버전)
@@ -57,7 +70,7 @@ ATOM Window::MyRegisterClass(HINSTANCE hInstance)
 	return RegisterClassExW(&wcex);                     // 설정한 윈도우 클래스를 운영체제에 등록
 }
 
-bool Window::ProcessMessages()
+bool Window::ProcessMessages() 
 {
 	MSG msg = {};
 	while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
@@ -70,6 +83,11 @@ bool Window::ProcessMessages()
 	}
 	return true;
 }
+
+void Window::SetTitle(const std::wstring& title)
+{
+	SetWindowText(m_hWnd, title.c_str());
+}	
 
 LRESULT CALLBACK Window::WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {

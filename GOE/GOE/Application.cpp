@@ -1,4 +1,4 @@
-#include "Application.h"
+﻿#include "Application.h"
 #include "../GOE_Engine/IEngine.h"
 #include "../GOE_Engine/Engine.h"
 #include <chrono>
@@ -38,13 +38,8 @@ int Application::Run()
 			DispatchMessage(&msg);
 		}
 
-		// 델타 타임 계산
-		auto currentTime = std::chrono::high_resolution_clock::now();
-		std::chrono::duration<double> deltaTime = currentTime - lastTime;
-		lastTime = currentTime;
-
 		// 게임 로직 실행
-		m_engine->OnUpdate(deltaTime.count()); // 실제 경과 시간을 전달
+		m_engine->OnUpdate(); // 실제 경과 시간을 전달
 
 		m_engine->BeginRender();
 		m_engine->OnRender();

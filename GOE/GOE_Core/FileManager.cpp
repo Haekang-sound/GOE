@@ -1,4 +1,4 @@
-#include "Core_pch.h"
+﻿#include "Core_pch.h"
 #include "FileManager.h"
 
 GOE::FileManager::FileManager() = default;

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "SingletonBase.h"
 
 namespace GOE
@@ -21,7 +21,16 @@ namespace GOE
 		static std::vector<std::wstring> GetThisFileNamesInFolder(std::wstring folderPath, const std::wstring& extension);
 
 		static size_t GetHash(const std::string& path);
+		size_t GetRendomHash()
+		{
+			size_t hash = std::hash<size_t>{}(m_IDValue);
+			m_IDValue++;
+			return hash;
+		};
 
+
+	private:
+		size_t m_IDValue = 0;
 	};
 }
 

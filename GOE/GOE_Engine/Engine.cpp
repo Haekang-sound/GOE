@@ -1,4 +1,6 @@
 ﻿#include "Engine_pch.h"
+#include "TimeManager.h"
+#include "InputManager.h"
 #include "Engine.h"
 #include "DebugManager.h"
 #include "SceneManager.h"
@@ -20,6 +22,12 @@ void GOE::Engine::Initialize()
 	m_winCore = std::make_unique<Window>(L"GOE", 1200, 800, m_hInst, m_nCmdShow);
 	m_winCore->InitInstance();
 	m_winCore->SetExternalMsgHandler(&ImGui_ImplWin32_WndProcHandler);
+
+	// 타임매니저, 인풋매니저 초기화
+	GOE::TimeManager::GetInstance().Initialize();
+	GOE::InputManager::GetInstance().Initialize(m_winCore->GetHWND());
+	GOE::InputManager::GetInstance().BindAction(VK_ESCAPE, KeyState::UP, [this]() { DestroyWindow(m_winCore->GetHWND()); });
+
 
 	// 에셋코어 초기화, 모델로드
 	// fbx파일을 로드합니다.
@@ -61,9 +69,20 @@ void GOE::Engine::Initialize()
 
 }
 
-void GOE::Engine::OnUpdate(double dTime)
+void GOE::Engine::OnUpdate()
 {
-	InputUpdate();
+	// 타임매니저, 인풋매니저 update
+	GOE::TimeManager::GetInstance().Update();
+	GOE::InputManager::GetInstance().Update();
+	double dTime = GOE::TimeManager::GetInstance().GetDeltaTime();
+	m_fpsTimer += dTime;
+	m_frameCount++;
+	if (m_fpsTimer >= 1.0)
+	{
+		m_winCore.get()->Update(dTime);
+		m_fpsTimer = 0.f;
+		m_frameCount = 0;
+	}
 
 	m_sceneManager.get()->OnUpdate(dTime);
 
@@ -100,16 +119,16 @@ void GOE::Engine::Release() {}
 
 void GOE::Engine::DebugUpdate(double dTime)
 {
+	DebugManager::GetInstance().PushDebugData([this]()
+		{
+			POINT mPos = GOE::InputManager::GetInstance().GetMousePos();
+
+			ImGui::Begin("Input Debugger");
+			ImGui::Text("Mouse Pos | x : %d,  y : %d", mPos.x, mPos.y);
+		
+			ImGui::End();
+		}
+	);
 	m_sceneManager.get()->DebugUpdate(dTime);
 	DebugManager::GetInstance().OnDebugUpdate(dTime);
-}
-
-/// 창부수기! 
-/// 현재는 프로그램 종료용도로만 사용중
-/// 이제 TIME과 INPUT정도는 만들어야함
-/// 
-void GOE::Engine::InputUpdate()
-{
-	if (GetAsyncKeyState(VK_ESCAPE) & 0x8000)
-		DestroyWindow(m_winCore->GetHWND());
 }

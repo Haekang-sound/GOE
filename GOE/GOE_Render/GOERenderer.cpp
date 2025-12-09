@@ -277,7 +277,9 @@ void GOERenderer::EndRender()
 		// 이 메서드를 호출한 후에는 커맨드 리스트를 실행할 수 있습니다.
 	commandContext->Execute();
 
-	m_swapChain.get()->m_swapChain->Present(1, 0);
+	// Present의 첫번째 매개변수가 1 이면 수직동기화로 인한 프레임고정
+	//m_swapChain.get()->m_swapChain->Present(1, 0);
+	m_swapChain.get()->m_swapChain->Present(0, 0);
 
 	// GPU 작업이 끝났으니, swapchain에서 새로운 백버퍼 인덱스를 받아옴.
 	m_swapChain.get()->m_frameIndex = m_swapChain.get()->m_swapChain->GetCurrentBackBufferIndex();

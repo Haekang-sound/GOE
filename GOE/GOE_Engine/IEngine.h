@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace GOE
 {
@@ -11,7 +11,7 @@ namespace GOE
 	public:
 		virtual void Initialize() = 0;
 		
-		virtual void OnUpdate(double dTime) = 0;
+		virtual void OnUpdate() = 0;
 
 		virtual void BeginRender() = 0;
 		virtual void OnRender() = 0;

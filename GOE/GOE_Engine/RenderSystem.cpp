@@ -15,7 +15,6 @@ void RenderSystem::Initialize()
 
 void RenderSystem::Update(double dTime)
 {
-	// 랜더오브젝트를 순회합니다.
 	auto meshRenderers = GetScene()->GetMeshRendererManager()->GetComponents();
 	auto renderer = m_context->renderer;
 	m_renderObjects.clear();

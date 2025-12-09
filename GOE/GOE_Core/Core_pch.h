@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 ///
 /// STL의 컴파일 부담을 없애려면
 /// 미리컴파일된 헤더를 사용하는게 좋을것
@@ -20,8 +20,8 @@
 #include <filesystem>
 
 #include "Window.h"
-#include "CoreMath.h"
 #include "FileManager.h"
+#include "CoreMath.h"
 
 // 모델정보
 #include "Model.h"

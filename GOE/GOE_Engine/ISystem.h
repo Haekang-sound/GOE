@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 class Scene;
 namespace GOE
 {
@@ -19,7 +19,6 @@ public:
 	virtual void Initialize() {};
 	virtual void Update(double dTime) {};
 	virtual void DebugUpdate(double dTime) {};
-
 
 public:
 	inline Scene* GetScene() { return m_scene; }

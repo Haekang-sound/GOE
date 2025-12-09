@@ -1,5 +1,6 @@
-#include "Renderer_pch.h"
+﻿#include "Renderer_pch.h"
 #include "Camera.h"
+#include "InputManager.h"
 
 #include "../GOE_Editor/DebugManager.h"
 #include "../Imgui/imgui.h"
@@ -81,7 +82,7 @@ void Camera::OnUpdate()
 
 	// 카메라 이동
 	XMVECTOR pos = XMLoadFloat3(&m_position);
-	if (GetAsyncKeyState('W') & 0x8000)	pos += forward * (m_moveSpeed + (m_moveSpeed * isAccelerate*0.7f));
+	if (GOE::InputManager::GetInstance().GetButton('W'))	pos += forward * (m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
 	if (GetAsyncKeyState('A') & 0x8000)	pos -= right * (m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
 	if (GetAsyncKeyState('S') & 0x8000)	pos -= forward * (m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
 	if (GetAsyncKeyState('D') & 0x8000)	pos += right * (m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
@@ -89,7 +90,8 @@ void Camera::OnUpdate()
 	if (GetAsyncKeyState('E') & 0x8000)	pos += up * (m_moveSpeed + (m_moveSpeed * isAccelerate * 0.7f));
 
 
-	if (GetAsyncKeyState('O') & 0x8000)	m_moveSpeed -= 0.01f;
+	//if (GetAsyncKeyState('O') & 0x8000)	m_moveSpeed -= 0.01f;
+	if (GOE::InputManager::GetInstance().GetButton('O'))	m_moveSpeed -= 0.01f;
 	if (GetAsyncKeyState('P') & 0x8000)	m_moveSpeed += 0.01f;
 
 

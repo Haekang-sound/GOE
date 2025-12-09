@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include<memory>
 #include <Windows.h>
 #include "IEngine.h"
@@ -28,7 +28,7 @@ namespace GOE
 	public:
 		void Initialize() override;
 
-		void OnUpdate(double dTime) override;
+		void OnUpdate() override;
 
 		void BeginRender() override;
 		void OnRender() override;
@@ -38,7 +38,6 @@ namespace GOE
 
 	private:
 		void DebugUpdate(double dTime);
-		void InputUpdate();
 
 	private:
 		std::unique_ptr<GOE::EngineContext> m_context;
@@ -54,6 +53,10 @@ namespace GOE
 
 	private:
 		std::unique_ptr<SceneManager> m_sceneManager;
+
+	private:
+		double m_fpsTimer = 0.0;
+		int m_frameCount = 0;
 	};
 }
 
