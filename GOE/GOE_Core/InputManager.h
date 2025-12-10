@@ -2,8 +2,11 @@
 #include "SingletonBase.h"
 #include <functional> 
 #include <map>
+
 namespace GOE
 {
+	using KEY = int;
+
 	enum class MouseButton
 	{
 		Left = 0,
@@ -18,15 +21,12 @@ namespace GOE
 		UP
 	};
 
-	using EventID = size_t;
 	// 액션을 정의합니다.
 	struct InputListener
 	{
-		InputListener(EventID e_id, std::function<void()> act)
-			:id(e_id), action(act)
-		{
-		}
-		EventID id;
+		InputListener(void* _ptr, std::function<void()> act)
+			:ptr(_ptr), action(act){}
+		void* ptr;
 		std::function<void()> action;
 	};
 
@@ -49,8 +49,12 @@ namespace GOE
 		POINT m_prevMousePos = { 0, 0 };  // 이전 프레임 좌표
 		POINT m_mouseDelta = { 0, 0 };    // 이동량
 		std::vector<KeyState> m_keyStates;
-		std::map<int, std::vector<InputListener>> m_downListeners;
-		std::map<int, std::vector<InputListener>> m_upListeners;
+		std::map<KEY, std::vector<InputListener>> m_downListeners;
+		std::map<KEY, std::vector<InputListener>> m_upListeners;
+		
+		bool m_isDispatching = false;
+		// 키할당 제거함수를 담아두는 큐
+		std::vector<std::function<void()>> m_unbindingQueue;
 
 	public:
 		void Initialize(HWND hwnd);
@@ -58,23 +62,32 @@ namespace GOE
 
 	public:
 		// keybord
-		bool GetButtonDown(int key);
-		bool GetButton(int key);
-		bool GetButtonUp(int key);
+		bool GetButtonDown(KEY key);
+		bool GetButton(KEY key);
+		bool GetButtonUp(KEY key);
 		// mouse
 		bool GetMouseButtonDown(MouseButton button);
 		bool GetMouseButton(MouseButton button);
 		bool GetMouseButtonUp(MouseButton button);
-		EventID BindAction(int key, KeyState state, std::function<void()> fnc);
 
 		const POINT& GetMousePos() const { return m_mousePos; }
 		const POINT& GetScreenMousePos() const { return m_screenMousePos; }
 		const POINT& GetMouseDelta() const { return m_mouseDelta; }
 
+	// 함수할당, 해제
+	public:
+		void BindAction(void* ptr, KEY key, KeyState state, std::function<void()> fnc);
+		// 해제큐에 특정키의 대한 해제함수를 담아두는 역할을 한다.
+		void UnbindAction(void* ptr, KEY key, KeyState state);
+		void UnbindAction(void* ptr, KEY key);
+		void UnbindAction(void* ptr);
 
 	private:
-		void DispatchUpEvent(int key);
-		void DispatchDownEvent(int key);
+		void DispatchUpEvent(KEY key);
+		void DispatchDownEvent(KEY key);
 		int MouseButtonToKey(MouseButton button);
+
+		void ReleaseAction(void* ptr, KEY key, KeyState state);
+		void FlushUnbindAcions();
 	};
 }

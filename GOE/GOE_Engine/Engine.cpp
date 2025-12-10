@@ -28,8 +28,7 @@ void GOE::Engine::Initialize()
 	GOE::InputManager::GetInstance().Initialize(m_winCore->GetHWND());
 	
 	// 해제할때 해당 id가 필요하니 저장한다.
-	DestroyWndID = GOE::InputManager::GetInstance().BindAction(VK_ESCAPE, KeyState::UP, [this]() { DestroyWindow(m_winCore->GetHWND()); });
-
+	GOE::InputManager::GetInstance().BindAction(this, VK_ESCAPE, KeyState::UP, [this]() { DestroyWindow(m_winCore->GetHWND()); });
 
 	// 에셋코어 초기화, 모델로드
 	// fbx파일을 로드합니다.

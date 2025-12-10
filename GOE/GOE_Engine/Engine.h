@@ -2,6 +2,7 @@
 #include<memory>
 #include <Windows.h>
 #include "IEngine.h"
+#include <string>
 
 namespace GOE
 {

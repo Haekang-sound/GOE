@@ -310,9 +310,9 @@ ComPtr<ID3D12Resource> Graphics::ResourceManager::CreateCBResource(const void* i
 		memcpy(pMappedData, initialData, bufferSize);
 		constantBuffer->Unmap(0, nullptr);
 	}
+
 	// 생성된 리소스 객체를 반환합니다.
 	return constantBuffer;
-
 }
 
 /// <summary>
