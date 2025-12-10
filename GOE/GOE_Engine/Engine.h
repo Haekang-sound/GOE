@@ -24,26 +24,11 @@ namespace GOE
 	public:
 		Engine(HINSTANCE hInst, int nCmdShow);
 		~Engine();
-		
-	public:
-		void Initialize() override;
-
-		void OnUpdate() override;
-
-		void BeginRender() override;
-		void OnRender() override;
-		void EndRender() override;
-
-		void Release();
 
 	private:
-		void DebugUpdate(double dTime);
-
-	private:
-		std::unique_ptr<GOE::EngineContext> m_context;
-
 		HINSTANCE m_hInst = 0;
 		int m_nCmdShow = 0;
+		std::unique_ptr<GOE::EngineContext> m_context;
 
 	private:
 		std::unique_ptr<Window> m_winCore;
@@ -57,6 +42,16 @@ namespace GOE
 	private:
 		double m_fpsTimer = 0.0;
 		int m_frameCount = 0;
+		size_t DestroyWndID = 0;	// 함수id
+
+	public:
+		void Initialize() override;
+		void OnUpdate() override;
+		void DebugUpdate(double dTime);
+		void BeginRender() override;
+		void OnRender() override;
+		void EndRender() override;
+		void Release();
 	};
 }
 

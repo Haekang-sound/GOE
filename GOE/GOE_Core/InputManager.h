@@ -42,6 +42,16 @@ namespace GOE
 		InputManager();
 		~InputManager();
 
+	private:
+		HWND m_hWnd;
+		POINT m_screenMousePos = { 0, 0 };// 현재 좌표 (스크린 기준)
+		POINT m_mousePos = { 0, 0 };      // 현재 좌표 (클라이언트 기준)
+		POINT m_prevMousePos = { 0, 0 };  // 이전 프레임 좌표
+		POINT m_mouseDelta = { 0, 0 };    // 이동량
+		std::vector<KeyState> m_keyStates;
+		std::map<int, std::vector<InputListener>> m_downListeners;
+		std::map<int, std::vector<InputListener>> m_upListeners;
+
 	public:
 		void Initialize(HWND hwnd);
 		void Update();
@@ -66,15 +76,5 @@ namespace GOE
 		void DispatchUpEvent(int key);
 		void DispatchDownEvent(int key);
 		int MouseButtonToKey(MouseButton button);
-
-	private:
-		HWND m_hWnd;
-		POINT m_screenMousePos = { 0, 0 };// 현재 좌표 (스크린 기준)
-		POINT m_mousePos = { 0, 0 };      // 현재 좌표 (클라이언트 기준)
-		POINT m_prevMousePos = { 0, 0 };  // 이전 프레임 좌표
-		POINT m_mouseDelta = { 0, 0 };    // 이동량
-		std::vector<KeyState> m_keyStates;
-		std::map<int, std::vector<InputListener>> m_downListeners;
-		std::map<int, std::vector<InputListener>> m_upListeners;
 	};
 }
