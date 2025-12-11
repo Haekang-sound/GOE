@@ -71,7 +71,8 @@ void GOE::InputManager::Update()
 }
 
 /// <summary>
-/// 버튼상태를 반환합니다.
+/// 버튼 상태를 반환합니다.
+/// 
 /// </summary>
 /// <param name="key">키</param>
 /// <returns></returns>
@@ -113,6 +114,7 @@ bool GOE::InputManager::GetMouseButtonUp(MouseButton button)
 
 /// <summary>
 /// 키와 함수를 바인딩합니다
+/// 
 /// </summary>
 /// <param name="ptr">함수를 제공하는 객체 포인터</param>
 /// <param name="key">카</param>
@@ -124,6 +126,7 @@ void GOE::InputManager::BindAction(void* ptr, GOE::KEY key, KeyState state, std:
 	else if (state == KeyState::UP) m_upListeners[key].emplace_back(ptr, fnc);
 	// Press는 update내내 사용되므로 상태로서 각 객체가 관리하는게 효율적
 }
+
 /// <summary>
 /// 바인딩된 함수를 해제합니다.
 /// 특정키, 특정 상태
@@ -197,6 +200,7 @@ void GOE::InputManager::DispatchUpEvent(KEY key)
 /// <summary>
 /// 해당 Key가 DOWN상태일 경우
 /// 바인딩된 함수들을 순서대로 실행합니다.
+/// 
 /// </summary>
 /// <param name="key">키</param>
 void GOE::InputManager::DispatchDownEvent(KEY key)
@@ -219,6 +223,12 @@ void GOE::InputManager::DispatchDownEvent(KEY key)
 	}
 }
 
+/// <summary>
+/// 마우스버튼의 대한 
+/// 가상키사용 편의를 위한 변환함수
+/// </summary>
+/// <param name="button"></param>
+/// <returns></returns>
 int GOE::InputManager::MouseButtonToKey(GOE::MouseButton button)
 {
 	switch (button)
@@ -279,10 +289,12 @@ void GOE::InputManager::ReleaseAction(void* ptr, KEY key, KeyState state)
 			if (it != m_upListeners.end()) removeListener(it->second);
 		}
 	}
-
-
 }
 
+/// <summary>
+/// 저장된 해제함수를 일괄 실행합니다.
+/// 
+/// </summary>
 void GOE::InputManager::FlushUnbindAcions()
 {
 	for (const auto& func : m_unbindingQueue)

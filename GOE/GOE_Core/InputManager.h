@@ -13,6 +13,7 @@ namespace GOE
 		Right,
 		Middle
 	};
+
 	enum class KeyState
 	{
 		NONE = 0,
@@ -33,7 +34,8 @@ namespace GOE
 	/// <summary>
 	/// 인풋을 관리합니다.
 	/// Bind함수로 키에 기능을 바인딩하고 
-	/// Update함수로 키의 상태를 검사하며 상태에 맞게 바인딩 된 함수를 실행합니다.
+	/// Update함수로 키의 상태를 검사하며
+	/// 상태에 맞게 바인딩 된 함수를 실행합니다.
 	/// 
 	/// </summary>
 	class InputManager : public SingletonBase<InputManager>
