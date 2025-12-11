@@ -31,25 +31,36 @@ public:
 	inline void SetLocalTM(GOE::Matrix4x4 TM) { m_localTM = TM; }
 	inline void SetParentTM(GOE::Matrix4x4 TM) { m_parentTM = TM; }
 
-	inline void SetScaleTM(GOE::FLoatVector3 v) 
+	inline void SetScale(GOE::FLoatVector3 v) 
 	{
 		m_scale = v;
-		GOE::Matrix4x4 scaleTM = GOE::Matrix4x4::Scaling(v.x, v.y, v.z);
-		m_localTM *= scaleTM;		
+		UpdateTransform();
 	}
-	inline void SetRotationTM(GOE::FLoatVector3 v)
+	// 기존 함수명 유지 (호환성)
+	inline void SetScaleTM(GOE::FLoatVector3 v) { SetScale(v); }
+
+	inline void SetRotation(GOE::FLoatVector3 v)
 	{
 		m_rotation = v; 
-		GOE::Matrix4x4 rotationTM = v.ToRotationMatrixEuler();
-		m_localTM *= rotationTM;
+		UpdateTransform();
 	}
-	inline void SetPositionTM(GOE::FLoatVector3 v)
+	inline void SetRotationTM(GOE::FLoatVector3 v) { SetRotation(v); }
+
+	inline void SetPosition(GOE::FLoatVector3 v)
 	{ 
 		m_position = v; 
-		GOE::Matrix4x4 translationTM = GOE::Matrix4x4::Translation(v.x, v.y, v.z);
-		m_localTM *= translationTM;
+		UpdateTransform();
 	}
+	inline void SetPositionTM(GOE::FLoatVector3 v) { SetPosition(v); }
 
+private:
+	void UpdateTransform()
+	{
+		GOE::Matrix4x4 S = GOE::Matrix4x4::Scaling(m_scale.x, m_scale.y, m_scale.z);
+		GOE::Matrix4x4 R = m_rotation.ToRotationMatrixEuler();
+		GOE::Matrix4x4 T = GOE::Matrix4x4::Translation(m_position.x, m_position.y, m_position.z);
+		m_localTM = S * R * T;
+	}
 
 protected:
 	GOE::Matrix4x4 m_localTM;

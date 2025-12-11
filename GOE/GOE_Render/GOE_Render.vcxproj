@@ -21,7 +21,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h" />
     <ClInclude Include="CommandContext.h" />
     <ClInclude Include="CopyCommandContext.h" />
     <ClInclude Include="D3DMath.h" />
@@ -47,7 +46,6 @@
     <ClInclude Include="UIManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="CommandContext.cpp" />
     <ClCompile Include="CopyCommandContext.cpp" />
     <ClCompile Include="DescriptorHeapManager.cpp" />

@@ -31,6 +31,7 @@ namespace GOE
 		virtual void CreateMeshResource(const Mesh* core_mesh) {};
 		virtual UIInitInfo* GetUIInfo() = 0;
 		virtual UILoopInfo* GetUILoopInfo() = 0;
+		virtual void SetCameraData(float fov, float aspect, float nZ, float fZ, const GOE::Matrix4x4& worldMat, const GOE::FLoatVector3& pos) = 0;
 
 	public:
 		virtual void ReceiveRenderObejcts(std::vector<RenderObject>&& data) = 0;

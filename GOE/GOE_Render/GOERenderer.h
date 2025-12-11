@@ -46,6 +46,33 @@ class RenderObject;
 /// </summary>
 class GOERenderer : public GOE::ID3DRenderer
 {
+
+	std::vector<RenderObject> m_renderObjects;
+
+	struct CameraData
+	{
+		float fov;
+		float aspectRatio;
+		float nearZ;
+		float farZ;
+		DirectX::XMFLOAT4X4 worldMatrix;
+		DirectX::XMFLOAT3 position;
+	} m_cameraData;
+
+protected:
+	std::unique_ptr<Graphics::RenderContext> m_renderContext = nullptr;
+	std::unique_ptr<Graphics::GraphicsDevice> m_graphicsDevice = nullptr;
+	std::unique_ptr<Graphics::SwapChain> m_swapChain = nullptr;
+	std::unique_ptr<Graphics::PSOManager> m_PSOManager = nullptr;
+	std::unique_ptr<Graphics::ResourceManager> m_resourceManager = nullptr;
+	std::unique_ptr<Graphics::UIManager> m_UIManager = nullptr;
+	std::unique_ptr<Graphics::DescriptorHeapManager> m_descriptorHeapManager = nullptr;
+	std::unique_ptr<Graphics::RenderCommandContext> m_commandContext = nullptr;
+	std::unique_ptr<Graphics::CopyCommandContext> m_copyCommandContext = nullptr;
+
+protected:
+	HWND m_hWnd;
+
 public:
 	GOERenderer(const HWND hWnd);
 	~GOERenderer();
@@ -70,22 +97,15 @@ public:
 	UIInitInfo* GetUIInfo() override;
 	UILoopInfo* GetUILoopInfo() override;
 	void ReceiveRenderObejcts(std::vector<RenderObject>&& data) override;
+	void SetCameraData(float fov, float aspect, float nZ, float fZ, const GOE::Matrix4x4& worldMat, const GOE::FLoatVector3& pos) override
+	{
+		m_cameraData.fov = fov;
+		m_cameraData.aspectRatio = aspect;
+		m_cameraData.nearZ = nZ;
+		m_cameraData.farZ = fZ;
+		// GOE::Matrix4x4와 XMFLOAT4X4는 메모리 호환됨
+		m_cameraData.worldMatrix = reinterpret_cast<const DirectX::XMFLOAT4X4&>(worldMat);
+		m_cameraData.position = reinterpret_cast<const DirectX::XMFLOAT3&>(pos);
+	}
 
-public:
-	std::vector<RenderObject> m_renderObjects;
-	Camera* m_camera;
-
-protected:
-	std::unique_ptr<Graphics::RenderContext> m_renderContext = nullptr;
-	std::unique_ptr<Graphics::GraphicsDevice> m_graphicsDevice = nullptr;
-	std::unique_ptr<Graphics::SwapChain> m_swapChain = nullptr;
-	std::unique_ptr<Graphics::PSOManager> m_PSOManager = nullptr;
-	std::unique_ptr<Graphics::ResourceManager> m_resourceManager = nullptr;
-	std::unique_ptr<Graphics::UIManager> m_UIManager = nullptr;
-	std::unique_ptr<Graphics::DescriptorHeapManager> m_descriptorHeapManager = nullptr;
-	std::unique_ptr<Graphics::RenderCommandContext> m_commandContext = nullptr;
-	std::unique_ptr<Graphics::CopyCommandContext> m_copyCommandContext = nullptr;
-
-protected:
-	HWND m_hWnd;
 };

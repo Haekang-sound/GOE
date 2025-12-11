@@ -5,12 +5,13 @@
 #include "Transform.h"
 #include "MeshRenderer.h"
 #include "AnimationUnit.h"
+#include "CameraComponent.h" // 추가
 
 #include "Material.h"
 
 void RenderSystem::Initialize()
 {
-	
+
 }
 
 void RenderSystem::Update(double dTime)
@@ -18,6 +19,32 @@ void RenderSystem::Update(double dTime)
 	auto meshRenderers = GetScene()->GetMeshRendererManager()->GetComponents();
 	auto renderer = m_context->renderer;
 	m_renderObjects.clear();
+
+	// 카메라 업데이트 로직 추가
+	auto cameras = GetScene()->GetCameraManager()->GetComponents();
+	for (auto& camera : cameras)
+	{
+		if (camera.IsActive()) // 활성화된 카메라만 사용 (여러 개일 경우 마지막 것 사용 or 우선순위 필요)
+		{
+			auto transform = GetScene()->GetTransformManager()->GetComponentByOwner(camera.GetOwner());
+			if (transform)
+			{
+				GOE::Matrix4x4 worldMat = transform->GetLocalTM(); // World TM
+				GOE::FLoatVector3 pos = transform->GetPosition();
+
+				renderer->SetCameraData(
+					camera.GetFOV(),
+					camera.GetAspectRatio(),
+					camera.GetNearZ(),
+					camera.GetFarZ(),
+					worldMat,
+					pos
+				);
+			}
+			break; // 첫 번째 활성 카메라만 처리하고 종료		
+		}
+	}
+
 
 	for (auto& meshRenderer : meshRenderers)
 	{
@@ -30,7 +57,7 @@ void RenderSystem::Update(double dTime)
 			GetScene()->GetMaterialManager()->GetComponentByOwner(meshRenderer.GetOwner())->GetTextureID());
 		m_renderObjects.back().SetLocalTM(
 			GetScene()->GetTransformManager()->GetComponentByOwner(meshRenderer.GetOwner())->GetLocalTM());
-		
+
 		size_t bones = m_context->assetCore->GetMesh(meshRenderer.GetMeshID())->GetBones().size();
 		for (int i = 0; i < bones; ++i)
 		{

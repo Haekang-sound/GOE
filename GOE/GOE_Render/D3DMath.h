@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <DirectXMath.h>
 #include "CoreMath.h"
 
@@ -6,6 +6,29 @@ using namespace DirectX;
 
 namespace Graphics
 {
+	struct FLoatVector3
+	{
+		XMFLOAT3 vec;
+
+	public:
+		FLoatVector3() = default;
+		FLoatVector3(GOE::FLoatVector3 _vec)
+		{
+			vec.x = _vec.x;
+			vec.y = _vec.y;
+			vec.z = _vec.z;
+		}
+
+	public:
+		FLoatVector3& operator=(const GOE::FLoatVector3& other)
+		{
+			vec.x = other.x;
+			vec.y = other.y;
+			vec.z = other.z;
+			return *this;
+		}
+	};
+
 	struct Matrix4x4
 	{
 	public:
@@ -195,32 +218,6 @@ namespace Graphics
 			{
 				indices.push_back(index);
 			}
-			/*for (const auto& matrix : other.boneOffsets)
-			{
-				XMFLOAT4X4 temp;
-				temp._11 = matrix._11;
-				temp._12 = matrix._12;
-				temp._13 = matrix._13;
-				temp._14 = matrix._14;
-
-				temp._11 = matrix._21;
-				temp._12 = matrix._22;
-				temp._13 = matrix._23;
-				temp._14 = matrix._24;
-
-				temp._11 = matrix._31;
-				temp._12 = matrix._32;
-				temp._13 = matrix._33;
-				temp._14 = matrix._34;
-
-				temp._11 = matrix._41;
-				temp._12 = matrix._42;
-				temp._13 = matrix._43;
-				temp._14 = matrix._44;
-
-				boneOffsets.push_back(temp);
-
-			}*/
 			return *this;
 		}
 	};

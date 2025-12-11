@@ -9,6 +9,7 @@
 #include "Material.h"
 #include "MovementUnit.h"
 #include "AnimationUnit.h"
+#include "CameraComponent.h"
 
 #include "RenderSystem.h"
 #include "MovementSystem.h"
@@ -29,6 +30,7 @@ void Scene::Initialize(GOE::EngineContext* context)
 	m_materialManager = std::make_unique<ComponentManager<Material>>();
 	m_movementUnitManager = std::make_unique<ComponentManager<MovementUnit>>();
 	m_animationUnitManager = std::make_unique<ComponentManager<AnimationUnit>>();
+	m_cameraManager = std::make_unique<ComponentManager<CameraComponent>>();
 
 	// 시스템 생성
 	m_renderSystem = std::make_unique<RenderSystem>(this, context);
@@ -64,6 +66,26 @@ void Scene::DebugUpdate(double dTime)
 /// </summary>
 void Scene::Script()
 {
+	{
+		// 카메라 엔티티 생성
+		m_entityManager.get()->CreateEntity("메인카메라");
+		size_t cameraID = m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID();
+
+		// Transform 추가
+		m_transformManager.get()->AddComponent(cameraID, cameraID);
+		auto transform = m_transformManager.get()->GetCurrentComponent();
+		transform->SetLocalTM(GOE::Matrix4x4::Identity());
+		// 초기 위치 설정 (기존 Camera.cpp의 m_position = {0.f, 15.f, -36.f})
+		transform->SetPositionTM({ 0.0f, 15.0f, -36.0f });
+
+		// CameraComponent 추가
+		m_cameraManager.get()->AddComponent(cameraID, cameraID);
+
+		// MovementUnit 추가 (카메라 이동을 위해)
+		m_movementUnitManager.get()->AddComponent(cameraID, cameraID);
+		m_movementUnitManager.get()->GetCurrentComponent()->SetMoveable(true);
+	}
+
 	/// 쿠라몬 1000개가 있으면 9-10FPS가 나온다.
 	//for (int i = 0; i < 10; ++i)
 	//{

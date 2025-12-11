@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ISystem.h"
 class MovementSystem : public ISystem
 {
@@ -13,6 +13,6 @@ public:
 	void DebugUpdate(double dTime) override;
 	
 private:
-	float m_moveSpeed = 0.5;
+	float m_moveSpeed = 10;
 };
 
