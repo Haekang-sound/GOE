@@ -15,7 +15,6 @@
 
 // 리소스자료형
 #include "MeshResource.h"
-#include "TextureResource.h"
 #include "RenderObject.h"
 
 #if defined(_DEBUG)
@@ -99,7 +98,7 @@ void GOERenderer::OnUpdate(double dTime)
 	m_resourceManager.get()->UpdateResourceStates();
 	
 	// 카메라 행렬 계산 (DirectXMath 사용)
-	XMMATRIX cameraWorld = XMLoadFloat4x4(&m_cameraData.worldMatrix);
+	XMMATRIX cameraWorld = XMLoadFloat4x4(&m_cameraData.worldMatrix.matrix);
 	XMMATRIX view = XMMatrixInverse(nullptr, cameraWorld);
 	XMMATRIX proj = XMMatrixPerspectiveFovLH(
 		m_cameraData.fov, 
@@ -116,7 +115,7 @@ void GOERenderer::OnUpdate(double dTime)
 		Graphics::CB cbData = {};
 		XMMATRIX world = XMLoadFloat4x4(&renderObject.GetLocalTM().matrix);
 		
-		cbData.cameraPosition = m_cameraData.position;
+		cbData.cameraPosition = m_cameraData.position.vec;
 
 		XMStoreFloat4x4(&cbData.world, world);
 		XMStoreFloat4x4(&cbData.viewProjection, vp);
@@ -210,7 +209,7 @@ void GOERenderer::OnRender()
 	// 카메라 행렬 계산 (OnRender에서도 필요하면 재계산하거나 멤버 변수에 저장해두고 사용)
 	// OnUpdate에서 이미 cbData 계산 로직이 있지만, 여기서는 커맨드 리스트에 실제 명령을 내리는 곳임.
 	// 상수 버퍼 할당을 위해 여기서 다시 계산.
-	XMMATRIX cameraWorld = XMLoadFloat4x4(&m_cameraData.worldMatrix);
+	XMMATRIX cameraWorld = XMLoadFloat4x4(&m_cameraData.worldMatrix.matrix);
 	XMMATRIX view = XMMatrixInverse(nullptr, cameraWorld);
 	XMMATRIX proj = XMMatrixPerspectiveFovLH(
 		m_cameraData.fov,
@@ -243,7 +242,7 @@ void GOERenderer::OnRender()
 		// RenderObject에서 데이터 가져오기 (포인터면 ->, 객체면 .)
 		XMMATRIX world = XMLoadFloat4x4(&renderObject.GetLocalTM().matrix);
 		
-		cbData.cameraPosition = m_cameraData.position;
+		cbData.cameraPosition = m_cameraData.position.vec;
 		XMStoreFloat4x4(&cbData.world, world);
 		XMStoreFloat4x4(&cbData.viewProjection, vp);
 

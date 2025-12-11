@@ -1,7 +1,5 @@
 ﻿#pragma once
 #include "ID3DRenderer.h"
-#include <d3d12.h>
-
 #include <wrl.h>
 #include <windows.h>
 #include <memory>
@@ -46,18 +44,13 @@ class RenderObject;
 /// </summary>
 class GOERenderer : public GOE::ID3DRenderer
 {
-
-	std::vector<RenderObject> m_renderObjects;
-
-	struct CameraData
-	{
-		float fov;
-		float aspectRatio;
-		float nearZ;
-		float farZ;
-		DirectX::XMFLOAT4X4 worldMatrix;
-		DirectX::XMFLOAT3 position;
-	} m_cameraData;
+public:
+	GOERenderer(const HWND hWnd);
+	~GOERenderer();
+	GOERenderer(const GOERenderer&) = delete;
+	GOERenderer(GOERenderer&&) = delete;
+	GOERenderer& operator=(const GOERenderer&) = delete;
+	GOERenderer& operator=(GOERenderer&&) = delete;
 
 protected:
 	std::unique_ptr<Graphics::RenderContext> m_renderContext = nullptr;
@@ -71,15 +64,20 @@ protected:
 	std::unique_ptr<Graphics::CopyCommandContext> m_copyCommandContext = nullptr;
 
 protected:
-	HWND m_hWnd;
+	std::vector<RenderObject> m_renderObjects;
 
-public:
-	GOERenderer(const HWND hWnd);
-	~GOERenderer();
-	GOERenderer(const GOERenderer&) = delete;
-	GOERenderer(GOERenderer&&) = delete;
-	GOERenderer& operator=(const GOERenderer&) = delete;
-	GOERenderer& operator=(GOERenderer&&) = delete;
+	struct CameraData
+	{
+		float fov;
+		float aspectRatio;
+		float nearZ;
+		float farZ;
+		Graphics::Matrix4x4 worldMatrix;
+		Graphics::FLoatVector3 position;
+	} m_cameraData;
+
+protected:
+	HWND m_hWnd;
 
 public:
 	void OnInit() override;
@@ -93,7 +91,7 @@ public:
 	void LoadTexture(std::string filepath) override;
 	void CreateMeshResource(const Mesh* core_mesh) override;
 
-public: 
+public:
 	UIInitInfo* GetUIInfo() override;
 	UILoopInfo* GetUILoopInfo() override;
 	void ReceiveRenderObejcts(std::vector<RenderObject>&& data) override;
@@ -103,9 +101,7 @@ public:
 		m_cameraData.aspectRatio = aspect;
 		m_cameraData.nearZ = nZ;
 		m_cameraData.farZ = fZ;
-		// GOE::Matrix4x4와 XMFLOAT4X4는 메모리 호환됨
-		m_cameraData.worldMatrix = reinterpret_cast<const DirectX::XMFLOAT4X4&>(worldMat);
-		m_cameraData.position = reinterpret_cast<const DirectX::XMFLOAT3&>(pos);
+		m_cameraData.worldMatrix = worldMat;
+		m_cameraData.position = pos;
 	}
-
 };

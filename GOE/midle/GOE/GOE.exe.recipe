@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>D:\project\GOE\GOE\Bin\Debug\x64\exe\GOE.exe</FullPath>
+      <FullPath>D:\project\GOE\GOE\Bin\Release\x64\exe\GOE.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
