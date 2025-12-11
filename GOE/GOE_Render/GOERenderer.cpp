@@ -15,6 +15,7 @@
 
 // 리소스자료형
 #include "MeshResource.h"
+#include "TextureResource.h"
 #include "RenderObject.h"
 
 #if defined(_DEBUG)
