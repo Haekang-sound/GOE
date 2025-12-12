@@ -25,6 +25,7 @@ void GOE::Engine::Initialize()
 
 	// 타임매니저, 인풋매니저 초기화
 	GOE::TimeManager::GetInstance().Initialize();
+	GOE::FileManager::GetInstance().Initialize();
 	GOE::InputManager::GetInstance().Initialize(m_winCore->GetHWND());
 
 	GOE::InputManager::GetInstance().BindAction(this, VK_ESCAPE, KeyState::UP, [this]() { DestroyWindow(m_winCore->GetHWND()); });
@@ -33,18 +34,19 @@ void GOE::Engine::Initialize()
 	// fbx파일을 로드합니다.
 	m_assetCore = std::make_unique<AssetCore>();
 	m_assetCore.get()->CreateAssetLoader();
-	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\Ch03_nonPBR.fbx");
-	m_assetCore.get()->LoadModel("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
+	
+	m_assetCore.get()->LoadModel(GOE::FileManager::GetInstance().GetFullPath("Assets/models/Ch03_nonPBR.fbx"));
+	m_assetCore.get()->LoadModel(GOE::FileManager::GetInstance().GetFullPath("Assets/models\\kuramon.fbx"));
 
 	///애니메이션 로드
-	m_assetCore.get()->LoadAnimation("D:\\project\\GOE\\GOE\\Assets\\animation\\Samba Dancing.fbx");
-	m_assetCore.get()->LoadAnimation("D:\\project\\GOE\\GOE\\Assets\\models\\kuramon.fbx");
+	m_assetCore.get()->LoadAnimation(GOE::FileManager::GetInstance().GetFullPath("Assets/animation/Samba Dancing.fbx"));
+	m_assetCore.get()->LoadAnimation(GOE::FileManager::GetInstance().GetFullPath("Assets/models/uramon.fbx"));
 
 	// 렌더러 초기화
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND());
 	m_renderer->OnInit();
-	m_renderer.get()->LoadTexture("D:\\project\\GOE\\GOE\\Assets\\textures\\Ch03_1001_Diffuse.png");
-	m_renderer.get()->LoadTexture("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
+	m_renderer.get()->LoadTexture(GOE::FileManager::GetInstance().GetFullPath("Assets/textures/Ch03_1001_Diffuse.png"));
+	m_renderer.get()->LoadTexture(GOE::FileManager::GetInstance().GetFullPath("Assets/textures/chr629a01.png"));
 
 	/// 로드된 매쉬중 원하는 메쉬를 이름으로 골라서
 	/// 그래픽스 리소스를 생성합니다.

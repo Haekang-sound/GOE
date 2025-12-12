@@ -154,10 +154,8 @@ HRESULT Graphics::PSOManager::CompileShaderFromFile(
 	arguments.push_back(L"-Od");
 	arguments.push_back(L"-Qembed_debug"); // 선택 사항
 
-	// --- 절대 PDB 경로 설정 ---
-	// 1. 지정된 절대 경로 사용
-	std::filesystem::path pdbSaveDir = L"D:\\project\\GOE\\GOE\\Bin\\Debug\\x64\\exe";
-
+	std::filesystem::path pdbSaveDir = GOE::FileManager::GetInstance().GetFullPath(L"Bin\\Debug\\x64\\exe");
+	
 	// 2. PDB 파일 이름 생성 (기존 코드 활용)
 	std::filesystem::path shaderFilePath = fileName;
 	std::wstring pdbName = shaderFilePath.filename().wstring();
@@ -169,7 +167,7 @@ HRESULT Graphics::PSOManager::CompileShaderFromFile(
 	pdbName += L".pdb"; // 예: "shader_vs.pdb"
 
 	// 3. 최종 절대 PDB 경로 조합
-	std::filesystem::path fullPdbPath = pdbSaveDir / pdbName; // 예: D:\project\GOE\GOE\Bin\Debug\x64\exe\shader_vs.pdb
+	std::filesystem::path fullPdbPath = pdbSaveDir / pdbName;
 	pdbPath = fullPdbPath.wstring(); // std::wstring으로 변환
 
 	// 4. -Fd 인수로 전달

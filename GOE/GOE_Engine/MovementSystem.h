@@ -14,5 +14,6 @@ public:
 	
 private:
 	float m_moveSpeed = 10;
+	float m_rotationSpeed = 1.f;
 };
 

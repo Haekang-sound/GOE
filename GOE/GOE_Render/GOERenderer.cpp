@@ -332,15 +332,6 @@ void GOERenderer::ReceiveRenderObejcts(std::vector<RenderObject>&& data)
 	m_renderObjects = std::move(data);
 }
 
-//void GOERenderer::SetCameraData(const GOE::Matrix4x4& view, const GOE::Matrix4x4& proj, const GOE::FLoatVector3& pos)
-//{
-//	m_cameraData.viewMatrix = view;
-//	m_cameraData.projectionMatrix = proj;
-//	m_cameraData.position = pos;
-//}
-
-
-
 void GOERenderer::LoadTexture(std::string filepath)
 {
 	const auto resourceManager = m_resourceManager.get();

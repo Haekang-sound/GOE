@@ -1,5 +1,8 @@
 ﻿#pragma once
 #include "SingletonBase.h"
+#include <filesystem>
+#include <string>
+#include <string_view>
 
 namespace GOE
 {
@@ -8,29 +11,31 @@ namespace GOE
 	/// </summary>
 	class FileManager : public SingletonBase<FileManager>
 	{
-	public:
-		FileManager();
-		~FileManager();
-		FileManager(const FileManager&) = delete;
-		FileManager(FileManager&&) = delete;
-		FileManager& operator=(const FileManager&) = delete;
-		FileManager& operator=(FileManager&&) = delete;
+	private:
+		size_t m_IDValue = 0; 
+		std::filesystem::path m_rootPath;   // 프로젝트 루트
+		std::filesystem::path m_assetsPath; // Assets 폴더
+
+	public: 
+		void Initialize();
+
 
 	public:
-		static std::vector<std::wstring> GetFileNamesInFolder(std::wstring folderPath);
-		static std::vector<std::wstring> GetThisFileNamesInFolder(std::wstring folderPath, const std::wstring& extension);
+		std::string GetFullPath(const std::string_view path);
+		std::wstring GetFullPath(const std::wstring_view path);
 
-		static size_t GetHash(const std::string& path);
+		static std::vector<std::wstring> GetFileNamesInFolder(std::wstring_view folderPath);
+		static std::vector<std::wstring> GetThisFileNamesInFolder(std::wstring_view folderPath, const std::wstring& extension);
+
+		static size_t GetHash(const std::string_view path);
+		
+		// id value가 필요할때사용함
 		size_t GetRendomHash()
 		{
 			size_t hash = std::hash<size_t>{}(m_IDValue);
 			m_IDValue++;
 			return hash;
 		};
-
-
-	private:
-		size_t m_IDValue = 0;
 	};
 }
 

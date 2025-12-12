@@ -24,17 +24,10 @@ namespace Graphics
 	class DescriptorHeapManager;
 }
 
-class Mesh;
-
 using Microsoft::WRL::ComPtr;
 using namespace Microsoft::WRL;
-
-class Camera;
 struct UIInitInfo;
 struct UILoopInfo;
-class ModelResource;
-class MeshResource;
-//class TextureResource;
 class RenderObject;
 
 /// <summary>

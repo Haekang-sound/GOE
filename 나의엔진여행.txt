@@ -493,3 +493,35 @@ D3D12의 비동기 실행 모델을 다룰 때, 리소스의 생명 주기와 GP
 4.  **에디터 확장**: 씬 계층 구조(Hierarchy) 표시 및 속성 편집 기능.
 
 --- 대화 기록 끝 (2025년 12월 1일 월요일) ---
+
+--- 대화 기록 시작 (2025년 12월 11일 목요일) ---
+
+### **카메라 시스템 컴포넌트화 및 Input/Time 시스템 통합 완료**
+
+**배경:**
+기존 `Camera` 클래스는 렌더러에 종속된 임시 객체였으며, 입력 처리도 `GetAsyncKeyState`로 하드코딩되어 있었다. 엔진의 ECS 구조에 맞게 이를 정식 컴포넌트로 승격시키고, 기 구현된 `InputManager`와 `TimeManager`를 적용하여 시스템을 통합할 필요가 있었다.
+
+**주요 작업 내용:**
+
+1.  **CameraComponent 도입 (ECS 통합):**
+    *   `GOE_Engine`에 `IComponent`를 상속받는 `CameraComponent`를 신규 생성했다.
+    *   `CameraComponent`는 순수 데이터(FOV, Near/Far, Aspect)만 관리하고, 행렬 계산 로직은 렌더러로 위임하여 역할을 분리했다.
+    *   `Scene` 클래스에 `CameraComponent` 매니저를 추가하고, 스크립트 단계에서 카메라 엔티티를 생성하도록 초기화 로직을 수정했다.
+
+2.  **Input & Time 시스템 적용 (MovementSystem 리팩토링):**
+    *   `MovementSystem`을 대대적으로 리팩토링하여 `InputManager`와 `TimeManager`를 기반으로 동작하도록 수정했다.
+    *   **자유 시점 카메라 (Free Camera):** W/A/S/D 이동 및 마우스 우클릭 회전(Yaw/Pitch)을 구현하고, `DeltaTime`을 적용하여 프레임 독립적인 움직임을 보장했다.
+    *   **Transform 개선:** `Transform` 컴포넌트에 `SetRotation`, `SetPosition` 등을 추가하여 행렬을 안전하게 재구성(`UpdateTransform`)하도록 수정했다. 특히 기저 벡터 추출 시 열(Column) 대신 행(Row)을 읽도록 수정하여 회전 후 이동이 꼬이는 문제를 해결했다.
+
+3.  **렌더링 파이프라인 최적화 (Engine-Renderer 분리):**
+    *   `GOERenderer`에서 `Camera` 클래스에 대한 직접 의존성을 제거했다.
+    *   대신 `SetCameraData` 인터페이스를 통해 엔진(`RenderSystem`)으로부터 순수 데이터(World Matrix, FOV 등)를 주입받도록 구조를 변경했다.
+    *   **SIMD 가속 활용:** 뷰/프로젝션 행렬 계산을 엔진(`CoreMath`)에서 하지 않고, 렌더러 내부에서 `DirectXMath` (SIMD 지원)를 사용하여 수행함으로써 성능과 안정성을 확보했다.
+
+4.  **수학 라이브러리 독립성 확보:**
+    *   `CoreMath.h`에서 `DirectXMath` 의존성을 완전히 제거하고, 순수 C++ (`cmath`) 기반으로 수학 함수들을 재구현하거나 정리했다. 이를 통해 코어 모듈의 플랫폼 독립성을 유지했다.
+
+**다음 단계 (TODO):**
+*   **에셋 경로 동적화:** `FileManager`를 `std::filesystem` 기반으로 개량하여, 하드코딩된 절대 경로를 제거하고 상대 경로(`"Assets/..."`) 시스템을 구축해야 한다.
+
+--- 대화 기록 끝 (2025년 12월 11일 목요일) ---

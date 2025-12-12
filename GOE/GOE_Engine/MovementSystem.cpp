@@ -47,10 +47,10 @@ void MovementSystem::Update(double dTime)
 			}
 
 			// 키보드 회전
-			if (GOE::InputManager::GetInstance().GetButton(VK_LEFT)) { rotation.y -= 2.0f * dTime; transform->SetRotation(rotation); }
-			if (GOE::InputManager::GetInstance().GetButton(VK_RIGHT)) { rotation.y += 2.0f * dTime; transform->SetRotation(rotation); }
-			if (GOE::InputManager::GetInstance().GetButton(VK_UP)) { rotation.x -= 2.0f * dTime; transform->SetRotation(rotation); }
-			if (GOE::InputManager::GetInstance().GetButton(VK_DOWN)) { rotation.x += 2.0f * dTime; transform->SetRotation(rotation); }
+			if (GOE::InputManager::GetInstance().GetButton(VK_LEFT)) { rotation.y -= m_rotationSpeed * dTime; transform->SetRotation(rotation); }
+			if (GOE::InputManager::GetInstance().GetButton(VK_RIGHT)) { rotation.y += m_rotationSpeed * dTime; transform->SetRotation(rotation); }
+			if (GOE::InputManager::GetInstance().GetButton(VK_UP)) { rotation.x -= m_rotationSpeed * dTime; transform->SetRotation(rotation); }
+			if (GOE::InputManager::GetInstance().GetButton(VK_DOWN)) { rotation.x += m_rotationSpeed * dTime; transform->SetRotation(rotation); }
 
 			// 2. 이동 처리 (회전된 기저벡터 기준)
 			GOE::FLoatVector4 right = transform->GetRightVector();

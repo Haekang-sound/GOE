@@ -164,7 +164,7 @@ void Scene::Script()
 		m_meshRendererManager.get()->GetCurrentComponent()->SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
 		m_meshRendererManager.get()->GetCurrentComponent()->SetVisible(true);
 		
-		size_t textureid = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\Ch03_1001_Diffuse.png");
+		size_t textureid = GOE::FileManager::GetHash(GOE::FileManager::GetInstance().GetFullPath("Assets/textures/Ch03_1001_Diffuse.png"));
 		m_materialManager.get()->AddComponent(
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());

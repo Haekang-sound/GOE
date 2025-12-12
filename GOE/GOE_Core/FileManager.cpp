@@ -1,9 +1,59 @@
 ﻿#include "Core_pch.h"
 #include "FileManager.h"
+namespace fs = std::filesystem; // 편의를 위한 별칭
 
-GOE::FileManager::FileManager() = default;
-GOE::FileManager::~FileManager() = default;
+void GOE::FileManager::Initialize()
+{
+	// 실행파일 경로를 가져옵니다.
+	fs::path currentPath = fs::current_path();
 
+	// 루트경로 찾기
+	// asset폴더를 찾을때까지 상위폴더로 올라갑니다.
+	fs::path searchPath = currentPath;
+	bool found = false;
+	// 무한루프 방지를 위해 5단계까지만 
+	for (int i = 0; i < 5; ++i)
+	{
+		if (fs::exists(searchPath / "Assets"))
+		{
+			m_rootPath = searchPath;
+			found = true;
+			break;
+		}
+		if (searchPath.has_parent_path())
+		{
+			searchPath = searchPath.parent_path();
+		}
+	}
+
+	// 찾지 못했다면
+	if (!found)
+	{
+		m_rootPath = currentPath;
+		std::cout << "[FileManager] Warning: Could not find 'Assets' folder. Root set to: " << m_rootPath << std::endl;
+	}
+	else
+	{
+		std::cout << "[FileManager] Root Path Initialized: " << m_rootPath << std::endl;
+	}
+
+}
+
+std::string GOE::FileManager::GetFullPath(const std::string_view path)
+{
+	fs::path _path(path);
+	if (_path.is_absolute()) return _path.string();
+
+	return (m_rootPath/_path).string();
+}
+
+std::wstring GOE::FileManager::GetFullPath(const std::wstring_view path)
+{
+	fs::path _path(path);
+	if (_path.is_absolute()) return _path.wstring();
+
+	return (m_rootPath / _path).wstring();
+}
 
 /// <summary>
 /// 경로를 입력받고
@@ -11,10 +61,13 @@ GOE::FileManager::~FileManager() = default;
 /// </summary>
 /// <param name="folderPath">폴더 경로</param>
 /// <returns></returns>
-std::vector<std::wstring> GOE::FileManager::GetFileNamesInFolder(std::wstring folderPath)
+std::vector<std::wstring> GOE::FileManager::GetFileNamesInFolder(std::wstring_view folderPath)
 {
 	// 벡터의 타입도 std::wstring으로 변경합니다.
 	std::vector<std::wstring> fileNames;
+	fs::path path(folderPath);
+
+	if (!fs::exists(path)) return fileNames;
 
 	// 지정된 경로에 있는 모든 파일/폴더를 순회합니다.
 	for (const auto& entry : std::filesystem::directory_iterator(folderPath))
@@ -38,9 +91,10 @@ std::vector<std::wstring> GOE::FileManager::GetFileNamesInFolder(std::wstring fo
 /// <param name="folderPath">폴더경로</param>
 /// <param name="extension">확장자</param>
 /// <returns></returns>
-std::vector<std::wstring> GOE::FileManager::GetThisFileNamesInFolder(std::wstring folderPath, const std::wstring& extension)
+std::vector<std::wstring> GOE::FileManager::GetThisFileNamesInFolder(std::wstring_view folderPath, const std::wstring& extension)
 {
 	std::vector<std::wstring> fileNames;
+	fs::path path(folderPath);
 
 	try
 	{
@@ -61,12 +115,13 @@ std::vector<std::wstring> GOE::FileManager::GetThisFileNamesInFolder(std::wstrin
 	return fileNames;
 }
 
+
 /// <summary>
 /// 문자열을 입력받고 해쉬로 만들어줍니다.
 /// </summary>
 /// <param name="path"></param>
 /// <returns></returns>
-size_t GOE::FileManager::GetHash(const std::string& path)
+size_t GOE::FileManager::GetHash(const std::string_view path)
 {
-	return std::hash<std::string>{}(path);
+	return std::hash<std::string_view>{}(path);
 }
