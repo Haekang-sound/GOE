@@ -13,6 +13,9 @@ void AnimationSystem::Initialize() {}
 
 void AnimationSystem::Update(double dTime)
 {
+	/// 프레임드랍 원인 찾기
+	///auto start = std::chrono::high_resolution_clock::now();
+
 	for (auto& animationUnit : GetScene()->GetAnimationUnitManager()->GetComponents())
 	{
 		/// 매쉬와 모델을 입력받는 편이 좋을지도
@@ -35,6 +38,32 @@ void AnimationSystem::Update(double dTime)
 			// 정규화된 시간
 			animationUnit.m_normalizedTick = fmod(animationUnit.m_totalTick, animationUnit.m_duration);
 
+			///-------------------------------캐싱테스트중--------
+			int boneCount = m_anim->GetBoneAnimation().size();
+			if (animationUnit.m_cachedBoneIndices.size() != boneCount)
+			{
+				animationUnit.m_cachedBoneIndices.resize(boneCount, 0);
+			}
+
+			for (int i = 0; i < boneCount; ++i)
+			{
+				m_boneAnim = m_anim->GetBoneAnimation()[i].get();
+
+				Node* currentNode = m_model->GetNodeFromMap(m_boneAnim->GetID());
+				if (currentNode)
+				{
+					// [수정] 캐시 인덱스를 참조(&)로 넘겨줍니다.
+					currentNode->SetLocalTM(
+						m_boneAnim->InterpolateSRT(
+							animationUnit.m_normalizedTick,
+							animationUnit.m_cachedBoneIndices[i] // <- 여기!
+						)
+					);
+				}
+			}
+			//-------------------------------캐싱테스트중--------
+
+
 			for (int i = 0; i < m_anim->GetBoneAnimation().size(); ++i)
 			{
 				// 3. 현재 tick에 해당하는 프레임 인덱스들과 각 프레임의 대한 가중치를 구한다.
@@ -49,6 +78,15 @@ void AnimationSystem::Update(double dTime)
 		}
 		m_model->UpdateNodeHierarchy();
 	}
+	auto end = std::chrono::high_resolution_clock::now();
+	/// 프레임드랍 원인 찾기
+	//std::chrono::duration<double, std::milli> ms = end - start;
+	//if (ms.count() > 1.0) // 1ms 이상 걸리면 경고
+	//{
+	//	char buf[100];
+	//	sprintf_s(buf, "Anim Update: %f ms\n", ms.count());
+	//	OutputDebugStringA(buf);
+	//}
 }
 
 

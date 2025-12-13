@@ -32,6 +32,7 @@ public:
 	inline bool IsAnimated() const { return m_isAnimated; }
 	inline Graphics::Matrix4x4& GetBoneTM(int i) { return m_boneTM[i]; }
 	inline Graphics::Matrix4x4* GetBoneTMBegin() { return m_boneTM; }
+	inline size_t GetEntityID() { return m_entityID; }
 
 public:
 	inline void SetVisible(bool visible) { m_isVisible = visible; }
@@ -47,6 +48,7 @@ public:
 	{
 		m_boneTM[idx] = matrix;
 	}
+	inline void SetEntityID(size_t id) { m_entityID = id; }
 
 private:
 	const size_t m_id = 0; // 오브젝트 ID
@@ -54,6 +56,7 @@ private:
 	size_t m_meshIndex = 0; // 메쉬 index 
 	size_t m_textureID = 0; // 텍스처 ID 
 	size_t m_modelID = 0; // 모델 ID 
+	size_t m_entityID = 0;
 	
 	Graphics::Matrix4x4 m_localTM = GOE::Matrix4x4::Identity();
 	Graphics::Matrix4x4 m_worldTM = GOE::Matrix4x4::Identity();

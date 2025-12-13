@@ -50,6 +50,7 @@ void RenderSystem::Update(double dTime)
 	{
 		if (!meshRenderer.IsVisible()) continue;
 		m_renderObjects.emplace_back(meshRenderer.GetID());
+		m_renderObjects.back().SetEntityID(meshRenderer.GetOwner());
 		m_renderObjects.back().SetMeshID(meshRenderer.GetMeshID());
 		m_renderObjects.back().SetMeshIndex(meshRenderer.GetMeshIndex());
 		m_renderObjects.back().SetModelID(meshRenderer.GetModelID());

@@ -36,11 +36,11 @@ void GOE::Engine::Initialize()
 	m_assetCore.get()->CreateAssetLoader();
 	
 	m_assetCore.get()->LoadModel(GOE::FileManager::GetInstance().GetFullPath("Assets/models/Ch03_nonPBR.fbx"));
-	m_assetCore.get()->LoadModel(GOE::FileManager::GetInstance().GetFullPath("Assets/models\\kuramon.fbx"));
+	m_assetCore.get()->LoadModel(GOE::FileManager::GetInstance().GetFullPath("Assets/models/kuramon.fbx"));
 
 	///애니메이션 로드
 	m_assetCore.get()->LoadAnimation(GOE::FileManager::GetInstance().GetFullPath("Assets/animation/Samba Dancing.fbx"));
-	m_assetCore.get()->LoadAnimation(GOE::FileManager::GetInstance().GetFullPath("Assets/models/uramon.fbx"));
+	m_assetCore.get()->LoadAnimation(GOE::FileManager::GetInstance().GetFullPath("Assets/models/kuramon.fbx"));
 
 	// 렌더러 초기화
 	m_renderer = std::make_unique<GOERenderer>(m_winCore->GetHWND());

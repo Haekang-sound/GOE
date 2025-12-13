@@ -29,7 +29,7 @@
 /// </summary>
 /// <param name="hWnd">윈도우 핸들</param>
 GOERenderer::GOERenderer(const HWND hWnd)
-	: m_hWnd(hWnd)
+	: m_hWnd(hWnd), m_cameraData{}
 {
 	/// 분리했으니 제대로 생성해야한다.
 	m_graphicsDevice = std::make_unique<Graphics::GraphicsDevice>();
@@ -207,9 +207,7 @@ void GOERenderer::OnRender()
 	ID3D12DescriptorHeap* ppHeaps[] = { descriptorHeapManager->GetDynamicSRVHeap() };
 	commandList->SetDescriptorHeaps(1, ppHeaps); // 힙 설정
 
-	// 카메라 행렬 계산 (OnRender에서도 필요하면 재계산하거나 멤버 변수에 저장해두고 사용)
-	// OnUpdate에서 이미 cbData 계산 로직이 있지만, 여기서는 커맨드 리스트에 실제 명령을 내리는 곳임.
-	// 상수 버퍼 할당을 위해 여기서 다시 계산.
+	// 카메라 행렬 계산
 	XMMATRIX cameraWorld = XMLoadFloat4x4(&m_cameraData.worldMatrix.matrix);
 	XMMATRIX view = XMMatrixInverse(nullptr, cameraWorld);
 	XMMATRIX proj = XMMatrixPerspectiveFovLH(
@@ -331,6 +329,15 @@ void GOERenderer::ReceiveRenderObejcts(std::vector<RenderObject>&& data)
 {
 	m_renderObjects = std::move(data);
 }
+
+//void GOERenderer::SetCameraData(const GOE::Matrix4x4& view, const GOE::Matrix4x4& proj, const GOE::FLoatVector3& pos)
+//{
+//	m_cameraData.viewMatrix = view;
+//	m_cameraData.projectionMatrix = proj;
+//	m_cameraData.position = pos;
+//}
+
+
 
 void GOERenderer::LoadTexture(std::string filepath)
 {

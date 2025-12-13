@@ -1,13 +1,10 @@
-#pragma once
+﻿#pragma once
 #include "ISystem.h"
 class AnimationSystem : public ISystem
 {
 public:
 	AnimationSystem(Scene* scene, GOE::EngineContext* context)
-		: ISystem(scene, context)
-	{
-	}
-	~AnimationSystem() = default;
+		: ISystem(scene, context){}
 
 public:
 	void Initialize() override;

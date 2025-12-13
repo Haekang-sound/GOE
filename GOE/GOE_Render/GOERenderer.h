@@ -58,7 +58,6 @@ protected:
 
 protected:
 	std::vector<RenderObject> m_renderObjects;
-
 	struct CameraData
 	{
 		float fov;

@@ -121,15 +121,12 @@ void Scene::Script()
 	//			m_meshRendererManager.get()->GetCurrentComponent()->SetName(m_context->assetCore->GetMesh(meshid)->GetName());
 	//			m_meshRendererManager.get()->GetCurrentComponent()->SetVisible(true);
 
-	//			size_t textureid = GOE::FileManager::GetHash("D:\\project\\GOE\\GOE\\Assets\\textures\\chr629a01.png");
+	//			size_t textureid = GOE::FileManager::GetHash(GOE::FileManager::GetInstance().GetFullPath("Assets/textures/chr629a01.png"));
 	//			m_materialManager.get()->AddComponent(
 	//				m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
 	//				m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 	//			m_materialManager.get()->GetCurrentComponent()->SetTextureID(textureid);
 
-	//			m_movementUnitManager.get()->AddComponent(
-	//				m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-	//				m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
 	//			size_t animationid = GOE::FileManager::GetHash("chr629_armature|chr629_ba01");
 	//			m_animationUnitManager.get()->AddComponent(
 	//				m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),

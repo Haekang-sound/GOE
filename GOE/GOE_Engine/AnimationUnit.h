@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "IComponent.h"
 
 class AnimationUnit : public IComponent
@@ -17,8 +17,10 @@ public:
 protected:
 	bool m_isAnimate = true; 
 	size_t animationHash = 0;
+	// test중
 
 public:
+	std::vector<int> m_cachedBoneIndices;
 	double m_duration = 0.0f;
 	double m_ticksPerSecond = 0.0f;
 	double m_totalTime = 0.0f;
