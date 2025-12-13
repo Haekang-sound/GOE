@@ -1,5 +1,12 @@
 ﻿#pragma once
 
+struct BoneCache
+{
+	int scaleIndex = 0;
+	int rotIndex = 0;
+	int posIndex = 0;
+};
+
 struct VectorKeyFrame
 {
 	double time = 0.0f;
@@ -49,11 +56,19 @@ public:
 		return scaleMatrix * rotationMatrix * positionMatrix;
 	}
 
-	GOE::Matrix4x4 InterpolateSRT(double normaliedTime,  int& lastIndex)
+	/// <summary>
+	/// SRT키프레임마다 인덱스가 다르기 때문에 
+	/// 올바른 캐시를 위해서 각각의 인덱스로 관리해줘야 한다.
+	/// </summary>
+	/// <param name="normaliedTime">정규화된 시간</param>
+	/// <param name="lastIndex">가장 최근에 검색했던 인덱스</param>
+	/// <returns></returns>
+	GOE::Matrix4x4 InterpolateSRT(double normaliedTime, BoneCache& lastIndex)
 	{
-		GOE::Matrix4x4 scaleMatrix = InterpolateScale(normaliedTime, lastIndex);
-		GOE::Matrix4x4 rotationMatrix = InterpolateQuatanion(normaliedTime, lastIndex);
-		GOE::Matrix4x4 positionMatrix = InterpolatePosition(normaliedTime, lastIndex);
+		// 보간함수로 정규화된 시간과 캐시할 인덱스값의 참조를 넘겨준다
+		GOE::Matrix4x4 scaleMatrix = InterpolateScale(normaliedTime, lastIndex.scaleIndex);
+		GOE::Matrix4x4 rotationMatrix = InterpolateQuatanion(normaliedTime, lastIndex.rotIndex);
+		GOE::Matrix4x4 positionMatrix = InterpolatePosition(normaliedTime, lastIndex.posIndex);
 		return scaleMatrix * rotationMatrix * positionMatrix;
 	}
 
@@ -65,52 +80,51 @@ public:
 	}
 
 private:
+	/// <summary>
+	/// 스키닝에서 프레임을 선택하는 함수
+	/// 마지막 키프레임을 기준으로 현재시간에 맞는 키프레임을 검사한다.
+	/// 
+	/// </summary>
+	/// <typeparam name="T">키프레임 자료형 종류</typeparam>
+	/// <param name="currentTime">현재 누적시간</param>
+	/// <param name="keys">키프레임 벡터</param>
+	/// <param name="lastIndex">마지막 인덱스</param>
+	/// <returns>현재 누적시간에 적합한 키프레임인덱스</returns>
 	template<typename T>
 	int FindKeyIndex(double currentTime, const std::vector<T>& keys, int& lastIndex)
 	{
 		size_t numKeys = keys.size();
-		if (numKeys <= 0) return 0;
+		if (numKeys <= 1) return 0;
 
 		//1. 캐시가 유효한지 확인
+		// currentTime이 현재 인덱스와 다음 인덱스 사이에 있는지 확인한다.
 		if(lastIndex < numKeys -1)
 		{
-			if (currentTime >= keys[lastIndex].time && currentTime < keys[lastIndex + 1].time)
-			{
-				return lastIndex;
-			}
+			if (currentTime >= keys[lastIndex].time 
+				&& currentTime < keys[lastIndex + 1].time) return lastIndex;
 		}
 
-		// 2. 캐시가 빗나갔다면? 바로 다음칸 부터 확인해본다
-		if (lastIndex + 1 < numKeys - 1)
+		// 2. 캐시가 빗나갔다면 바로 다음칸 확인
+		if (++lastIndex < numKeys - 1)
 		{
-			if (currentTime >= keys[lastIndex + 1].time
-				&& currentTime < keys[lastIndex + 2].time)
-			{
-				lastIndex++;
-				return lastIndex;
-			}
+			if (currentTime >= keys[lastIndex].time
+				&& currentTime < keys[lastIndex + 1].time) return lastIndex;
 		}
 
-		// 3. 예외상황: 역재생, 점프같은경우 이진탐색으로 찾아서 lastindex갱신
-
-		int low = 0;
-		int high = static_cast<int>(numKeys) - 1;
-		while (low <= high)
-		{
-			int mid = low + (high - low) / 2;
-			if (keys[mid].time > currentTime) high = mid - 1;
-			else low = mid + 1;
-		}
-
-		int foundIndex = low - 1;
-		if (foundIndex < 0) foundIndex = 0;
-		if (foundIndex >= static_cast<int>(numKeys)-1) foundIndex = static_cast<int>(numKeys) -2;
-
-		lastIndex = foundIndex;
-		return foundIndex;
+		// 3. 예외상황에서는 이진탐색으로 빠르게 찾는다.
+		// wait등으로 인해 프레임이 널뛸경우 index검색이 안될 수 있음
+		lastIndex = FindKeyIndex<T>(currentTime, keys);
+		return lastIndex;
 	}
 
-
+	/// <summary>
+	///  이진탐색으로 키프레임을 찾는 함수
+	/// </summary>
+	/// </summary>
+	/// <typeparam name="T">키프레임 자료형 종류</typeparam>
+	/// <param name="currentTime">현재 누적시간</param>
+	/// <param name="keys">키프레임 벡터</param>
+	/// <returns>현재 누적시간에 적합한 키프레임인덱스</returns>
 	template<typename T>
 	int FindKeyIndex(double currentTime, const std::vector<T>& keys)
 	{
@@ -118,64 +132,26 @@ private:
 		if (numKeys <= 0) return 0;
 
 		// 이진탐색을 구현합니다.
-		// 목표 currnetTime 보다 큰 첫 번째 키를 찾아 그 직전 인덱스를 구함
 		int low = 0;
 		int high = static_cast<int>(numKeys) - 1;
 
 		while (low <= high)
 		{
 			int mid = low + (high - low) / 2;
-
-			if (keys[mid].time > currentTime)
-			{
-				high = mid - 1;
-			}
-			else
-			{
-				low = mid + 1;
-			}
+			if (keys[mid].time > currentTime)high = mid - 1;
+			else low = mid + 1;
 		}
 
 		// while문이 끝나면 low는 currentTime보다 큰 첫 번째 값의 인덱스가 됩니다.
 		// 우리가 필요한 건 '현재 시간이 포함된 구간의 시작 키' 이므로 하나를 빼줍니다.
 		int index = low - 1;
 
-		// 인덱스 범위 안전 장치(보정)
+		// 인덱스 범위 안전 장치
 		if (index < 0) return 0;
 		if (index >= static_cast<int>(numKeys) - 1) return static_cast<int>(numKeys) - 2;
 
 		return index;
-
 	}
-	//template <typename T> // T = VectorKeyFrame 또는 QuatKeyFrame
-	//int FindKeyIndex(double currentTime, const std::vector<T>& keys)
-	//{
-	//	size_t numKeys = keys.size();
-
-	//	// 방어 코드 1: 키가 하나뿐이면 항상 0번 인덱스
-	//	if (numKeys <= 1)
-	//	{
-	//		return 0;
-	//	}
-
-	//	// 선형 탐색 (Linear Search)
-	//	for (int i = 0; i < numKeys - 1; i++)
-	//	{
-	//		// "현재 시간(currentTime)"이 "다음 키프레임(keys[i+1])의 시간"보다
-	//		// 작은 순간을 찾습니다.
-	//		if (currentTime < keys[i + 1].time)
-	//		{
-	//			// 찾았습니다. 현재 시간은 [i]와 [i+1] 사이입니다.
-	//			// KeyA의 인덱스인 'i'를 반환합니다.
-	//			return i;
-	//		}
-	//	}
-
-	//	// 방어 코드 2: 루프를 다 돌았다면 (현재 시간이 마지막 키보다도 뒤)
-	//	// 마지막 유효 구간인 [마지막-2, 마지막-1]의
-	//	// KeyA 인덱스(numKeys - 2)를 반환합니다.
-	//	return static_cast<int>(numKeys) - 2;
-	//}
 	
 	// 캐싱테스트용 함수
 	GOE::Matrix4x4 InterpolateScale(double normaliedTime, int& cacheIndex);

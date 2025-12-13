@@ -13,12 +13,8 @@ void AnimationSystem::Initialize() {}
 
 void AnimationSystem::Update(double dTime)
 {
-	/// 프레임드랍 원인 찾기
-	///auto start = std::chrono::high_resolution_clock::now();
-
 	for (auto& animationUnit : GetScene()->GetAnimationUnitManager()->GetComponents())
 	{
-		/// 매쉬와 모델을 입력받는 편이 좋을지도
 		size_t modelID = GetScene()->GetMeshRendererManager()->GetComponentByOwner(animationUnit.GetOwner())->GetModelID();
 		m_model = m_context->assetCore->GetModel(modelID);
 		// 애니메이션을 해쉬로저장할떄 단순 이름으로 저장하면 안될것 같다 왜냐면 애니메이션 이름이 죄다 mixamo.com 이기때문에
@@ -38,55 +34,39 @@ void AnimationSystem::Update(double dTime)
 			// 정규화된 시간
 			animationUnit.m_normalizedTick = fmod(animationUnit.m_totalTick, animationUnit.m_duration);
 
-			///-------------------------------캐싱테스트중--------
 			int boneCount = m_anim->GetBoneAnimation().size();
+			// 캐시벡터사이즈가 본갯수와 다를 경우
 			if (animationUnit.m_cachedBoneIndices.size() != boneCount)
 			{
-				animationUnit.m_cachedBoneIndices.resize(boneCount, 0);
+				// 벡터를 본갯수만큼 리사이즈 한다.
+				animationUnit.m_cachedBoneIndices.resize(boneCount, {0,0,0});
 			}
 
+			//본을 순회한다.
 			for (int i = 0; i < boneCount; ++i)
 			{
+				// 현재 본인덱스를 통해 본애니메이션을 찾아온다
 				m_boneAnim = m_anim->GetBoneAnimation()[i].get();
 
+				// 본애니메이션과 연결된 NODE를 가져온다.
 				Node* currentNode = m_model->GetNodeFromMap(m_boneAnim->GetID());
+				
+				// 노드가 존재할경우
 				if (currentNode)
 				{
-					// [수정] 캐시 인덱스를 참조(&)로 넘겨줍니다.
+					// 현재노드에 맞는 localTM을 설정한다.
 					currentNode->SetLocalTM(
 						m_boneAnim->InterpolateSRT(
-							animationUnit.m_normalizedTick,
-							animationUnit.m_cachedBoneIndices[i] // <- 여기!
+							animationUnit.m_normalizedTick,// 현재 프레임의 정규화된 시간
+							animationUnit.m_cachedBoneIndices[i] // 본의 마지막인덱스를 저장, 참조전달하는 부분, 여기부터 검사하면 효율이 올라가니까
 						)
 					);
 				}
 			}
-			//-------------------------------캐싱테스트중--------
-
-
-			for (int i = 0; i < m_anim->GetBoneAnimation().size(); ++i)
-			{
-				// 3. 현재 tick에 해당하는 프레임 인덱스들과 각 프레임의 대한 가중치를 구한다.
-				m_boneAnim = m_anim->GetBoneAnimation()[i].get();
-
-				Node* currentNode = m_model->GetNodeFromMap(m_boneAnim->GetID());
-				if (currentNode)
-				{
-					currentNode->SetLocalTM(m_boneAnim->InterpolateSRT(animationUnit.m_normalizedTick));// *currentNode->GetNodePositionMatrix());
-				}
-			}
 		}
+
 		m_model->UpdateNodeHierarchy();
 	}
-	auto end = std::chrono::high_resolution_clock::now();
-	/// 프레임드랍 원인 찾기
-	//std::chrono::duration<double, std::milli> ms = end - start;
-	//if (ms.count() > 1.0) // 1ms 이상 걸리면 경고
-	//{
-	//	char buf[100];
-	//	sprintf_s(buf, "Anim Update: %f ms\n", ms.count());
-	//	OutputDebugStringA(buf);
-	//}
 }
 
 

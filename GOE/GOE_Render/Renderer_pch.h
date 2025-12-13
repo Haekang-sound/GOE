@@ -1,4 +1,4 @@
-#pragma once  
+﻿#pragma once  
 ///
 /// STL의 컴파일 부담을 없애려면
 /// 미리컴파일된 헤더를 사용하는게 좋을것
@@ -46,6 +46,11 @@ public:
 
 };
 
+/// <summary>
+/// directx가 assimp를 초기화하기위해만든 알량한... 
+/// 좀 더 범용적인 녀석이 되었으면 한다.
+/// 
+/// </summary>
 struct UIInitInfo
 {
 	ID3D12Device* device = nullptr;

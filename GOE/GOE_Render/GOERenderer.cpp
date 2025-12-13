@@ -97,14 +97,14 @@ void GOERenderer::OnInit()
 void GOERenderer::OnUpdate(double dTime)
 {
 	m_resourceManager.get()->UpdateResourceStates();
-	
+
 	// 카메라 행렬 계산 (DirectXMath 사용)
 	XMMATRIX cameraWorld = XMLoadFloat4x4(&m_cameraData.worldMatrix.matrix);
 	XMMATRIX view = XMMatrixInverse(nullptr, cameraWorld);
 	XMMATRIX proj = XMMatrixPerspectiveFovLH(
-		m_cameraData.fov, 
-		m_cameraData.aspectRatio, 
-		m_cameraData.nearZ, 
+		m_cameraData.fov,
+		m_cameraData.aspectRatio,
+		m_cameraData.nearZ,
 		m_cameraData.farZ
 	);
 	XMMATRIX vp = view * proj;
@@ -115,29 +115,18 @@ void GOERenderer::OnUpdate(double dTime)
 	{
 		Graphics::CB cbData = {};
 		XMMATRIX world = XMLoadFloat4x4(&renderObject.GetLocalTM().matrix);
-		
+
 		cbData.cameraPosition = m_cameraData.position.vec;
 
 		XMStoreFloat4x4(&cbData.world, world);
 		XMStoreFloat4x4(&cbData.viewProjection, vp);
 
-		/*	void* pData = nullptr;
-			D3D12_RANGE readRange = { 0, 0 };
-			ThrowIfFailed(renderObject.GetCB()->Map(0, &readRange, &pData));*/
-			//memcpy(pData, &cbData, sizeof(Graphics::CB));
-			//renderObject.GetCB()->Unmap(0, nullptr);
-
-			/// boneMatrix에 본순서대로 업데이트된 메트릭스를 채우넣으면 된다.
+		/// boneMatrix에 본순서대로 업데이트된 메트릭스를 채우넣으면 된다.
 		XMFLOAT4X4 boneMatrix[128] = {};
 		for (int i = 0; i < 128; ++i)
 		{
 			boneMatrix[i] = renderObject.GetBoneTM(i).matrix;
 		}
-		//void* pBoneData = nullptr;
-		//D3D12_RANGE boneRange = { 0, 0 };
-		//ThrowIfFailed(renderObject.GetCBBoneMatrix()->Map(0, &boneRange, &pBoneData));
-		//memcpy(pBoneData, &boneMatrix, sizeof(XMFLOAT4X4) * 128);
-		//renderObject.GetCBBoneMatrix()->Unmap(0, nullptr);
 	}
 }
 
@@ -185,6 +174,7 @@ void GOERenderer::BeginRender()
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &dsvHandle); // DSV 핸들 추가
 
 	// 5. 렌더 타겟 클리어(색상 초기화)
+	/// 유니티에서는 카메라에서 제어하던데 어떻게 한담? 
 	const float clearColor[] = { .7f, .7f, .5f, 1.0f };
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 	commandList->ClearDepthStencilView(dsvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr); // 깊이 버퍼 클리어
@@ -234,13 +224,11 @@ void GOERenderer::OnRender()
 		commandList->IASetVertexBuffers(0, 1, &meshResource->GetVBView());
 		commandList->IASetIndexBuffer(&meshResource->GetIBView());
 
-		/// 콘스탄트 버퍼의 관한 문제는 고유자원을 기준으로 랜더할때 해결될것
 		// 1. 월드/뷰/프로젝션 CBV 바인딩 (루트 파라미터 0)
 		Graphics::CB cbData = {};
-
 		// RenderObject에서 데이터 가져오기 (포인터면 ->, 객체면 .)
 		XMMATRIX world = XMLoadFloat4x4(&renderObject.GetLocalTM().matrix);
-		
+
 		cbData.cameraPosition = m_cameraData.position.vec;
 		XMStoreFloat4x4(&cbData.world, world);
 		XMStoreFloat4x4(&cbData.viewProjection, vp);
@@ -264,7 +252,7 @@ void GOERenderer::OnRender()
 			&gpuHandle); // 동적 힙의 GPU 핸들로 복사
 
 		// 루트 파라미터 인덱스를 3으로 변경!
-		commandList->SetGraphicsRootDescriptorTable(3, gpuHandle); // <--- 인덱스 3 사용
+		commandList->SetGraphicsRootDescriptorTable(3, gpuHandle);
 
 		// 7. 그리기 명령
 		commandList->DrawIndexedInstanced(meshResource->GetIndexCount(), 1, 0, 0, 0);
@@ -296,7 +284,6 @@ void GOERenderer::EndRender()
 
 	// GPU 작업이 끝났으니, swapchain에서 새로운 백버퍼 인덱스를 받아옴.
 	m_swapChain.get()->m_frameIndex = m_swapChain.get()->m_swapChain->GetCurrentBackBufferIndex();
-
 }
 
 /// <summary>
@@ -311,7 +298,6 @@ void GOERenderer::OnDestroy()
 	CloseHandle(device->GetRenderFenceEvent());
 	CloseHandle(device->GetCopyFenceEvent());
 }
-
 
 UIInitInfo* GOERenderer::GetUIInfo()
 {
@@ -329,15 +315,6 @@ void GOERenderer::ReceiveRenderObejcts(std::vector<RenderObject>&& data)
 {
 	m_renderObjects = std::move(data);
 }
-
-//void GOERenderer::SetCameraData(const GOE::Matrix4x4& view, const GOE::Matrix4x4& proj, const GOE::FLoatVector3& pos)
-//{
-//	m_cameraData.viewMatrix = view;
-//	m_cameraData.projectionMatrix = proj;
-//	m_cameraData.position = pos;
-//}
-
-
 
 void GOERenderer::LoadTexture(std::string filepath)
 {
