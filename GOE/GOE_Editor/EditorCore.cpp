@@ -1,4 +1,4 @@
-#include "Editor_pch.h"
+﻿#include "Editor_pch.h"
 #include "EditorCore.h"
 #include "DebugManager.h"
 
@@ -13,10 +13,7 @@ EditorCore::EditorCore(HWND hwnd)
 {
 }
 
-EditorCore::EditorCore()
-{
-}
-
+EditorCore::EditorCore() = default;
 
 EditorCore::~EditorCore()
 {
