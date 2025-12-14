@@ -15,9 +15,6 @@
     <ClInclude Include="GOERenderer.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
-      <Filter>00_Headers</Filter>
-    </ClInclude>
     <ClInclude Include="Kuramon.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
@@ -73,9 +70,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="GOERenderer.cpp">
-      <Filter>00_Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="Camera.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
     <ClCompile Include="Kuramon.cpp">

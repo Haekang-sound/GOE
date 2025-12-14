@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <memory>
 
 namespace GOE
@@ -16,23 +16,21 @@ public:
 	SceneManager();
 	~SceneManager();
 
-public:
-	void Initialize(GOE::EngineContext* context);
-
-	void OnUpdate(double dTime);
-
-	void BeginRender();
-	void OnRender();
-	void EndRender();
-
-	void Release();
-
-	void InputUpdate();
-	void DebugUpdate(double dTime);
-
 private:
 	std::unique_ptr<Scene> currentScene;
 	GOE::EngeinContext* m_context;
-private:
+
+public:
+	void Initialize(GOE::EngineContext* context);
+	void OnUpdate(double dTime);
+	void BeginRender();
+	void OnRender();
+	void EndRender();
+	void Release();
+	void InputUpdate();
+	void DebugUpdate(double dTime);
+
+public:
+	Scene* GetCurrentScene() { return currentScene.get(); }
 };
 

@@ -1,10 +1,14 @@
-#pragma once
+﻿#pragma once
+#include "CoreMath.h"
+
 class Node
 {
 public:
 	//Node() = default;
 	Node(const std::string& name, size_t id)
-		: m_parent(nullptr), m_name(name), m_id(id)	{}
+		: m_parent(nullptr), m_name(name), m_id(id)
+	{
+	}
 	~Node();
 
 public:
@@ -32,13 +36,13 @@ public:
 	inline void AddChild(std::unique_ptr<Node>&& child) { m_children.push_back(std::move(child)); }
 	inline void AddMeshIndex(size_t meshIndex) { m_meshIndex.push_back(meshIndex); }
 	inline void SetNodeIndex(int i) { m_index = i; }
-	inline void SetLocalTM(GOE::Matrix4x4 transform){ m_localTM = transform; }	
+	inline void SetLocalTM(GOE::Matrix4x4 transform) { m_localTM = transform; }
 	inline void SetWorldTM(GOE::Matrix4x4 transform) { m_worldTM = transform; }
-	inline void SetNodePosition(float x, float y, float z) 
+	inline void SetNodePosition(float x, float y, float z)
 	{
-		m_nodePosition.x = x; 
-		m_nodePosition.y = y; 
-		m_nodePosition.z = z; 
+		m_nodePosition.x = x;
+		m_nodePosition.y = y;
+		m_nodePosition.z = z;
 	}
 
 private:

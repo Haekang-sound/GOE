@@ -1,6 +1,7 @@
 ﻿#include "Editor_pch.h"
 #include "EditorCore.h"
 #include "DebugManager.h"
+#include "IEditorBridge.h"
 
 namespace Editor
 {
@@ -8,14 +9,12 @@ namespace Editor
 	ExampleDescriptorHeapAllocator g_allocator;
 }
 
-EditorCore::EditorCore(HWND hwnd)
+Editor::EditorCore::EditorCore(HWND hwnd)
 	:m_hWnd(hwnd)
 {
 }
 
-EditorCore::EditorCore() = default;
-
-EditorCore::~EditorCore()
+Editor::EditorCore::~EditorCore()
 {
 	Editor::g_allocator.Destroy();
 
@@ -25,7 +24,7 @@ EditorCore::~EditorCore()
 }
 
 
-void EditorCore::Initialize(UIInitInfo* uiInfo)
+void Editor::EditorCore::Initialize(UIInitInfo* uiInfo)
 {
 	ImGui_ImplWin32_EnableDpiAwareness();
 	float main_scale = ImGui_ImplWin32_GetDpiScaleForMonitor(::MonitorFromPoint(POINT{ 0, 0 }, MONITOR_DEFAULTTOPRIMARY));
@@ -101,15 +100,46 @@ void EditorCore::Initialize(UIInitInfo* uiInfo)
 }
 
 
-void EditorCore::OnUpdate(double dTime)
+void Editor::EditorCore::OnUpdate(double dTime)
 {
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 }
 
-void EditorCore::OnRender(UILoopInfo* uiInfo)
+void Editor::EditorCore::OnRender(UILoopInfo* uiInfo)
 {
+	//Hierarchy 창 그리기
+	if (ImGui::Begin("Hierarchy"))
+	{
+		if (m_editorBridge)
+		{
+			// 1. 인터페이스를 통해 엔티티 목록 가져오기
+			std::vector<Editor::EntityInfo> entities = m_editorBridge->GetAllEntities();
+
+			// 2. 목록 순회하며 UI 표시
+			for (const auto& entity : entities)
+			{
+				// TreeNode: 펼칠 수 있는 UI (여기선 잎 노드로 사용)
+					// ID를 포인터로 캐스팅해서 고유 ID로 사용
+				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
+
+				ImGui::TreeNodeEx((void*)entity.id, flags, "%s", entity.name.c_str());
+
+				// 클릭 이벤트 처리
+				if (ImGui::IsItemClicked())
+				{
+					m_editorBridge->OnEntitySelected(entity.id);
+				}
+			}
+		}
+		else
+		{
+			ImGui::Text("Bridge not connected!");
+		}
+	}
+	ImGui::End(); // Hierarchy 창 끝
+
 	ImGui::Render();
 	ID3D12DescriptorHeap* pHeap = uiInfo->imguiDescriptorHeap;
 	uiInfo->commandlist->SetDescriptorHeaps(1, &pHeap);

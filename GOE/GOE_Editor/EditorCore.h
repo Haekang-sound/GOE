@@ -1,12 +1,13 @@
-#pragma once
+﻿#pragma once
 #include "Editor_pch.h"
 #include "../Imgui/imgui.h"
 #include "../Imgui/imgui_impl_dx12.h"
 #include "../Imgui/imgui_impl_win32.h"
-#include "../GOE_Render/GOERenderer.h"
 
 struct UIInitInfo;
 struct UILoopInfo;
+
+namespace Editor { class IEditorBridge; }
 
 /// 예제에 존재하는 힙 할당자
 struct ExampleDescriptorHeapAllocator
@@ -55,29 +56,37 @@ struct ExampleDescriptorHeapAllocator
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
-class EditorCore
+namespace Editor
 {
-public:
-	EditorCore(HWND hwnd);
-	EditorCore();
-	~EditorCore();
-
-public: 
-	void Initialize(UIInitInfo* uiInfo);
-	void OnUpdate(double dTIme);
-	void OnRender(UILoopInfo* uiInfo);
-
-	inline std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> GetImguiWndHandler()
+	class EditorCore
 	{
-		return ImGui_ImplWin32_WndProcHandler;
-	}
+	public:
+		EditorCore(HWND hwnd);
+		~EditorCore();
 
-public: 
-	// Our state
-	bool show_demo_window = true;
-	bool show_another_window = false;
-	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-private:
-	HWND m_hWnd = nullptr;
-	
-};
+	public:
+		// Our state
+		bool show_demo_window = true;
+		bool show_another_window = false;
+		ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+	private:
+		Editor::IEditorBridge* m_editorBridge = nullptr;
+
+	private:
+		HWND m_hWnd = nullptr;
+
+	public:
+		void Initialize(UIInitInfo* uiInfo);
+		void OnUpdate(double dTIme);
+		void OnRender(UILoopInfo* uiInfo);
+
+		inline std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> GetImguiWndHandler()
+		{
+			return ImGui_ImplWin32_WndProcHandler;
+		}
+
+		void SetBridge(Editor::IEditorBridge* bridge) { m_editorBridge = bridge; }
+	};
+}
+

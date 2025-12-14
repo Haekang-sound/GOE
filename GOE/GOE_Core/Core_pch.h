@@ -21,7 +21,7 @@
 
 #include "Window.h"
 #include "FileManager.h"
-#include "CoreMath.h"
+//#include "CoreMath.h"
 
 // 모델정보
 #include "Model.h"

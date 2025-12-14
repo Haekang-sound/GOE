@@ -580,3 +580,27 @@ D3D12의 비동기 실행 모델을 다룰 때, 리소스의 생명 주기와 GP
 *   **해결:** 프로젝트 설정을 억지로 바꾸는 대신, **콜백(Callback) 함수 주입 방식**을 사용하여 의존성을 끊고 안전하게 데이터만 전달하기로 결정.
 
 --- 대화 기록 끝 (2025년 12월 13일 토요일) ---
+
+--- 대화 기록 시작 (2025년 12월 14일 일요일) ---
+
+### **에디터 개발 방향성 정립: "IDE로서의 에디터"**
+
+**1. 새로운 관점 (Paradigm Shift)**
+*   에디터를 단순한 '뷰어'가 아닌 **"통합 개발 환경(IDE)"**으로 재정의함.
+*   코드 편집기는 텍스트를, 게임 에디터는 **게임의 맥락(Context)**을 다루는 도구라는 철학을 세움.
+*   **App 조립 공장 패턴:** `GOE_App`이 `Engine`, `Editor`, `Renderer`를 모두 알고 중재하는 구조를 확정. 이를 통해 완벽한 모듈 분리와 유연한 확장을 꾀함.
+
+**2. 기능 확장 로드맵 (Evolution Plan)**
+*   **Phase 1 (Observer):** Hierarchy, Read-only Inspector. "내 게임이 왜 안 되지?" (디버깅)
+*   **Phase 2 (Controller):** Editable Inspector, Gizmo. "이 값 바꾸면 어떨까?" (생산성)
+*   **Phase 3 (Creator):** Prefab, Scene Save/Load, Script Wizard. "새로운 걸 만들자." (창조)
+*   **Phase 4 (Extender):** Docking, Profiler. "도구를 내 입맛대로." (커스터마이징)
+
+**3. 아키텍처 결정 (Bridge Pattern)**
+*   엔진과 에디터의 순환 참조를 끊기 위해 **App 프로젝트에서 Bridge를 구현**하는 방식을 채택.
+*   `IHierarchyBridge` (Editor 정의) -> `HierarchyBridge` (App 구현) -> `SceneManager::GetScene` (Engine 제공) 흐름으로 데이터가 흐름.
+*   이 구조는 추후 **사용자 스크립트(MonoBehaviour) 시스템**과 **플러그인 시스템**을 위한 강력한 기반이 될 것임.
+
+**"에디터는 게임을 만드는 게임이다."**
+
+--- 대화 기록 끝 (2025년 12월 14일 일요일) ---

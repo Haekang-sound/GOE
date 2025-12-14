@@ -30,6 +30,7 @@
     <ClInclude Include="DebugManager.h" />
     <ClInclude Include="EditorCore.h" />
     <ClInclude Include="Editor_pch.h" />
+    <ClInclude Include="IEditorBridge.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Imgui\imgui.cpp">

@@ -172,7 +172,7 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
 </Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d12.lib;dxcompiler.lib;dxil.lib;DirectXdTex.lib;dxcompiler.lib;dxil.lib</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d12.lib;dxcompiler.lib;dxil.lib;DirectXdTex.lib;dxcompiler.lib;dxil.lib;GOE_Core.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -205,7 +205,7 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
 </Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d12.lib;dxcompiler.lib;dxil.lib;DirectXTex.lib;dxcompiler.lib;dxil.lib</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;dxgi.lib;d3d12.lib;dxcompiler.lib;dxil.lib;DirectXTex.lib;dxcompiler.lib;dxil.lib;GOE_Core.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>
@@ -226,7 +226,7 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Lib>
-      <AdditionalDependencies>dxguid.lib;d3d12.lib;dxcompiler.lib;dxil.lib;dxgi.lib;DirectXdTex.lib;dxcompiler.lib;dxil.lib</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;d3d12.lib;dxcompiler.lib;dxil.lib;dxgi.lib;DirectXdTex.lib;dxcompiler.lib;dxil.lib;GOE_Core.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
     <FxCompile>
@@ -267,7 +267,7 @@ xcopy /Y /I /S "$(SolutionDir)Shader\*.hlsl" "$(SolutionDir)Bin\$(Configuration)
 </Command>
     </PostBuildEvent>
     <Lib>
-      <AdditionalDependencies>dxguid.lib;d3d12.lib;dxcompiler.lib;dxil.lib;dxgi.lib;DirectXTex.lib;dxcompiler.lib;dxil.lib</AdditionalDependencies>
+      <AdditionalDependencies>dxguid.lib;d3d12.lib;dxcompiler.lib;dxil.lib;dxgi.lib;DirectXTex.lib;dxcompiler.lib;dxil.lib;GOE_Core.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Lib>
   </ItemDefinitionGroup>

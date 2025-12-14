@@ -1,7 +1,8 @@
-#pragma once
+﻿#pragma once
 
 namespace GOE
 {
+	struct Matrix4x4;
 	struct MeshData;
 }
 class Bone;

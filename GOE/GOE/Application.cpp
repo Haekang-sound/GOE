@@ -1,12 +1,14 @@
 ﻿#include "Application.h"
-#include "../GOE_Engine/IEngine.h"
+#include "EditorBridge.h"
 #include "../GOE_Engine/Engine.h"
-#include <chrono>
+#include "../GOE_Editor/EditorCore.h"
+#include "../GOE_Core/TimeManager.h"
 
 Application::Application(HINSTANCE hInst, int nCmdShow)
 	: m_engine(nullptr)
 {
 	m_engine = std::make_unique<GOE::Engine>(hInst, nCmdShow);
+
 }
 
 Application::~Application(){}
@@ -14,6 +16,13 @@ Application::~Application(){}
 void Application::Initialize()
 {
 	m_engine.get()->Initialize();
+
+	m_editorCore = std::make_unique<Editor::EditorCore>(m_engine->GetHWND());
+	m_editorCore->Initialize(m_engine.get()->GetUIInfo());
+
+	m_editorBridge = std::make_unique<Editor::EditorBridge>(m_engine.get()->GetSceneManager());
+	m_editorCore->SetBridge(m_editorBridge.get());
+
 }
 
 int Application::Run()
@@ -43,6 +52,10 @@ int Application::Run()
 
 		m_engine->BeginRender();
 		m_engine->OnRender();
+
+		m_editorCore->OnUpdate(GOE::TimeManager::GetInstance().GetDeltaTime());
+		m_editorCore->OnRender(m_engine.get()->GetUILoopInfo());
+
 		m_engine->EndRender();
 	}
 	return 0;

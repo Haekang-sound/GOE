@@ -1,6 +1,6 @@
 ﻿#pragma once
+#include "../GOE_Core/CoreMath.h"
 #include <DirectXMath.h>
-#include "CoreMath.h"
 
 using namespace DirectX;
 

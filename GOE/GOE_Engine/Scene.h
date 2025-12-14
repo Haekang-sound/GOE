@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <unordered_map>
 #include <list>
 #include <memory>
@@ -42,14 +42,7 @@ public:
 
 	void OnUpdate(double dTime);
 
-	void BeginRender();
-	void OnRender();
-	void EndRender();
-
-	void Release();
-
 	void DebugUpdate(double dTime);
-	void InputUpdate();
 
 public:
 	inline const EntityManager* GetEntityManager() const { return m_entityManager.get(); }

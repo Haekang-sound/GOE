@@ -25,6 +25,7 @@
     <ClInclude Include="targetver.h">
       <Filter>99_ect</Filter>
     </ClInclude>
+    <ClInclude Include="EditorBridge.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="GOE.rc">
@@ -46,5 +47,6 @@
     <ClCompile Include="Application.cpp">
       <Filter>00_EntryPoint</Filter>
     </ClCompile>
+    <ClCompile Include="EditorBridge.cpp" />
   </ItemGroup>
 </Project>

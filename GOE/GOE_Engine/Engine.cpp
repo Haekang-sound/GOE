@@ -1,15 +1,15 @@
 ﻿#include "Engine_pch.h"
+#include "Engine.h"
+
 #include "TimeManager.h"
 #include "InputManager.h"
-#include "Engine.h"
-#include "DebugManager.h"
 #include "SceneManager.h"
+#include "../GOE_Render/GOERenderer.h"
 
 GOE::Engine::Engine(HINSTANCE hInst, int nCmdShow)
 	: m_hInst(hInst), m_nCmdShow(nCmdShow),
 	m_winCore(nullptr), m_renderer(nullptr),
-	m_editor(nullptr), m_assetCore(nullptr),
-	m_sceneManager(nullptr)
+	m_assetCore(nullptr), m_sceneManager(nullptr)
 {
 	m_sceneManager = std::make_unique<SceneManager>();
 }
@@ -55,9 +55,9 @@ void GOE::Engine::Initialize()
 	m_renderer->CreateMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_0")));
 	m_renderer->CreateMeshResource(m_assetCore.get()->GetMesh(GOE::FileManager::GetHash("chr629_1")));
 
-	// 에디터 초기화
-	m_editor = std::make_unique<EditorCore>(m_winCore->GetHWND());
-	m_editor->Initialize(m_renderer.get()->GetUIInfo());
+	/// 에디터의 의존성을 삭제중
+	//m_editor = std::make_unique<EditorCore>(m_winCore->GetHWND());
+	//m_editor->Initialize(m_renderer.get()->GetUIInfo());
 
 	m_context = std::make_unique<GOE::EngineContext>();
 
@@ -88,7 +88,7 @@ void GOE::Engine::OnUpdate()
 
 	m_sceneManager.get()->OnUpdate(dTime);
 
-	m_editor->OnUpdate(dTime);
+	//m_editor->OnUpdate(dTime);
 	m_renderer->OnUpdate(dTime);
 
 #if defined(_DEBUG)
@@ -104,7 +104,7 @@ void GOE::Engine::BeginRender()
 void GOE::Engine::OnRender()
 {
 	m_renderer->OnRender(); // 렌더링 호출
-	m_editor->OnRender(m_renderer.get()->GetUILoopInfo());
+	//m_editor->OnRender(m_renderer.get()->GetUILoopInfo());
 }
 
 void GOE::Engine::EndRender()
@@ -121,18 +121,31 @@ void GOE::Engine::Release() {}
 
 void GOE::Engine::DebugUpdate(double dTime)
 {
-	DebugManager::GetInstance().PushDebugData([this]()
-		{
-			POINT mPos = GOE::InputManager::GetInstance().GetMousePos();
-			POINT sPos = GOE::InputManager::GetInstance().GetScreenMousePos();
+	//DebugManager::GetInstance().PushDebugData([this]()
+	//	{
+	//		POINT mPos = GOE::InputManager::GetInstance().GetMousePos();
+	//		POINT sPos = GOE::InputManager::GetInstance().GetScreenMousePos();
 
-			ImGui::Begin("Input Debugger");
-			ImGui::Text("Mouse Pos x%d, y%d", mPos.x, mPos.y);
-			ImGui::Text("screenMouse Pos x%d, y%d", sPos.x, sPos.y);
-		
-			ImGui::End();
-		}
-	);
-	m_sceneManager.get()->DebugUpdate(dTime);
-	DebugManager::GetInstance().OnDebugUpdate(dTime);
+	//		ImGui::Begin("Input Debugger");
+	//		ImGui::Text("Mouse Pos x%d, y%d", mPos.x, mPos.y);
+	//		ImGui::Text("screenMouse Pos x%d, y%d", sPos.x, sPos.y);
+	//	
+	//		ImGui::End();
+	//	}
+	//);
+	//m_sceneManager.get()->DebugUpdate(dTime);
+	//DebugManager::GetInstance().OnDebugUpdate(dTime);
+}
+
+UIInitInfo* GOE::Engine::GetUIInfo()
+{
+	return m_renderer.get()->GetUIInfo();
+}
+UILoopInfo* GOE::Engine::GetUILoopInfo()
+{
+	return m_renderer.get()->GetUILoopInfo();
+}
+HWND GOE::Engine::GetHWND()
+{
+	return m_winCore.get()->GetHWND();
 }

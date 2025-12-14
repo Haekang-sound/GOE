@@ -1,7 +1,6 @@
 ﻿#pragma once
-#include<memory>
-#include <Windows.h>
 #include "IEngine.h"
+#include<memory>
 #include <string>
 
 namespace GOE
@@ -10,7 +9,7 @@ namespace GOE
 	struct EngineContext;
 }
 class Window;
-class EditorCore;
+//class EditorCore;
 class AssetCore;
 class SceneManager;
 
@@ -34,7 +33,7 @@ namespace GOE
 	private:
 		std::unique_ptr<Window> m_winCore;
 		std::unique_ptr<GOE::ID3DRenderer> m_renderer;
-		std::unique_ptr<EditorCore> m_editor;
+		//std::unique_ptr<EditorCore> m_editor;
 		std::unique_ptr<AssetCore> m_assetCore;
 
 	private:
@@ -53,6 +52,12 @@ namespace GOE
 		void OnRender() override;
 		void EndRender() override;
 		void Release();
+	
+	public:
+		SceneManager* GetSceneManager() { return m_sceneManager.get(); }
+		virtual UIInitInfo* GetUIInfo() override;
+		virtual UILoopInfo* GetUILoopInfo() override;
+		virtual HWND GetHWND() override;
 	};
 }
 

@@ -78,6 +78,9 @@
     <ClInclude Include="TransfromSystem.h">
       <Filter>System</Filter>
     </ClInclude>
+    <ClInclude Include="CameraComponent.h">
+      <Filter>Component</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -124,6 +127,9 @@
     </ClCompile>
     <ClCompile Include="AnimationSystem.cpp">
       <Filter>System</Filter>
+    </ClCompile>
+    <ClCompile Include="CameraComponent.cpp">
+      <Filter>Component</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
