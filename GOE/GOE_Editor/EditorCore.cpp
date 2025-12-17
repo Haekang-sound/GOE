@@ -1,7 +1,6 @@
 ﻿#include "Editor_pch.h"
 #include "EditorCore.h"
 #include "DebugManager.h"
-#include "IEditorBridge.h"
 
 namespace Editor
 {
@@ -100,7 +99,7 @@ void Editor::EditorCore::Initialize(UIInitInfo* uiInfo)
 }
 
 
-void Editor::EditorCore::OnUpdate(double dTime)
+void Editor::EditorCore::OnUpdate()
 {
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
@@ -109,39 +108,75 @@ void Editor::EditorCore::OnUpdate(double dTime)
 
 void Editor::EditorCore::OnRender(UILoopInfo* uiInfo)
 {
-	//Hierarchy 창 그리기
-	if (ImGui::Begin("Hierarchy"))
+	
+       // Hierarchy 창 그리기
+       if (ImGui::Begin("Hierarchy"))
+       {
+           if (m_editorBridge)
+           {
+               // 1. Bridge를 통해 '루트' 엔티티 목록만 가져옵니다.
+               // (Step 2에서 GetAllEntities가 트리 구조로 정리된 루트들을 반환한다고 가정)
+               auto rootEntities = m_editorBridge->GetAllEntities();
+  
+               // 2. 루트 엔티티들부터 재귀적으로 그리기 시작
+               for (const auto& entity : rootEntities)
+               {
+                   DrawEntityNode(entity);
+               }
+           }
+           else
+           {
+               ImGui::Text("Bridge not connected!");
+           }
+       }
+       ImGui::End(); // Hierarchy 창 끝
+  
+       // ... (기존 렌더링 코드 유지) ...
+       ImGui::Render();
+       ID3D12DescriptorHeap* pHeap = uiInfo->imguiDescriptorHeap;
+       uiInfo->commandlist->SetDescriptorHeaps(1, &pHeap);
+       ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), uiInfo->commandlist);
+}
+
+void Editor::EditorCore::DrawEntityNode(const Editor::EntityInfo& entity)
+{
+	ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+	// 자식이 없으면 Leaf(잎) 노드로 처리 (화살표 없음)
+	if (entity.children.empty())
 	{
+		flags |= ImGuiTreeNodeFlags_Leaf;
+	}
+
+	// 현재 노드가 선택된 상태라면 하이라이트
+	if (m_selectedEntityID == entity.id)
+	{
+		flags |= ImGuiTreeNodeFlags_Selected;
+	}
+
+	// 2. 노드 그리기 (ID를 포인터로 캐스팅하여 고유 식별자로 사용)
+	// opened가 true면 트리 노드가 열려있다는 뜻
+	bool opened = ImGui::TreeNodeEx((void*)entity.id, flags, "%s", entity.name.c_str());
+
+	// 3. 클릭 이벤트 처리
+	if (ImGui::IsItemClicked())
+	{
+		m_selectedEntityID = entity.id; // 내부 상태 업데이트 (색상 변경용)
+
 		if (m_editorBridge)
 		{
-			// 1. 인터페이스를 통해 엔티티 목록 가져오기
-			std::vector<Editor::EntityInfo> entities = m_editorBridge->GetAllEntities();
-
-			// 2. 목록 순회하며 UI 표시
-			for (const auto& entity : entities)
-			{
-				// TreeNode: 펼칠 수 있는 UI (여기선 잎 노드로 사용)
-					// ID를 포인터로 캐스팅해서 고유 ID로 사용
-				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen;
-
-				ImGui::TreeNodeEx((void*)entity.id, flags, "%s", entity.name.c_str());
-
-				// 클릭 이벤트 처리
-				if (ImGui::IsItemClicked())
-				{
-					m_editorBridge->OnEntitySelected(entity.id);
-				}
-			}
-		}
-		else
-		{
-			ImGui::Text("Bridge not connected!");
+			m_editorBridge->OnEntitySelected(entity.id); // Bridge에 알림
 		}
 	}
-	ImGui::End(); // Hierarchy 창 끝
 
-	ImGui::Render();
-	ID3D12DescriptorHeap* pHeap = uiInfo->imguiDescriptorHeap;
-	uiInfo->commandlist->SetDescriptorHeaps(1, &pHeap);
-	ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), uiInfo->commandlist);
+	// 4. 자식이 있고, 노드가 열려있으면 재귀 호출
+	if (opened)
+	{
+		for (const auto& child : entity.children)
+		{
+			DrawEntityNode(child); // 자식에 대해 재귀 호출
+		}
+		ImGui::TreePop(); // 트리 레벨 복구 (들여쓰기 해제)
+	}
+
 }

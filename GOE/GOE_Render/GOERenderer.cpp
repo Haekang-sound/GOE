@@ -280,6 +280,7 @@ void GOERenderer::EndRender()
 
 	// Present의 첫번째 매개변수가 1 이면 수직동기화로 인한 프레임고정
 	//m_swapChain.get()->m_swapChain->Present(1, 0);
+	//m_swapChain.get()->m_swapChain->Present(0, 0);
 	m_swapChain.get()->m_swapChain->Present(0, 0);
 
 	// GPU 작업이 끝났으니, swapchain에서 새로운 백버퍼 인덱스를 받아옴.

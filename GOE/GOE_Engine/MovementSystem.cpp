@@ -36,8 +36,9 @@ void MovementSystem::Update(double dTime)
 			if (GOE::InputManager::GetInstance().GetMouseButton(GOE::MouseButton::Right))
 			{
 				POINT mouseDelta = GOE::InputManager::GetInstance().GetMouseDelta();
-				float rotateSpeed = 1.0f * (float)dTime;
+				float rotateSpeed = m_rotationSpeed * Sensitivity;// *(float)dTime;
 
+				// mouseDelta는 이미 시간차가 반영되어있다.
 				// Yaw (World Y축 기준)
 				rotation.y += mouseDelta.x * rotateSpeed;
 				// Pitch (Local X축 기준)
@@ -47,10 +48,10 @@ void MovementSystem::Update(double dTime)
 			}
 
 			// 키보드 회전
-			if (GOE::InputManager::GetInstance().GetButton(VK_LEFT)) { rotation.y -= m_rotationSpeed * dTime; transform->SetRotation(rotation); }
-			if (GOE::InputManager::GetInstance().GetButton(VK_RIGHT)) { rotation.y += m_rotationSpeed * dTime; transform->SetRotation(rotation); }
-			if (GOE::InputManager::GetInstance().GetButton(VK_UP)) { rotation.x -= m_rotationSpeed * dTime; transform->SetRotation(rotation); }
-			if (GOE::InputManager::GetInstance().GetButton(VK_DOWN)) { rotation.x += m_rotationSpeed * dTime; transform->SetRotation(rotation); }
+			if (GOE::InputManager::GetInstance().GetButton(VK_LEFT)) { rotation.y -= m_rotationSpeed ; transform->SetRotation(rotation); }
+			if (GOE::InputManager::GetInstance().GetButton(VK_RIGHT)) { rotation.y += m_rotationSpeed; transform->SetRotation(rotation); }
+			if (GOE::InputManager::GetInstance().GetButton(VK_UP)) { rotation.x -= m_rotationSpeed; transform->SetRotation(rotation); }
+			if (GOE::InputManager::GetInstance().GetButton(VK_DOWN)) { rotation.x += m_rotationSpeed ; transform->SetRotation(rotation); }
 
 			// 2. 이동 처리 (회전된 기저벡터 기준)
 			GOE::FLoatVector4 right = transform->GetRightVector();

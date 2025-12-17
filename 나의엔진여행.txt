@@ -598,8 +598,21 @@ D3D12의 비동기 실행 모델을 다룰 때, 리소스의 생명 주기와 GP
 
 **3. 아키텍처 결정 (Bridge Pattern)**
 *   엔진과 에디터의 순환 참조를 끊기 위해 **App 프로젝트에서 Bridge를 구현**하는 방식을 채택.
-*   `IHierarchyBridge` (Editor 정의) -> `HierarchyBridge` (App 구현) -> `SceneManager::GetScene` (Engine 제공) 흐름으로 데이터가 흐름.
+*   `Editor::IEditor` (Editor 정의) -> `EditorBridge` (App 구현) -> `SceneManager::GetScene` (Engine 제공) 흐름으로 데이터가 흐름.
 *   이 구조는 추후 **사용자 스크립트(MonoBehaviour) 시스템**과 **플러그인 시스템**을 위한 강력한 기반이 될 것임.
+
+**4. 상세 구현 내역 (Implementation Details)**
+*   **Engine:**
+    *   `SceneManager::GetScene()` 추가: 외부에서 씬 데이터 접근 허용.
+    *   `Engine::GetSceneManager()` 추가: App이 씬 매니저에 접근 허용.
+    *   **EditorCore 의존성 제거:** `Engine` 클래스에서 `m_editor` 멤버 및 관련 로직(`Initialize`, `OnRender` 호출) 전면 삭제.
+    *   `ID3DRenderer::GetUILoopInfo()` 인터페이스 추가: UI 렌더링에 필요한 정보 제공 통로 마련.
+*   **Editor:**
+    *   `IEditor.h` 인터페이스 정의: `Editor::EntityInfo` (DTO) 및 `IEditor` (Interface) 작성.
+    *   `EditorCore`: `SetBridge` 함수 추가 및 `OnRender`에서 Hierarchy 창 그리기 로직 구현.
+*   **App:**
+    *   `EditorBridge` 클래스 구현: `Engine`의 데이터를 `Editor::IEditor` 규격으로 변환하여 제공.
+    *   `Application`: `EditorCore` 소유권 이전 및 초기화/렌더링 루프 재조립 (`Engine` -> `Editor` -> `Present` 순서).
 
 **"에디터는 게임을 만드는 게임이다."**
 

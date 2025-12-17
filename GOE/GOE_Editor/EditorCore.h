@@ -1,13 +1,13 @@
 ﻿#pragma once
 #include "Editor_pch.h"
+#include "IEditorBridge.h"
+
 #include "../Imgui/imgui.h"
 #include "../Imgui/imgui_impl_dx12.h"
 #include "../Imgui/imgui_impl_win32.h"
 
 struct UIInitInfo;
 struct UILoopInfo;
-
-namespace Editor { class IEditorBridge; }
 
 /// 예제에 존재하는 힙 할당자
 struct ExampleDescriptorHeapAllocator
@@ -75,10 +75,11 @@ namespace Editor
 
 	private:
 		HWND m_hWnd = nullptr;
+		size_t m_selectedEntityID = 0;
 
 	public:
 		void Initialize(UIInitInfo* uiInfo);
-		void OnUpdate(double dTIme);
+		void OnUpdate();
 		void OnRender(UILoopInfo* uiInfo);
 
 		inline std::function<LRESULT(HWND, UINT, WPARAM, LPARAM)> GetImguiWndHandler()
@@ -87,6 +88,7 @@ namespace Editor
 		}
 
 		void SetBridge(Editor::IEditorBridge* bridge) { m_editorBridge = bridge; }
+		void DrawEntityNode(const Editor::EntityInfo& entity);
 	};
 }
 

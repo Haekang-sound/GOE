@@ -1,10 +1,12 @@
-#include "Engine_pch.h"
+﻿#include "Engine_pch.h"
 #include "EntityManager.h"
 #include "Entity.h"
 
-EntityManager::EntityManager() = default;
-EntityManager::~EntityManager() = default;
-
+/// <summary>
+/// 이름으로 엔티티를 생성합니다.
+/// </summary>
+/// <param name="name">엔티티 이름</param>
+/// <returns>생성된 Entity포인터</returns>
 Entity* EntityManager::CreateEntity(std::string name)
 {
 	// 1. 새로운 엔티티를 생성하고 소유권을 unique_ptr로 관리합니다.
@@ -20,6 +22,11 @@ Entity* EntityManager::CreateEntity(std::string name)
 	return m_entities.back().get();
 }
 
+/// <summary>
+/// ID로 엔티티를 찾는 함수
+/// </summary>
+/// <param name="id"></param>
+/// <returns></returns>
 Entity* EntityManager::FindEntity(EntityID id)
 {
 	auto it = m_entityMap.find(id);
@@ -28,4 +35,28 @@ Entity* EntityManager::FindEntity(EntityID id)
 		return m_entities[it->second].get(); 
 	}
 	return nullptr;
+}
+
+/// <summary>
+/// 부모자식 설정함수
+/// 
+/// </summary>
+/// <param name="_parent">부모</param>
+/// <param name="_child">자식</param>
+void EntityManager::SetParent(Entity* _parent, Entity* _child)
+{
+	_parent->SetChild(_child->GetEntitiyID());
+	_child->SetParent(_parent->GetEntitiyID());
+}
+
+/// <summary>
+/// 부모자식 설정함수
+/// By ID
+/// </summary>
+/// <param name="_parent">부모id</param>
+/// <param name="_child">자식id</param>
+void EntityManager::SetParentByID(EntityID _parent, EntityID _child)
+{
+	FindEntity(_parent)->SetChild(_child);
+	FindEntity(_child)->SetParent(_parent);
 }

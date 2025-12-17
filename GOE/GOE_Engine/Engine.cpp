@@ -118,24 +118,7 @@ void GOE::Engine::EndRender()
 /// </summary>
 void GOE::Engine::Release() {}
 
-
-void GOE::Engine::DebugUpdate(double dTime)
-{
-	//DebugManager::GetInstance().PushDebugData([this]()
-	//	{
-	//		POINT mPos = GOE::InputManager::GetInstance().GetMousePos();
-	//		POINT sPos = GOE::InputManager::GetInstance().GetScreenMousePos();
-
-	//		ImGui::Begin("Input Debugger");
-	//		ImGui::Text("Mouse Pos x%d, y%d", mPos.x, mPos.y);
-	//		ImGui::Text("screenMouse Pos x%d, y%d", sPos.x, sPos.y);
-	//	
-	//		ImGui::End();
-	//	}
-	//);
-	//m_sceneManager.get()->DebugUpdate(dTime);
-	//DebugManager::GetInstance().OnDebugUpdate(dTime);
-}
+void GOE::Engine::DebugUpdate(double dTime){}
 
 UIInitInfo* GOE::Engine::GetUIInfo()
 {

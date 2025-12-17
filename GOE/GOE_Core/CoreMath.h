@@ -441,6 +441,15 @@ namespace GOE
 		
 
 	public:
+		FLoatVector3 operator= (const FLoatVector3 other)
+		{
+			FLoatVector3 temp;
+			x = other.x;
+			y = other.y;
+			z = other.z;
+			return temp;
+		}
+
 		FLoatVector3& operator*= (const float& scalar)
 		{
 			x *= scalar;
@@ -506,6 +515,7 @@ namespace GOE
 			z -= other.z;
 			return *this;
 		}
+		
 
 	};
 

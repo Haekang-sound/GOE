@@ -86,6 +86,50 @@ void Scene::Script()
 		m_movementUnitManager.get()->GetCurrentComponent()->SetMoveable(true);
 	}
 
+	{
+		/// 엔티티를 만들고 부모자식관계를 하이어라키에서 확인하기위한 테스느
+		m_entityManager.get()->CreateEntity("믹사모");
+		m_entityManager.get()->SetParent(
+			m_entityManager.get()->GetAllEntities().back().get(),
+			m_entityManager.get()->GetAllEntities()[0].get()
+		);
+
+		// 트랜스폼은 
+		// 시작위치, 스케일, 회전을 넣을 수 있어야 함
+		m_transformManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+
+		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
+		m_transformManager.get()->GetCurrentComponent()->SetLocalTM(tm);
+		m_transformManager.get()->GetCurrentComponent()->SetScaleTM({ 0.1f, 0.1f, 0.1f });
+
+		// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
+		m_meshRendererManager.get()->AddComponent(m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		size_t meshPath = GOE::FileManager::GetHash("Ch03");
+
+		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
+		m_meshRendererManager.get()->GetCurrentComponent()->SetVisible(true);
+
+		size_t textureid = GOE::FileManager::GetHash(GOE::FileManager::GetInstance().GetFullPath("Assets/textures/Ch03_1001_Diffuse.png"));
+		m_materialManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		m_materialManager.get()->GetCurrentComponent()->SetTextureID(textureid);
+
+		size_t animationid = GOE::FileManager::GetHash("mixamo.com");
+		m_animationUnitManager.get()->AddComponent(
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
+			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
+		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimationHash(animationid);
+		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimate(true);
+	}
+
+
 	/// 쿠라몬 1000개가 있으면 9-10FPS가 나온다.
 	//for (int i = 0; i < 10; ++i)
 	//{
@@ -106,7 +150,7 @@ void Scene::Script()
 	//			GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
 	//			m_transformManager.get()->GetCurrentComponent()->SetLocalTM(tm);
 	//			m_transformManager.get()->GetCurrentComponent()->SetScaleTM({ 0.1f, 0.1f, 0.1f });
-	//			m_transformManager.get()->GetCurrentComponent()->SetPositionTM({ 15.0f*static_cast<float>(i), 15.0f * static_cast<float>(j), 15.0f* static_cast<float>(k)});
+	//			m_transformManager.get()->GetCurrentComponent()->SetPositionTM({ 15.0f * static_cast<float>(i), 15.0f * static_cast<float>(j), 15.0f * static_cast<float>(k) });
 
 	//			// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
 	//			// 일단 컴포넌트 아이디와 entity 아이디를 동일하게 사용한다.
@@ -136,42 +180,5 @@ void Scene::Script()
 	//		}
 	//	}
 	//}
-	{
-		// 엔티티를 만들고
-		m_entityManager.get()->CreateEntity("믹사모");
-
-		// 트랜스폼은 
-		// 시작위치, 스케일, 회전을 넣을 수 있어야 함
-		m_transformManager.get()->AddComponent(
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-
-		GOE::Matrix4x4 tm = GOE::Matrix4x4::Identity();
-		m_transformManager.get()->GetCurrentComponent()->SetLocalTM(tm);
-		m_transformManager.get()->GetCurrentComponent()->SetScaleTM({ 0.1f, 0.1f, 0.1f });
-
-		// 메쉬랜더러는 메쉬id를 전달하는 구간이 필요하다.
-		m_meshRendererManager.get()->AddComponent(m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		size_t meshPath = GOE::FileManager::GetHash("Ch03");
-
-		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshID(m_context->assetCore->GetMesh(meshPath)->GetID());
-		m_meshRendererManager.get()->GetCurrentComponent()->SetMeshIndex(m_context->assetCore->GetMesh(meshPath)->GetMeshIndex());
-		m_meshRendererManager.get()->GetCurrentComponent()->SetModelID(m_context->assetCore->GetMesh(meshPath)->GetModelID());
-		m_meshRendererManager.get()->GetCurrentComponent()->SetName(m_context->assetCore->GetMesh(meshPath)->GetName());
-		m_meshRendererManager.get()->GetCurrentComponent()->SetVisible(true);
-		
-		size_t textureid = GOE::FileManager::GetHash(GOE::FileManager::GetInstance().GetFullPath("Assets/textures/Ch03_1001_Diffuse.png"));
-		m_materialManager.get()->AddComponent(
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		m_materialManager.get()->GetCurrentComponent()->SetTextureID(textureid);
-
-		size_t animationid = GOE::FileManager::GetHash("mixamo.com");
-		m_animationUnitManager.get()->AddComponent(
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID(),
-			m_entityManager.get()->GetAllEntities().back().get()->GetEntitiyID());
-		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimationHash(animationid);
-		m_animationUnitManager.get()->GetCurrentComponent()->SetAnimate(true);
-	}
+	
 }

@@ -19,7 +19,6 @@ void Application::Initialize()
 
 	m_editorCore = std::make_unique<Editor::EditorCore>(m_engine->GetHWND());
 	m_editorCore->Initialize(m_engine.get()->GetUIInfo());
-
 	m_editorBridge = std::make_unique<Editor::EditorBridge>(m_engine.get()->GetSceneManager());
 	m_editorCore->SetBridge(m_editorBridge.get());
 
@@ -53,9 +52,15 @@ int Application::Run()
 		m_engine->BeginRender();
 		m_engine->OnRender();
 
-		m_editorCore->OnUpdate(GOE::TimeManager::GetInstance().GetDeltaTime());
-		m_editorCore->OnRender(m_engine.get()->GetUILoopInfo());
-
+		m_elapsedTime += GOE::TimeManager::GetInstance().GetDeltaTime();
+		
+		// 고정시간에 없데이트하면 리소스를 아끼겠지 ?
+		if (m_elapsedTime >= m_fixedTime)
+		{
+			m_editorCore->OnUpdate();
+			m_editorCore->OnRender(m_engine.get()->GetUILoopInfo());
+		}
+		
 		m_engine->EndRender();
 	}
 	return 0;
