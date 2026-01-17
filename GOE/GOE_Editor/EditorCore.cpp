@@ -115,7 +115,6 @@ void Editor::EditorCore::OnRender(UILoopInfo* uiInfo)
            if (m_editorBridge)
            {
                // 1. Bridge를 통해 '루트' 엔티티 목록만 가져옵니다.
-               // (Step 2에서 GetAllEntities가 트리 구조로 정리된 루트들을 반환한다고 가정)
                auto rootEntities = m_editorBridge->GetAllEntities();
   
                // 2. 루트 엔티티들부터 재귀적으로 그리기 시작

@@ -14,6 +14,10 @@ class Entity;
 /// </summary>
 class EntityManager
 {
+private:
+	std::vector<std::unique_ptr<Entity>> m_entities;
+	std::unordered_map<EntityID, EntityIndex> m_entityMap;
+
 public:
 	Entity* CreateEntity(std::string name);
 	Entity* FindEntity(EntityID id);
@@ -32,10 +36,6 @@ public:
 	std::vector<std::unique_ptr<Entity>>& GetAllEntities() { return m_entities; }
 	std::unordered_map<EntityID, EntityIndex>& GetEntityMap() { return m_entityMap; }
 	const std::unordered_map<EntityID, EntityIndex>& GetEntityMap() const { return m_entityMap; }
-
-private:
-	std::vector<std::unique_ptr<Entity>> m_entities;
-	std::unordered_map<EntityID, EntityIndex> m_entityMap;
 };
 
 

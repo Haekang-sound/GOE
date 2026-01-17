@@ -29,36 +29,6 @@ class AnimationSystem;
 /// </summary>
 class Scene
 {
-public:
-	Scene();
-	~Scene();
-
-	/// <summary>
-	///  현재 씬에 존재하는 라이프사이클 함수는 
-	///  나중에 Scenemanager선에서 관리되어야 한다.
-	/// </summary>
-public:
-	void Initialize(GOE::EngineContext* context);
-
-	void OnUpdate(double dTime);
-
-	void DebugUpdate(double dTime);
-
-public:
-	inline const EntityManager* GetEntityManager() const { return m_entityManager.get(); }
-	inline const ComponentManager<Transform>* GetTransformManager() const { return m_transformManager.get(); }
-	inline const ComponentManager<MeshRenderer>* GetMeshRendererManager()const { return m_meshRendererManager.get(); }
-	inline const ComponentManager<MovementUnit>* GetMovementUnitManager() const { return m_movementUnitManager.get(); }
-	inline ComponentManager<Transform>* GetTransformManager() { return m_transformManager.get(); }
-	inline ComponentManager<MeshRenderer>* GetMeshRendererManager() { return m_meshRendererManager.get(); }
-	inline ComponentManager<Material>* GetMaterialManager() { return m_materialManager.get(); }
-	inline ComponentManager<MovementUnit>* GetMovementUnitManager() { return m_movementUnitManager.get(); }
-	inline ComponentManager<AnimationUnit>* GetAnimationUnitManager() { return m_animationUnitManager.get(); }
-	inline ComponentManager<CameraComponent>* GetCameraManager() { return m_cameraManager.get(); }
-
-private:
-	void Script();// 씬을 적는 곳이 있어야한다.
-
 private:
 	GOE::EngineContext* m_context = nullptr;
 
@@ -76,5 +46,34 @@ private:
 	std::unique_ptr<TransfromSystem> m_transfromSystem;
 	std::unique_ptr<MovementSystem> m_movementSystem;
 	std::unique_ptr<AnimationSystem> m_animationSystem;
+
+public:
+	Scene();
+	~Scene();
+
+	/// <summary>
+	///  현재 씬에 존재하는 라이프사이클 함수는 
+	///  나중에 Scenemanager선에서 관리되어야 한다.
+	/// </summary>
+public:
+	void Initialize(GOE::EngineContext* context);
+	void OnUpdate(double dTime);
+	void DebugUpdate(double dTime);
+
+public:
+	inline const EntityManager* GetEntityManager() const { return m_entityManager.get(); }
+	inline const ComponentManager<Transform>* GetTransformManager() const { return m_transformManager.get(); }
+	inline const ComponentManager<MeshRenderer>* GetMeshRendererManager()const { return m_meshRendererManager.get(); }
+	inline const ComponentManager<MovementUnit>* GetMovementUnitManager() const { return m_movementUnitManager.get(); }
+	inline ComponentManager<Transform>* GetTransformManager() { return m_transformManager.get(); }
+	inline ComponentManager<MeshRenderer>* GetMeshRendererManager() { return m_meshRendererManager.get(); }
+	inline ComponentManager<Material>* GetMaterialManager() { return m_materialManager.get(); }
+	inline ComponentManager<MovementUnit>* GetMovementUnitManager() { return m_movementUnitManager.get(); }
+	inline ComponentManager<AnimationUnit>* GetAnimationUnitManager() { return m_animationUnitManager.get(); }
+	inline ComponentManager<CameraComponent>* GetCameraManager() { return m_cameraManager.get(); }
+
+private:
+	void Script();// 씬을 적는 곳이 있어야한다.
+
 };
 
