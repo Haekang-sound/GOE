@@ -15,7 +15,7 @@ namespace Editor
 	protected:
 		SceneManager* m_sceneManager = nullptr;
 		std::vector<Editor::EntityInfo> m_infos;
-		Scene* m_currentScene;
+		Scene* m_currentScene = nullptr;
 
 	public:
 		// [인터페이스 구현]
