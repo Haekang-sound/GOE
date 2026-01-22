@@ -27,12 +27,17 @@
     <ClInclude Include="Core_pch.h" />
     <ClInclude Include="FileManager.h" />
     <ClInclude Include="InputManager.h" />
+    <ClInclude Include="IProperty.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="Property.h" />
+    <ClInclude Include="PropertyTypes.h" />
+    <ClInclude Include="ReflectionRegistry.h" />
     <ClInclude Include="SingletonBase.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="TimeManager.h" />
+    <ClInclude Include="TypeDescriptor.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -50,8 +55,10 @@
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="Node.cpp" />
+    <ClCompile Include="ReflectionRegistry.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="TimeManager.cpp" />
+    <ClCompile Include="TypeDescriptor.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

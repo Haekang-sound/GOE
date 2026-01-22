@@ -1,6 +1,10 @@
-#pragma once
+﻿#pragma once
 /// <summary>
 /// 컴포넌트들의 최상위 인터페이스
+/// 
+/// IComponent를 상속받는 자료형은 반드시
+/// 기본자료형과 GOE_Core에 있는 자료형으로 채우도록
+/// 랜더러와의 분리 + 리플렉션데이터가 기본데이터와 GOE_Core를 기반으로하기 때문
 /// </summary>
 class IComponent
 {

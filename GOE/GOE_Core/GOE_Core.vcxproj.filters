@@ -10,6 +10,12 @@
     <Filter Include="Common">
       <UniqueIdentifier>{54cbf3dd-0b01-4a9e-aab1-e18196e04c94}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Manager">
+      <UniqueIdentifier>{9637a24b-831e-46d5-a860-103201fb1cf4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Reflection">
+      <UniqueIdentifier>{c6dc1e1c-f389-4af7-ab81-7e95e806b69d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SingletonBase.h">
@@ -51,8 +57,27 @@
     <ClInclude Include="BoneAnimation.h">
       <Filter>00_Headers</Filter>
     </ClInclude>
-    <ClInclude Include="InputManager.h" />
-    <ClInclude Include="TimeManager.h" />
+    <ClInclude Include="InputManager.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeManager.h">
+      <Filter>Manager</Filter>
+    </ClInclude>
+    <ClInclude Include="PropertyTypes.h">
+      <Filter>Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="IProperty.h">
+      <Filter>Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="Property.h">
+      <Filter>Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="ReflectionRegistry.h">
+      <Filter>Reflection</Filter>
+    </ClInclude>
+    <ClInclude Include="TypeDescriptor.h">
+      <Filter>Reflection</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Window.cpp">
@@ -85,7 +110,17 @@
     <ClCompile Include="BoneAnimation.cpp">
       <Filter>00_Sources</Filter>
     </ClCompile>
-    <ClCompile Include="InputManager.cpp" />
-    <ClCompile Include="TimeManager.cpp" />
+    <ClCompile Include="InputManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeManager.cpp">
+      <Filter>Manager</Filter>
+    </ClCompile>
+    <ClCompile Include="ReflectionRegistry.cpp">
+      <Filter>Reflection</Filter>
+    </ClCompile>
+    <ClCompile Include="TypeDescriptor.cpp">
+      <Filter>Reflection</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
